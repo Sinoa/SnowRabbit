@@ -1,0 +1,10 @@
+{
+	"name": "jp.sinoa.snowrabbit",
+	"displayName": "SnowRabbit",
+	"version": "0.0.1",
+	"unity": "2018.3",
+	"description": "This package provides Game develop support.",
+	"keywords": ["programming", "scripting", "snow", "rabbit"],
+	"category": "ScriptEngine",
+	"dependencies": {}
+}
