@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <Authors>Sinoa</Authors>
+    <Copyright>Sinoa</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="**/*.meta" />
+    <None Remove="**/*.asmdef" />
+  </ItemGroup>
+</Project>

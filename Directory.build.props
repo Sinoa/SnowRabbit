@@ -1,0 +1,11 @@
+<!--
+Unityプロジェクトにパッケージとして .NET Core プロジェクトを置くときに幸せになれるプロパティ設定です。
+ソリューションファイルと同じ位置に、このファイルを設置してご利用下さい。
+-->
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <OutputPath>.bin\</OutputPath>
+    <BaseIntermediateOutputPath>.obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>
