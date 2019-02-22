@@ -1,2 +1,7 @@
-*.meta
+# General Directories and Files
 /Document/.apireference/
+/.vs/
+/Projects/*/.bin/
+/Projects/*/.obj/
+
+*.meta
