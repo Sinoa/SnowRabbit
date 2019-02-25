@@ -248,6 +248,65 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
     /// <summary>
+    /// 命令コード型のImmediate部の表現をした共用体です
+    /// </summary>
+    [StructLayout(LayoutKind.Explicit)]
+    public unsafe struct InstructionImmediateValue
+    {
+        #region Immediate types
+        /// <summary>
+        /// 命令コードが使用するバイト配列即値です
+        /// </summary>
+        [FieldOffset(0)]
+        public fixed byte ByteCode[4];
+
+        /// <summary>
+        /// 命令コードが使用する符号なし8bit整数即値です
+        /// </summary>
+        [FieldOffset(0)]
+        public byte Byte;
+
+        /// <summary>
+        /// 命令コードが使用する符号付き8bit整数即値です
+        /// </summary>
+        [FieldOffset(0)]
+        public sbyte Sbyte;
+
+        /// <summary>
+        /// 命令コードが使用する符号なし16bit整数即値です
+        /// </summary>
+        [FieldOffset(0)]
+        public ushort Ushort;
+
+        /// <summary>
+        /// 命令コードが使用する符号付き16bit整数即値です
+        /// </summary>
+        [FieldOffset(0)]
+        public short Short;
+
+        /// <summary>
+        /// 命令コードが使用する符号なし32bit整数即値です
+        /// </summary>
+        [FieldOffset(0)]
+        public uint Uint;
+
+        /// <summary>
+        /// 命令コードが使用する符号付き32bit整数即値です
+        /// </summary>
+        [FieldOffset(0)]
+        public int Int;
+
+        /// <summary>
+        /// 命令コードが使用する32bit浮動小数点即値です
+        /// </summary>
+        [FieldOffset(0)]
+        public float Float;
+        #endregion
+    }
+
+
+
+    /// <summary>
     /// 仮想マシンが実行できる命令コードを表現した共用体です
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
@@ -289,76 +348,19 @@ namespace SnowRabbit.VirtualMachine.Runtime
         #endregion
 
 
-        #region General region
-        /// <summary>
-        /// 命令コードが使用する汎用バイト配列です
-        /// </summary>
-        [FieldOffset(4)]
-        public fixed byte GeneralByteCode[4];
-
-        /// <summary>
-        /// 命令コードが使用する汎用整数です
-        /// </summary>
-        [FieldOffset(4)]
-        public uint General;
-        #endregion
-
-
         #region Immediate region
         /// <summary>
-        /// 命令コードが使用する即値バイト配列です
+        /// 命令コードが使用する即値です
         /// </summary>
         [FieldOffset(4)]
-        public fixed byte ImmediateByteCode[4];
-
-        /// <summary>
-        /// 命令コードが使用する符号なし8bit整数即値です
-        /// </summary>
-        [FieldOffset(4)]
-        public byte ImmediateByte;
-
-        /// <summary>
-        /// 命令コードが使用する符号付き8bit整数即値です
-        /// </summary>
-        [FieldOffset(4)]
-        public sbyte ImmediateSbyte;
-
-        /// <summary>
-        /// 命令コードが使用する符号なし16bit整数即値です
-        /// </summary>
-        [FieldOffset(4)]
-        public ushort ImmediateUshort;
-
-        /// <summary>
-        /// 命令コードが使用する符号付き16bit整数即値です
-        /// </summary>
-        [FieldOffset(4)]
-        public short ImmediateShort;
-
-        /// <summary>
-        /// 命令コードが使用する符号なし32bit整数即値です
-        /// </summary>
-        [FieldOffset(4)]
-        public uint ImmediateUint;
-
-        /// <summary>
-        /// 命令コードが使用する符号付き32bit整数即値です
-        /// </summary>
-        [FieldOffset(4)]
-        public int ImmediateInt;
-
-        /// <summary>
-        /// 命令コードが使用する32bit浮動小数点即値です
-        /// </summary>
-        [FieldOffset(4)]
-        public float ImmediateFloat;
+        public InstructionImmediateValue Immediate;
         #endregion
     }
 
 
 
     /// <summary>
-    /// 仮想マシンが扱う大域メモリレイアウトを定義する共用体です
+    /// 仮想マシンが扱うメモリレイアウトを定義する共用体です
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
     public struct SrValue
