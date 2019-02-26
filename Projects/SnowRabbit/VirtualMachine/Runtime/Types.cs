@@ -360,6 +360,27 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
     /// <summary>
+    /// 確保したメモリブロックの情報を表現した構造体です
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct MemoryAllocationInfo
+    {
+        #region Info parameter
+        /// <summary>
+        /// このメモリブロックの確保済みブロック数（最上位ビットが1の場合は未使用ブロックとして処理されます）
+        /// </summary>
+        public uint AllocatedBlockCount;
+
+        /// <summary>
+        /// 1つ前の確保済みメモリブロック数
+        /// </summary>
+        public uint PrevAllocatedBlockCount;
+        #endregion
+    }
+
+
+
+    /// <summary>
     /// 仮想マシンが扱うメモリレイアウトを定義する共用体です
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
@@ -377,6 +398,12 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// </summary>
         [FieldOffset(0)]
         public InstructionCode Instruction;
+
+        /// <summary>
+        /// このメモリブロックのアロケーション情報を持ちます
+        /// </summary>
+        [FieldOffset(0)]
+        public MemoryAllocationInfo AllocationInfo;
         #endregion
     }
 }
