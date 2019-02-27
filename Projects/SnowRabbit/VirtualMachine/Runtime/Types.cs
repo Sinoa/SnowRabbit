@@ -156,6 +156,36 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
     /// <summary>
+    /// 仮想マシンがメモリ確保する際のメモリの種別を表します
+    /// </summary>
+    public enum AllocationType : byte
+    {
+        #region Type
+        /// <summary>
+        /// 何も割り当てられていない未使用メモリ領域です
+        /// </summary>
+        Free = 0,
+
+        /// <summary>
+        /// 仮想マシンのコンテキストメモリ領域です
+        /// </summary>
+        VMContext = 1,
+
+        /// <summary>
+        /// 実行コードが格納されているメモリ領域です
+        /// </summary>
+        Program = 2,
+
+        /// <summary>
+        /// 仮想マシンが実行するプロセスのメモリ領域です
+        /// </summary>
+        Process = 3,
+        #endregion
+    }
+
+
+
+    /// <summary>
     /// 仮想マシンの変数型を扱う型でメモリレイアウトを定義する共用体です
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
@@ -367,14 +397,29 @@ namespace SnowRabbit.VirtualMachine.Runtime
     {
         #region Info parameter
         /// <summary>
-        /// このメモリブロックの確保済みブロック数（最上位ビットが1の場合は未使用ブロックとして処理されます）
+        /// このメモリブロック領域の種類
         /// </summary>
-        public uint AllocatedBlockCount;
+        public AllocationType Type;
+
+        /// <summary>
+        /// 予約領域です。必ず0であるべきです。
+        /// </summary>
+        public byte Reserved1;
+
+        /// <summary>
+        /// 予約領域です。必ず0であるべきです。
+        /// </summary>
+        public ushort Reserved2;
+
+        /// <summary>
+        /// このメモリブロックの確保済みブロック数
+        /// </summary>
+        public ushort AllocatedBlockCount;
 
         /// <summary>
         /// 1つ前の確保済みメモリブロック数
         /// </summary>
-        public uint PrevAllocatedBlockCount;
+        public ushort PrevAllocatedBlockCount;
         #endregion
     }
 
