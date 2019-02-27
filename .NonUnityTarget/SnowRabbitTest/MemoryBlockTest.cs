@@ -113,14 +113,13 @@ namespace SnowRabbit.Test
             var memoryBlockA = new MemoryBlock(memoryPool, 0, 50);
             var memoryBlockB = new MemoryBlock(memoryPool, 50, 50);
             var memoryBlockC = new MemoryBlock(memoryPool, 0, 100);
-            var memoryBlockD = new MemoryBlock(memoryPool, 75, 50);
+            var memoryBlockD = new MemoryBlock(memoryPool, 25, 50);
 
 
             // メモリブロック適当入力値の用意
             var valueA = 123;
             var valueB = 456;
-            var valueC = 789;
-            var valueD = 147;
+            var valueD = 789;
 
 
             // A,B,Dのメモリブロックの先頭に適当な値を入れる
@@ -132,7 +131,10 @@ namespace SnowRabbit.Test
             // メモリプールの中がメモリブロックによって書き換えがちゃんと行われているかチェック
             Assert.AreEqual(valueA, memoryPool[0].Value.Int[0]);
             Assert.AreEqual(valueB, memoryPool[50].Value.Int[0]);
-            Assert.AreEqual(valueD, memoryPool[75].Value.Int[0]);
+            Assert.AreEqual(valueD, memoryPool[25].Value.Int[0]);
+            Assert.AreEqual(valueA, memoryBlockC[0].Value.Int[0]);
+            Assert.AreEqual(valueB, memoryBlockC[50].Value.Int[0]);
+            Assert.AreEqual(valueD, memoryBlockC[25].Value.Int[0]);
         }
     }
 }

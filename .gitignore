@@ -3,5 +3,7 @@
 /.vs/
 /Projects/*/.bin/
 /Projects/*/.obj/
+/.NonUnityTarget/*/.bin/
+/.NonUnityTarget/*/.obj/
 
 *.meta
