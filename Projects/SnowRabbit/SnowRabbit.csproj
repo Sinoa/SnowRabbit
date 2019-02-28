@@ -2,7 +2,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <Authors>Sinoa</Authors>
-    <Copyright>Sinoa</Copyright>
+    <Copyright>Copyright(c) 2019 Sinoa</Copyright>
+    <Description>Pure CSharp host script engine</Description>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
