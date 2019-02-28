@@ -13,6 +13,7 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
 using BenchmarkDotNet.Attributes;
 using SnowRabbit.VirtualMachine.Runtime;
 
@@ -89,10 +90,28 @@ namespace SnowRabbit.Benchmark
         public unsafe void AllMemoryWriteBlock()
         {
             // メモリブロック全体をループする
-            for (int i = 0; i < memoryBlock.Length; ++i)
+            var length = memoryBlock.Length;
+            for (int i = 0; i < length; ++i)
             {
                 // 要素に値を入れる
                 memoryBlock[i].Value.Ulong[0] = (ulong)i;
+            }
+        }
+
+
+        /// <summary>
+        /// Span構造体による書き込み性能を測定します
+        /// </summary>
+        [Benchmark]
+        public unsafe void AllMemoryWriteSpan()
+        {
+            // Spanのインスタンスを生成してループする
+            var memorySpan = new Span<SrValue>(memoryPool, 0, memoryPool.Length);
+            var length = memorySpan.Length;
+            for (int i = 0; i < length; ++i)
+            {
+                // 要素に値を入れる
+                memorySpan[i].Value.Ulong[0] = (ulong)i;
             }
         }
 
@@ -127,6 +146,79 @@ namespace SnowRabbit.Benchmark
         {
             // 単体要素に何かを書く
             memoryBlock[100].Value.Ulong[0] = 12345UL;
+        }
+
+
+        /// <summary>
+        /// メモリSpan構造体の単体要素への書き込み性能を測定します
+        /// </summary>
+        [Benchmark]
+        public unsafe void UnitMemoryWriteSpan()
+        {
+            // 単体要素に何かを書く
+            var memorySpan = new Span<SrValue>(memoryPool, 0, memoryPool.Length);
+            memorySpan[100].Value.Ulong[0] = 12345UL;
+        }
+
+
+        /// <summary>
+        /// 生配列の読み込み性能を測定します
+        /// </summary>
+        [Benchmark]
+        public void AllMemoryReadRaw()
+        {
+            // 全体を回る
+            for (int i = 0; i < rawPool.Length; ++i)
+            {
+                // 読み取ってそのまま捨てる
+                var result = rawPool[i];
+            }
+        }
+
+
+        /// <summary>
+        /// メモリプールの読み込み性能を測定します
+        /// </summary>
+        [Benchmark]
+        public unsafe void AllMemoryReadPool()
+        {
+            // 全体を回る
+            for (int i = 0; i < memoryPool.Length; ++i)
+            {
+                // 読み取ってそのまま捨てる
+                var result = memoryPool[i].Value.Ulong[0];
+            }
+        }
+
+
+        /// <summary>
+        /// メモリブロックの読み込み性能を測定します
+        /// </summary>
+        [Benchmark]
+        public unsafe void AllMemoryReadBlock()
+        {
+            // 全体を回る
+            for (int i = 0; i < memoryBlock.Length; ++i)
+            {
+                // 読み取ってそのまま捨てる
+                var result = memoryBlock[i].Value.Ulong[0];
+            }
+        }
+
+
+        /// <summary>
+        /// Span構造体の読み込み性能を測定します
+        /// </summary>
+        [Benchmark]
+        public unsafe void AllMemoryReadSpan()
+        {
+            // 全体を回る
+            var memorySpan = new Span<SrValue>(memoryPool, 0, memoryPool.Length);
+            for (int i = 0; i < memorySpan.Length; ++i)
+            {
+                // 読み取ってそのまま捨てる
+                var result = memorySpan[i].Value.Ulong[0];
+            }
         }
     }
 }
