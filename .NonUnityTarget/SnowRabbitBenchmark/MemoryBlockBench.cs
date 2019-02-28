@@ -62,7 +62,7 @@ namespace SnowRabbit.Benchmark
             for (int i = 0; i < rawPool.Length; ++i)
             {
                 // 要素に値を入れる
-                rawPool[0] = (ulong)i;
+                rawPool[i] = (ulong)i;
             }
         }
 
