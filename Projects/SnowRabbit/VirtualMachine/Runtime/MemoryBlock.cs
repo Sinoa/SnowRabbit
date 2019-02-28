@@ -14,7 +14,6 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
-using System.Diagnostics;
 
 namespace SnowRabbit.VirtualMachine.Runtime
 {
@@ -24,23 +23,20 @@ namespace SnowRabbit.VirtualMachine.Runtime
     /// <remarks>
     /// UnityGameEngineにSystem.Memory.dllのSpan<T>が入った場合は、差し替わる予定になっています。
     /// </remarks>
-    public struct MemoryBlock
+    public readonly struct MemoryBlock
     {
         // メンバ変数定義
-        private SrValue[] memoryPool;
-
-
+        private readonly SrValue[] memoryPool;
 
         /// <summary>
         /// 内部メモリプールの参照を開始するオフセット
         /// </summary>
-        public int Offset { get; private set; }
-
+        public readonly int Offset;
 
         /// <summary>
         /// 内部メモリプールから利用する長さ
         /// </summary>
-        public int Length { get; private set; }
+        public readonly int Length;
 
 
         /// <summary>
