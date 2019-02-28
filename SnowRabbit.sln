@@ -5,7 +5,9 @@ VisualStudioVersion = 15.0.28307.421
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnowRabbit", "Projects\SnowRabbit\SnowRabbit.csproj", "{F81DB04E-0142-4F9F-B3F1-1B0321DDC6DB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnowRabbitTest", ".NonUnityTarget\SnowRabbitTest\SnowRabbitTest.csproj", "{09944433-6C96-4F27-9A05-61EF9E5FAADD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnowRabbitTest", ".NonUnityTarget\SnowRabbitTest\SnowRabbitTest.csproj", "{09944433-6C96-4F27-9A05-61EF9E5FAADD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnowRabbitBenchmark", ".NonUnityTarget\SnowRabbitBenchmark\SnowRabbitBenchmark.csproj", "{BA557A58-5DC6-4A39-A13D-8658F0D41C11}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{09944433-6C96-4F27-9A05-61EF9E5FAADD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09944433-6C96-4F27-9A05-61EF9E5FAADD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09944433-6C96-4F27-9A05-61EF9E5FAADD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA557A58-5DC6-4A39-A13D-8658F0D41C11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA557A58-5DC6-4A39-A13D-8658F0D41C11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA557A58-5DC6-4A39-A13D-8658F0D41C11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA557A58-5DC6-4A39-A13D-8658F0D41C11}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
