@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.Diagnostics;
 
 namespace SnowRabbit.VirtualMachine.Runtime
 {
@@ -52,15 +53,8 @@ namespace SnowRabbit.VirtualMachine.Runtime
         {
             get
             {
-                // もしインデックスが自身の参照する範囲を超えるなら
-                if (index < 0 || index >= Length)
-                {
-                    // 境界外アクセスは禁止
-                    throw new ArgumentOutOfRangeException(nameof(index));
-                }
-
-
                 // 自身が参照するオフセット位置から指定されたインデックスの参照を返す
+                Debug.Assert(index < 0 || index >= Length, "Index out of range.");
                 return ref memoryPool[Offset + index];
             }
         }
