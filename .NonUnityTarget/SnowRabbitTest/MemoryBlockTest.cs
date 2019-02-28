@@ -71,12 +71,21 @@ namespace SnowRabbit.Test
         /// <param name="length">メモリブロックコンストラクタのlengthパラメータ</param>
         /// <param name="accessIndex">インデクサに指定するインデックス</param>
         /// <param name="exceptionType">例外が発生する場合の例外の型、例外が発生しない場合はnull</param>
+#if DEBUG
         [TestCase(10, 0, 5, 5, typeof(ArgumentOutOfRangeException))]
         [TestCase(10, 0, 5, 6, typeof(ArgumentOutOfRangeException))]
         [TestCase(10, 0, 5, -1, typeof(ArgumentOutOfRangeException))]
         [TestCase(10, 4, 5, 5, typeof(ArgumentOutOfRangeException))]
         [TestCase(10, 4, 5, 6, typeof(ArgumentOutOfRangeException))]
         [TestCase(10, 4, 5, -1, typeof(ArgumentOutOfRangeException))]
+#else
+        [TestCase(10, 0, 5, 5, null)] // But memory break.
+        [TestCase(10, 0, 5, 6, null)] // But memory break.
+        [TestCase(10, 0, 5, -1, typeof(IndexOutOfRangeException))]
+        [TestCase(10, 4, 5, 5, null)] // But memory break.
+        [TestCase(10, 4, 5, 6, typeof(IndexOutOfRangeException))]
+        [TestCase(10, 4, 5, -1, null)] // But memory break.
+#endif
         [TestCase(10, 0, 5, 0, null)]
         [TestCase(10, 0, 5, 4, null)]
         [TestCase(10, 4, 5, 0, null)]

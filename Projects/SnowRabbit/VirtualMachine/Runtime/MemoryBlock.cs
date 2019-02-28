@@ -53,8 +53,17 @@ namespace SnowRabbit.VirtualMachine.Runtime
         {
             get
             {
+#if DEBUG
+                // デバッグビルド時のみ境界チェックを行うようにする
+                if (index < 0 || index >= Length)
+                {
+                    // 境界外アクセスは禁止
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+#endif
+
+
                 // 自身が参照するオフセット位置から指定されたインデックスの参照を返す
-                Debug.Assert(index < 0 || index >= Length, "Index out of range.");
                 return ref memoryPool[Offset + index];
             }
         }
