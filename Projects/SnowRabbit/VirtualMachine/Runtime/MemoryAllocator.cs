@@ -17,6 +17,37 @@ using System;
 
 namespace SnowRabbit.VirtualMachine.Runtime
 {
+    #region Utility
+    /// <summary>
+    /// メモリアロケータの実装で使用する機能をユーティリティ化したクラスです
+    /// </summary>
+    public static class MemoryAllocatorUtility
+    {
+        /// <summary>
+        /// バイトサイズから配列の要素数を求めます
+        /// </summary>
+        /// <param name="size">計算するバイト数</param>
+        /// <returns>バイト数から要素数に変換した値を返します</returns>
+        public static int ByteSizeToElementCount(int size)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        /// <summary>
+        /// 配列の要素数からバイトサイズを求めます
+        /// </summary>
+        /// <param name="count">計算する要素数</param>
+        /// <returns>要素数からバイト数に変換した値を返します</returns>
+        public static int ElementCountToByteSize(int count)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    #endregion
+
+
+
     #region interface
     /// <summary>
     /// 仮想マシンが使用するメモリを確保するメモリアロケータインターフェイスです
@@ -92,6 +123,121 @@ namespace SnowRabbit.VirtualMachine.Runtime
             // 無条件で例外をスローする
             throw new SrOutOfMemoryException("指定されたサイズのメモリを確保できませんでした");
         }
+    }
+    #endregion
+
+
+
+    #region Standard MemoryAllocator
+    /// <summary>
+    /// SnowRabbit 仮想マシンが使用する標準メモリアロケータクラスです
+    /// </summary>
+    public class StandardMemoryAllocator : MemoryAllocator
+    {
+        // メンバ変数定義
+        private SrValue[] memoryPool;
+        private int poolElementSize;
+        private int freePageStartIndex;
+
+
+
+        #region Constructor and initializer
+        /// <summary>
+        /// メモリプールの容量を指定して StandardMemoryAllocator のインスタンスを初期化します
+        /// </summary>
+        /// <param name="memoryPoolSize"></param>
+        public StandardMemoryAllocator(int memoryPoolSize)
+        {
+            // 事前の例外ハンドリングをする
+            ThrowIfInvalidPoolSize(memoryPoolSize);
+
+
+            // 要求サイズから確保するべき配列の要素数を求める
+            var allocateSize = memoryPoolSize + ((8 - (memoryPoolSize & 7)) & 7);
+            var allocateBlock = allocateSize >> 3;
+
+
+            // 必要要素分配列を確保して初期化する
+            Initialize(new SrValue[allocateBlock]);
+        }
+
+
+        /// <summary>
+        /// メモリプールを直接渡して StandardMemoryAllocator のインスタンスを初期化します
+        /// </summary>
+        /// <param name="memoryPool">このアロケータに使ってもらうメモリプール</param>
+        public StandardMemoryAllocator(SrValue[] memoryPool)
+        {
+            // 渡された引数を使って、そのまま初期化処理を呼ぶ
+            Initialize(memoryPool);
+        }
+
+
+        /// <summary>
+        /// 指定されたメモリプールのバッファでインスタンスの初期化を行います
+        /// </summary>
+        /// <param name="memoryPool">このアロケータが使用するメモリプール</param>
+        private void Initialize(SrValue[] memoryPool)
+        {
+            // 事前例外ハンドリングをしてプールを覚える
+            ThrowIfInvalidMemoryPool(memoryPool);
+            this.memoryPool = memoryPool;
+        }
+        #endregion
+
+
+        #region Allocation function
+        /// <summary>
+        /// メモリの確保をします。確保されるメモリのサイズは size が収まる様に確保されますが、実際の確保サイズは必ず一致しているかどうかを保証していません。
+        /// </summary>
+        /// <param name="size">確保するメモリのサイズ</param>
+        /// <param name="type">確保するメモリの利用タイプ</param>
+        /// <returns>確保したメモリのブロックを返します</returns>
+        /// <exception cref="ArgumentOutOfRangeException">確保するサイズに 0 以下の指定は出来ません</exception>
+        /// <exception cref="SrOutOfMemoryException">指定されたサイズのメモリを確保できませんでした</exception>
+        public override MemoryBlock Allocate(int size, AllocationType type)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        /// <summary>
+        /// 指定されたメモリブロックを解放します。
+        /// </summary>
+        /// <param name="memoryBlock">解放するメモリブロック</param>
+        public override void Deallocate(MemoryBlock memoryBlock)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+
+        #region Exception builder function
+        /// <summary>
+        /// プールサイズが最低限確保するべきサイズを指定されなかった場合例外をスローします
+        /// </summary>
+        /// <param name="poolSize">確保するプールサイズ</param>
+        protected void ThrowIfInvalidPoolSize(int poolSize)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        /// <summary>
+        /// メモリプールの配列参照が null だった場合または容量が少ない場合に例外をスローします
+        /// </summary>
+        /// <param name="memoryPool">確認する配列</param>
+        /// <exception cref="ArgumentNullException">memoryPool が null です</exception>
+        protected void ThrowIfInvalidMemoryPool(SrValue[] memoryPool)
+        {
+            // null の場合は
+            if (memoryPool == null)
+            {
+                // 例外を吐く
+                throw new ArgumentNullException(nameof(memoryPool));
+            }
+        }
+        #endregion
     }
     #endregion
 
