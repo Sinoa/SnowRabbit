@@ -167,19 +167,24 @@ namespace SnowRabbit.VirtualMachine.Runtime
         Free = 0,
 
         /// <summary>
+        /// 汎用的な理由によるメモリ確保です
+        /// </summary>
+        General = 1,
+
+        /// <summary>
         /// 仮想マシンのコンテキストメモリ領域です
         /// </summary>
-        VMContext = 1,
+        VMContext = 2,
 
         /// <summary>
         /// 実行コードが格納されているメモリ領域です
         /// </summary>
-        Program = 2,
+        Program = 3,
 
         /// <summary>
         /// 仮想マシンが実行するプロセスのメモリ領域です
         /// </summary>
-        Process = 3,
+        Process = 4,
         #endregion
     }
 
