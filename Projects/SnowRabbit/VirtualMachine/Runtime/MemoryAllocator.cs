@@ -104,7 +104,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
     public class DynamicManagedMemoryAllocator : MemoryAllocator
     {
         /// <summary>
-        /// メモリの確保をします。確保されるメモリのサイズは size が収まる様に確保されますが、実際の確保サイズは必ず一致しているかどうかを保証していません。
+        /// メモリの確保をします。確保されるメモリのサイズは size が収まる様に最大8の倍数に調整された確保が行われます。
         /// </summary>
         /// <param name="size">確保するメモリのサイズ</param>
         /// <param name="type">確保するメモリの利用タイプ</param>
