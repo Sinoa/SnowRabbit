@@ -141,10 +141,13 @@ namespace SnowRabbit.VirtualMachine.Runtime
     /// </summary>
     public class StandardMemoryAllocator : MemoryAllocator
     {
+        // 定数定義
+        public const int RequirePoolElementCount = 4;
+        public const int RequirePoolSize = 8 * RequirePoolElementCount;
+
         // メンバ変数定義
         private SrValue[] memoryPool;
-        private int poolElementSize;
-        private int freePageStartIndex;
+        private int freeElementIndex;
 
 
 
@@ -153,19 +156,12 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// メモリプールの容量を指定して StandardMemoryAllocator のインスタンスを初期化します
         /// </summary>
         /// <param name="memoryPoolSize"></param>
+        /// <exception cref="ArgumentOutOfRangeException">poolSize が RequirePoolSize 未満です</exception>
         public StandardMemoryAllocator(int memoryPoolSize)
         {
-            // 事前の例外ハンドリングをする
-            ThrowIfInvalidPoolSize(memoryPoolSize);
-
-
-            // 要求サイズから確保するべき配列の要素数を求める
-            var allocateSize = memoryPoolSize + ((8 - (memoryPoolSize & 7)) & 7);
-            var allocateBlock = allocateSize >> 3;
-
-
-            // 必要要素分配列を確保して初期化する
-            Initialize(new SrValue[allocateBlock]);
+            // 事前の例外ハンドリングをして、要求サイズから確保するサイズを求めて配列を生成後初期化する
+            ThrowExceptionIfInvalidPoolSize(memoryPoolSize);
+            Initialize(new SrValue[ByteSizeToElementCount(memoryPoolSize)]);
         }
 
 
@@ -173,6 +169,8 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// メモリプールを直接渡して StandardMemoryAllocator のインスタンスを初期化します
         /// </summary>
         /// <param name="memoryPool">このアロケータに使ってもらうメモリプール</param>
+        /// <exception cref="ArgumentNullException">memoryPool が null です</exception>
+        /// <exception cref="ArgumentOutOfRangeException">memoryPool の長さが RequirePoolElementCount 未満です</exception>
         public StandardMemoryAllocator(SrValue[] memoryPool)
         {
             // 渡された引数を使って、そのまま初期化処理を呼ぶ
@@ -184,11 +182,63 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// 指定されたメモリプールのバッファでインスタンスの初期化を行います
         /// </summary>
         /// <param name="memoryPool">このアロケータが使用するメモリプール</param>
-        private void Initialize(SrValue[] memoryPool)
+        /// <exception cref="ArgumentNullException">memoryPool が null です</exception>
+        /// <exception cref="ArgumentOutOfRangeException">memoryPool の長さが RequirePoolElementCount 未満です</exception>
+        private unsafe void Initialize(SrValue[] memoryPool)
         {
-            // 事前例外ハンドリングをしてプールを覚える
-            ThrowIfInvalidMemoryPool(memoryPool);
+            // 事前例外ハンドリングをする
+            ThrowExceptionIfInvalidMemoryPool(memoryPool);
+
+
+            // メモリプールの参照を覚えてインスタンス変数の初期化をする
             this.memoryPool = memoryPool;
+            freeElementIndex = 0;
+
+
+            // 最初のフリー領域の大きさを管理する
+            SetAllocationInfo(freeElementIndex, -1, -1, memoryPool.Length - 2, AllocationType.Free);
+        }
+        #endregion
+
+
+        #region AllocationInfo control function
+        /// <summary>
+        /// 指定したメモリプールのインデックスから、メモリ管理情報を設定します
+        /// </summary>
+        /// <param name="poolIndex">管理情報設定するメモリプールのインデックス位置</param>
+        /// <param name="prevIndex">前のメモリブロック管理インデックス</param>
+        /// <param name="nextIndex">次のメモリブロック管理インデックス</param>
+        /// <param name="allocatedCount">該当メモリブロックの確保個数</param>
+        /// <param name="type">該当メモリブロックの確保タイプ</param>
+        private unsafe void SetAllocationInfo(int poolIndex, int prevIndex, int nextIndex, int allocatedCount, AllocationType type)
+        {
+            // 指定されたインデックスの位置は、前後のメモリブロックのインデックスを指す（双方向リストのインデックス）
+            // 指定されたインデックスの次の位置は、該当管理メモリブロックの確保サイズと確保タイプを保持する
+            // 指定されたインデックスから確保済みブロックの次の位置は、管理データを含む確保した全体サイズを保持する
+            memoryPool[poolIndex + 0].Value.Int[0] = prevIndex;
+            memoryPool[poolIndex + 0].Value.Int[1] = nextIndex;
+            memoryPool[poolIndex + 1].Value.Int[0] = allocatedCount;
+            memoryPool[poolIndex + 1].Value.Int[1] = (int)type;
+            memoryPool[poolIndex + 2 + allocatedCount].Value.Int[0] = allocatedCount + 3;
+        }
+
+
+        /// <summary>
+        /// 指定したメモリプールのインデックスから、メモリ管理情報を取得します
+        /// </summary>
+        /// <param name="poolIndex">管理情報設定するメモリプールのインデックス位置</param>
+        /// <param name="prevIndex">前のメモリブロック管理インデックス</param>
+        /// <param name="nextIndex">次のメモリブロック管理インデックス</param>
+        /// <param name="allocatedCount">該当メモリブロックの確保個数</param>
+        /// <param name="type">該当メモリブロックの確保タイプ</param>
+        private unsafe void GetAllocationInfo(int poolIndex, out int prevIndex, out int nextIndex, out int allocatedCount, out AllocationType type)
+        {
+            // 指定されたインデックスの位置は、前後のメモリブロックのインデックスを指す（双方向リストのインデックス）
+            // 指定されたインデックスの次の位置は、該当管理メモリブロックの確保サイズと確保タイプを保持する
+            prevIndex = memoryPool[poolIndex + 0].Value.Int[0];
+            nextIndex = memoryPool[poolIndex + 0].Value.Int[1];
+            allocatedCount = memoryPool[poolIndex + 1].Value.Int[0];
+            type = (AllocationType)memoryPool[poolIndex + 1].Value.Int[1];
         }
         #endregion
 
@@ -204,7 +254,17 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <exception cref="SrOutOfMemoryException">指定されたサイズのメモリを確保できませんでした</exception>
         public override MemoryBlock Allocate(int size, AllocationType type)
         {
-            throw new NotImplementedException();
+            // 事前例外処理をして必要な確保要素数を求める
+            ThrowExceptionIfRequestInvalidSize(size);
+            var allocationCount = ByteSizeToElementCount(size);
+
+
+            // そもそも空き要素インデックスが負の値なら
+            if (freeElementIndex < 0)
+            {
+                // この時点で空きが足りない例外を吐く
+                ThrowExceptionSrOutOfMemory();
+            }
         }
 
 
@@ -224,24 +284,39 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// プールサイズが最低限確保するべきサイズを指定されなかった場合例外をスローします
         /// </summary>
         /// <param name="poolSize">確保するプールサイズ</param>
-        protected void ThrowIfInvalidPoolSize(int poolSize)
+        /// <exception cref="ArgumentOutOfRangeException">poolSize が RequirePoolSize 未満です</exception>
+        protected void ThrowExceptionIfInvalidPoolSize(int poolSize)
         {
-            throw new NotImplementedException();
+            // RequirePoolSize 未満なら
+            if (poolSize < RequirePoolSize)
+            {
+                // 例外を吐く
+                throw new ArgumentOutOfRangeException(nameof(poolSize), $"{nameof(poolSize)} が {nameof(RequirePoolSize)} 未満です");
+            }
         }
 
 
         /// <summary>
-        /// メモリプールの配列参照が null だった場合または容量が少ない場合に例外をスローします
+        /// メモリプールの配列参照が null だった場合に例外をスローします
         /// </summary>
         /// <param name="memoryPool">確認する配列</param>
         /// <exception cref="ArgumentNullException">memoryPool が null です</exception>
-        protected void ThrowIfInvalidMemoryPool(SrValue[] memoryPool)
+        /// <exception cref="ArgumentOutOfRangeException">memoryPool の長さが RequirePoolElementCount 未満です</exception>
+        protected void ThrowExceptionIfInvalidMemoryPool(SrValue[] memoryPool)
         {
             // null の場合は
             if (memoryPool == null)
             {
                 // 例外を吐く
                 throw new ArgumentNullException(nameof(memoryPool));
+            }
+
+
+            // 長さが RequirePoolElementCount 未満なら
+            if (memoryPool.Length < RequirePoolElementCount)
+            {
+                // 例外を吐く
+                throw new ArgumentOutOfRangeException($"{nameof(memoryPool)} の長さが {nameof(RequirePoolElementCount)} 未満です", nameof(memoryPool));
             }
         }
         #endregion
