@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using static SnowRabbit.VirtualMachine.Runtime.MemoryAllocatorUtility;
 
 namespace SnowRabbit.VirtualMachine.Runtime
 {
@@ -30,7 +31,12 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <returns>バイト数から要素数に変換した値を返します</returns>
         public static int ByteSizeToElementCount(int size)
         {
-            throw new NotImplementedException();
+            // パディング込みの計算式例（ビット演算ではなく汎用計算式の場合）
+            // paddingSize = (blockSize - (dataSize % blockSize)) % blockSize
+            // finalSize = dataSize + paddingSize
+            // blockCount = finalSize / blockSize
+            // サイズから確保するべき配列の要素数を求める（1ブロック8byteなので8byte倍数に収まるようにしてから求める）
+            return (size + ((8 - (size & 7)) & 7)) >> 3;
         }
 
 
@@ -41,7 +47,8 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <returns>要素数からバイト数に変換した値を返します</returns>
         public static int ElementCountToByteSize(int count)
         {
-            throw new NotImplementedException();
+            // ブロックサイズは8byteなのでそのまま8倍にして返す
+            return count << 3;
         }
     }
     #endregion
@@ -259,16 +266,9 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <exception cref="OutOfMemoryException">指定されたサイズのメモリを確保できませんでした</exception>
         public override MemoryBlock Allocate(int size, AllocationType type)
         {
-            // 事前の例外ハンドリングを行う
+            // 事前の例外ハンドリングをしてから、サイズを計算後メモリブロックを生成して返す
             ThrowExceptionIfRequestInvalidSize(size);
-
-
-            // 要求サイズから確保するべき配列の要素数を求める
-            var allocateSize = size + ((8 - (size & 7)) & 7);
-            var allocateBlock = allocateSize >> 3;
-
-
-            // メモリブロックを生成後、必要配列数分確保して返す
+            var allocateBlock = ByteSizeToElementCount(size);
             return new MemoryBlock(new SrValue[allocateBlock], 0, allocateBlock);
         }
 

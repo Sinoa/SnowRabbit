@@ -26,6 +26,31 @@ namespace SnowRabbit.Test
     public class MemoryAllocatorTest
     {
         /// <summary>
+        /// MemoryAllocatorUtility クラスのサイズ計算ユーティリティ関数のテストを行います
+        /// </summary>
+        [Test]
+        public void SizeUtilityTest()
+        {
+            // サイズ計算ユーティリティを叩いて想定した結果が返ってくればそれで良い
+            // （負の値も受け入れるが原則想定された使われ方ではない上結果を保証しないので無視する）
+            // Size => Element
+            Assert.AreEqual(0, MemoryAllocatorUtility.ByteSizeToElementCount(0));
+            Assert.AreEqual(1, MemoryAllocatorUtility.ByteSizeToElementCount(1));
+            Assert.AreEqual(1, MemoryAllocatorUtility.ByteSizeToElementCount(8));
+            Assert.AreEqual(2, MemoryAllocatorUtility.ByteSizeToElementCount(10));
+            Assert.AreEqual(2, MemoryAllocatorUtility.ByteSizeToElementCount(16));
+            Assert.AreEqual(13, MemoryAllocatorUtility.ByteSizeToElementCount(100));
+            // Element => Size
+            Assert.AreEqual(0, MemoryAllocatorUtility.ElementCountToByteSize(0));
+            Assert.AreEqual(8, MemoryAllocatorUtility.ElementCountToByteSize(1));
+            Assert.AreEqual(16, MemoryAllocatorUtility.ElementCountToByteSize(2));
+            Assert.AreEqual(24, MemoryAllocatorUtility.ElementCountToByteSize(3));
+            Assert.AreEqual(32, MemoryAllocatorUtility.ElementCountToByteSize(4));
+            Assert.AreEqual(80, MemoryAllocatorUtility.ElementCountToByteSize(10));
+        }
+
+
+        /// <summary>
         /// DynamicManagedMemoryAllocator のメモリ確保テストを行います
         /// </summary>
         /// <param name="size">確保しようとしているメモリサイズ</param>
