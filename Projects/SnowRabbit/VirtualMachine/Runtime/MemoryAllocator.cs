@@ -311,10 +311,6 @@ namespace SnowRabbit.VirtualMachine.Runtime
             }
 
 
-            // 要求サイズと管理サイズを含んだサイズが真の必要なサイズ
-            count = count + (RequirePoolCount - 1);
-
-
             // 最初のメモリ管理情報を取得して収めることの出来るインデックスを見つけるまでループ
             var findedIndex = freeElementIndex;
             GetAllocationInfo(findedIndex, out var allocatedCount, out var type, out var nextFreeIndex);
@@ -347,25 +343,26 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <returns>分割した次の空き領域を指すインデックスが生成された場合は次の空き領域へのインデックスを返します</returns>
         private int DivideFreeMemoryBlock(int poolIndex, int count)
         {
-            // 要求サイズと管理サイズを含んだサイズが真の分割するべきサイズ
-            var allCount = count + (RequirePoolCount - 1);
-
-
             // 指定領域のメモリ管理情報を取得する
             GetAllocationInfo(poolIndex, out var freeCount, out var type, out var nextFreeIndex);
 
 
             // もし分割後の後方空き領域が必要空き領域未満 または 空きカウントと必要サイズが一致 したのなら
-            if (freeCount < (allCount + RequirePoolCount) || freeCount == allCount)
+            if ((freeCount - RequirePoolCount) < count || freeCount == count)
             {
                 // そのまま次の空き領域インデックスを返す
                 return nextFreeIndex;
             }
 
 
-            // 次の空き領域インデックスを作って管理情報を更新して次の空き領域インデックスを返す
-            nextFreeIndex = poolIndex + allCount;
+            // 一時的に次の空き領域インデックスを覚えてから、次の空き領域インデックスを作って管理情報を更新する
+            var tempNextFreeIndex = nextFreeIndex;
+            nextFreeIndex = poolIndex + count + (RequirePoolCount - 1);
             SetAllocationInfo(poolIndex, count, AllocationType.Free, nextFreeIndex);
+
+
+            // 次の空き領域インデックスの位置の空き領域情報を更新する
+            SetAllocationInfo(nextFreeIndex, freeCount - (RequirePoolCount - 1), AllocationType.Free, tempNextFreeIndex);
             return nextFreeIndex;
         }
         #endregion

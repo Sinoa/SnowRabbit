@@ -156,5 +156,40 @@ namespace SnowRabbit.Test
             // 通常、メモリアロケータは絶対的なサイズで確保することは無いので、希望サイズ以上の確保サイズならよしとする
             Assert.GreaterOrEqual(expectedLength, memoryBlock.Length);
         }
+
+
+        /// <summary>
+        /// StandardMemoryAllocator のメモリ管理情報制御が正しく動作するかテストを行います
+        /// </summary>
+        [Test]
+        public unsafe void StandardAllocatorAllocateInfoTest()
+        {
+            // メモリアロケータのアロケーション状況を生で覗くためのメモリプールを生成して、アロケータインスタンスを生成する
+            var memoryPool = new SrValue[100];
+            var allocator = new StandardMemoryAllocator(memoryPool);
+
+
+            // 100要素分のプールを渡したので空きサイズが98（管理領域2要素分を引いた）であることと末尾のリンク情報が正しいか確認する
+            Assert.AreEqual(98, memoryPool[0].Value.Int[0]);
+            Assert.AreEqual((int)AllocationType.Free, memoryPool[0].Value.Int[1]);
+            Assert.AreEqual(-1, memoryPool[99].Value.Int[0]);
+            Assert.AreEqual(100, memoryPool[99].Value.Int[1]);
+
+
+            // 80要素分のメモリ確保を行い、確保済み領域と空き領域の管理情報を確認をする
+            var memoryBlock = allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(80), AllocationType.General);
+
+            // test memoryblock info.
+            Assert.AreEqual(1, memoryBlock.Offset);
+            Assert.AreEqual(80, memoryBlock.Length);
+
+            // test allocated info.
+            Assert.AreEqual(80, memoryPool[0].Value.Int[0]);
+            Assert.AreEqual((int)AllocationType.General, memoryPool[0].Value.Int[1]);
+            Assert.AreEqual(82, memoryPool[81].Value.Int[0]);
+            Assert.AreEqual(82, memoryPool[81].Value.Int[1]);
+
+            // test new free area info.
+        }
     }
 }
