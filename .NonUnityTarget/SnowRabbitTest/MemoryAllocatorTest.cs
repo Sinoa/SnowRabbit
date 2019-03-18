@@ -87,5 +87,17 @@ namespace SnowRabbit.Test
             // ダイナミックメモリ確保の場合は 8の倍数になって確保されているので要求サイズの8の倍数になっていることを確認する
             Assert.AreEqual(expectedLength, memoryBlock.Length);
         }
+
+
+        /// <summary>
+        /// DynamicManagedMemoryAllocator に Free タイプのメモリ確保をした場合のテストを行います
+        /// </summary>
+        [Test]
+        public void DynamicFreeTypeAllocateTest()
+        {
+            // FreeTypeのメモリ確保をした場合例外が発生することを確認する
+            var allocator = new DynamicManagedMemoryAllocator();
+            Assert.Throws<ArgumentException>(() => allocator.Allocate(10, AllocationType.Free));
+        }
     }
 }
