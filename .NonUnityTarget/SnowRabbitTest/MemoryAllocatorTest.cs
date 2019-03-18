@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using SnowRabbit.VirtualMachine.Runtime;
 
@@ -47,6 +48,32 @@ namespace SnowRabbit.Test
             Assert.AreEqual(24, MemoryAllocatorUtility.ElementCountToByteSize(3));
             Assert.AreEqual(32, MemoryAllocatorUtility.ElementCountToByteSize(4));
             Assert.AreEqual(80, MemoryAllocatorUtility.ElementCountToByteSize(10));
+        }
+
+
+        /// <summary>
+        /// 各種メモリアロケータ に Free タイプのメモリ確保をした場合のテストを行います
+        /// </summary>
+        [Test]
+        public void FreeTypeAllocateTest()
+        {
+            // 全アロケータの生成関数リスト
+            var allocatorCreateFunctionList = new List<Func<IMemoryAllocator>>()
+            {
+                new Func<IMemoryAllocator>(() => new DynamicManagedMemoryAllocator()),
+                new Func<IMemoryAllocator>(() => new StandardMemoryAllocator(128)),
+                new Func<IMemoryAllocator>(() => new StandardMemoryAllocator(new SrValue[128])),
+            };
+
+
+
+            // 全アロケータ生成関数分回る
+            foreach (var create in allocatorCreateFunctionList)
+            {
+                // アロケータを生成してFreeTypeのメモリ確保をした場合例外が発生することを確認する
+                var allocator = create();
+                Assert.Throws<ArgumentException>(() => allocator.Allocate(10, AllocationType.Free));
+            }
         }
 
 
@@ -86,18 +113,6 @@ namespace SnowRabbit.Test
 
             // ダイナミックメモリ確保の場合は 8の倍数になって確保されているので要求サイズの8の倍数になっていることを確認する
             Assert.AreEqual(expectedLength, memoryBlock.Length);
-        }
-
-
-        /// <summary>
-        /// DynamicManagedMemoryAllocator に Free タイプのメモリ確保をした場合のテストを行います
-        /// </summary>
-        [Test]
-        public void DynamicFreeTypeAllocateTest()
-        {
-            // FreeTypeのメモリ確保をした場合例外が発生することを確認する
-            var allocator = new DynamicManagedMemoryAllocator();
-            Assert.Throws<ArgumentException>(() => allocator.Allocate(10, AllocationType.Free));
         }
     }
 }
