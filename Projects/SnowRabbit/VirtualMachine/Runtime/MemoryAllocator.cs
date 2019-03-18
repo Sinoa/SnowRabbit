@@ -279,8 +279,8 @@ namespace SnowRabbit.VirtualMachine.Runtime
             SetAllocationInfo(freeIndex, allocationCount, type, freeElementIndex);
 
 
-            // 見つけたインデックスとサイズでメモリブロックを生成して返す
-            return new MemoryBlock(memoryPool, freeIndex, allocationCount);
+            // 見つけたインデックス+1（先頭は管理領域のため）とサイズでメモリブロックを生成して返す
+            return new MemoryBlock(memoryPool, freeIndex + 1, allocationCount);
         }
 
 
