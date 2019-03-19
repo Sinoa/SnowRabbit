@@ -280,6 +280,36 @@ namespace SnowRabbit.VirtualMachine.Runtime
             // 計算されたインデックスを返す
             return previousMemoryInfoIndex;
         }
+
+
+        /// <summary>
+        /// 最後にいる空きメモリ管理情報のプールインデックスを取得します
+        /// </summary>
+        /// <returns>最後の空きメモリ管理情報のプールインデックスを返しますが、空きメモリがない場合は IndexNotFound を返します</returns>
+        private unsafe int GetLastFreeMemoryInfoIndex()
+        {
+            // 最初の空きインデックスが負の値なら
+            if (freePoolHeadIndex < 0)
+            {
+                // 空き領域がないことを返す
+                return IndexNotFound;
+            }
+
+
+            // 次のインデックスがIndexNotFoundになるまで空きメモリ領域を回る
+            var hitIndex = freePoolHeadIndex;
+            GetAllocationInfo(hitIndex, out _, out _, out var nextFreePoolIndex);
+            while (nextFreePoolIndex != IndexNotFound)
+            {
+                // 次の情報を取得する
+                hitIndex = nextFreePoolIndex;
+                GetAllocationInfo(hitIndex, out _, out _, out nextFreePoolIndex);
+            }
+
+
+            // 最後に到達したインデックスを返す
+            return hitIndex;
+        }
         #endregion
 
 
@@ -324,7 +354,39 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <param name="memoryBlock">解放するメモリブロック</param>
         public override void Deallocate(MemoryBlock memoryBlock)
         {
-            throw new NotImplementedException();
+            // 指定されたメモリブロックの1つ前のインデックスを取得して有効なインデックスなら
+            var returnedPoolIndex = memoryBlock.Offset - HeadMemoryInfoCount;
+            var previousPoolIndex = GetPreviousAllocationInfoIndex(returnedPoolIndex);
+            if (previousPoolIndex != IndexNotFound)
+            {
+                // メモリ管理領域を取得して、もし空き領域なら
+                GetAllocationInfo(previousPoolIndex, out _, out var type, out var nextFreeIndex);
+                if (type == AllocationType.Free)
+                {
+                    // 領域をマージして終了
+                    MergeMemoryBlock(previousPoolIndex, returnedPoolIndex);
+                    return;
+                }
+            }
+
+
+            // 今回の返却領域の更新をする
+            SetAllocationInfo(returnedPoolIndex, memoryBlock.Length, AllocationType.Free, IndexNotFound);
+
+
+            // 最後の空き領域インデックスを取得するが見つけられなかったら
+            var lastFreePoolIndex = GetLastFreeMemoryInfoIndex();
+            if (lastFreePoolIndex == IndexNotFound)
+            {
+                // 今回の返却領域が最後の空き領域となるので空きプール先頭インデックスの更新をして終了
+                freePoolHeadIndex = returnedPoolIndex;
+                return;
+            }
+
+
+            // 最後の空き領域インデックスの情報を取得して今回の領域にリンクを繋げる
+            GetAllocationInfo(lastFreePoolIndex, out var lastAllocCount, out _, out _);
+            SetAllocationInfo(lastFreePoolIndex, lastAllocCount, AllocationType.Free, returnedPoolIndex);
         }
         #endregion
 
@@ -402,6 +464,25 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
             // 新しい空き領域インデックスを返す
             return newNextFreeIndex;
+        }
+
+
+        /// <summary>
+        /// 指定された2つのプールインデックスのメモリ管理情報を論理的にマージします。
+        /// メモリ管理情報は previousPoolIndex 側の管理情報が採用されます。
+        /// </summary>
+        /// <param name="previousPoolIndex">マージする1つ前のメモリプールインデックス</param>
+        /// <param name="currentPoolIndex">マージするメモリプールインデックス</param>
+        private void MergeMemoryBlock(int previousPoolIndex, int currentPoolIndex)
+        {
+            // 2つのメモリ管理情報を取得する
+            GetAllocationInfo(previousPoolIndex, out var prevAllocCount, out var prevAllocType, out var prevNextIndex);
+            GetAllocationInfo(currentPoolIndex, out var currAllocCount, out var currAllocType, out var currNextIndex);
+
+
+            // 2つのメモリ容量の合計値（結合後のサイズの管理情報も含む）を求めてから prev 側のメモリ管理情報元に更新する
+            var totalAllocCount = prevAllocCount + currAllocCount + RequireMemoryInfoCount * 2;
+            SetAllocationInfo(previousPoolIndex, totalAllocCount - RequireMemoryInfoCount, prevAllocType, prevNextIndex);
         }
         #endregion
 
