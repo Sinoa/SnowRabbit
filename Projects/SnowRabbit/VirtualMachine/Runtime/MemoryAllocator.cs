@@ -96,6 +96,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <returns>確保したメモリのブロックを返します</returns>
         /// <exception cref="ArgumentOutOfRangeException">確保するサイズに 0 以下の指定は出来ません</exception>
         /// <exception cref="SrOutOfMemoryException">指定されたサイズのメモリを確保できませんでした</exception>
+        /// <exception cref="ArgumentException">メモリ確保の種類に 'Free' の指定は出来ません</exception>
         public abstract MemoryBlock Allocate(int size, AllocationType type);
 
 
@@ -151,13 +152,16 @@ namespace SnowRabbit.VirtualMachine.Runtime
     public class StandardMemoryAllocator : MemoryAllocator
     {
         // 定数定義
-        public const int RequirePoolCount = 3;
-        public const int RequirePoolSize = RequirePoolCount * 8;
+        public const int HeadMemoryInfoCount = 1;
+        public const int TailMemoryInfoCount = 1;
+        public const int RequireMemoryInfoCount = HeadMemoryInfoCount + TailMemoryInfoCount;
+        public const int RequireMinimumPoolCount = RequireMemoryInfoCount + 1;
+        public const int RequireMinimumPoolSize = RequireMinimumPoolCount * 8;
         private const int IndexNotFound = -1;
 
         // メンバ変数定義
         private SrValue[] memoryPool;
-        private int freeElementIndex;
+        private int freePoolHeadIndex;
 
 
 
@@ -166,7 +170,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// メモリプールの容量を指定して StandardMemoryAllocator のインスタンスを初期化します
         /// </summary>
         /// <param name="memoryPoolSize">確保しておくメモリプールのバイトサイズ。ただし、内部で SrValue 型のサイズが確保出来るように倍数調整が行われます。</param>
-        /// <exception cref="ArgumentOutOfRangeException">poolSize が RequirePoolSize 未満です</exception>
+        /// <exception cref="ArgumentOutOfRangeException">poolSize が RequireMinimumPoolSize 未満です</exception>
         public StandardMemoryAllocator(int memoryPoolSize)
         {
             // 事前の例外ハンドリングをして、要求サイズから確保するサイズを求めて配列を生成後初期化する
@@ -180,7 +184,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// </summary>
         /// <param name="memoryPool">このアロケータに使ってもらうメモリプール</param>
         /// <exception cref="ArgumentNullException">memoryPool が null です</exception>
-        /// <exception cref="ArgumentOutOfRangeException">memoryPool の長さが RequirePoolCount 未満です</exception>
+        /// <exception cref="ArgumentOutOfRangeException">memoryPool の長さが RequireMinimumPoolCount 未満です</exception>
         public StandardMemoryAllocator(SrValue[] memoryPool)
         {
             // 渡された引数を使って、そのまま初期化処理を呼ぶ
@@ -193,20 +197,17 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// </summary>
         /// <param name="memoryPool">このアロケータが使用するメモリプール</param>
         /// <exception cref="ArgumentNullException">memoryPool が null です</exception>
-        /// <exception cref="ArgumentOutOfRangeException">memoryPool の長さが RequirePoolCount 未満です</exception>
+        /// <exception cref="ArgumentOutOfRangeException">memoryPool の長さが RequireMinimumPoolCount 未満です</exception>
         private unsafe void Initialize(SrValue[] memoryPool)
         {
-            // 事前例外ハンドリングをする
+            // 事前例外ハンドリングをして、メンバ変数を初期化する
             ThrowExceptionIfInvalidMemoryPool(memoryPool);
-
-
-            // メモリプールの参照を覚えてインスタンス変数の初期化をする
             this.memoryPool = memoryPool;
-            freeElementIndex = 0;
+            freePoolHeadIndex = 0;
 
 
             // 最初のフリー領域の大きさを管理する
-            SetAllocationInfo(freeElementIndex, memoryPool.Length - (RequirePoolCount - 1), AllocationType.Free, IndexNotFound);
+            SetAllocationInfo(freePoolHeadIndex, memoryPool.Length - (RequireMinimumPoolCount - 1), AllocationType.Free, IndexNotFound);
         }
         #endregion
 
@@ -221,12 +222,14 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <param name="nextIndex">次のメモリブロック管理インデックス</param>
         private unsafe void SetAllocationInfo(int poolIndex, int allocatedCount, AllocationType type, int nextIndex)
         {
-            // 指定されたインデックスの位置には、確保した要素の数、メモリ管理情報を管理する
-            // 指定されたインデックスからメモリ確保サイズ分後ろに移動した末尾には、次のフリーリストインデックス、管理情報を含む確保した要素数、を管理する
-            memoryPool[poolIndex].Value.Int[0] = allocatedCount;
-            memoryPool[poolIndex].Value.Int[1] = (int)type;
-            memoryPool[poolIndex + allocatedCount + 1].Value.Int[0] = nextIndex;
-            memoryPool[poolIndex + allocatedCount + 1].Value.Int[1] = allocatedCount + 2;
+            // 指定されたインデックスの位置には [0]確保した要素の数(管理情報を含まない数) [1]メモリ管理情報(管理タイプ) が設定される
+            // さらに、メモリ確保分サイズの末尾には [0]確保した要素の数(管理情報を含む全体の数) [1]次のフリーリストインデックス が設定される
+            var headInfoIndex = poolIndex;
+            var tailInfoIndex = poolIndex + HeadMemoryInfoCount + allocatedCount;
+            memoryPool[headInfoIndex].Value.Int[0] = allocatedCount;
+            memoryPool[headInfoIndex].Value.Int[1] = (int)type;
+            memoryPool[tailInfoIndex].Value.Int[0] = allocatedCount + RequireMemoryInfoCount;
+            memoryPool[tailInfoIndex].Value.Int[1] = nextIndex;
         }
 
 
@@ -239,11 +242,43 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <param name="nextIndex">次のメモリブロック管理インデックス</param>
         private unsafe void GetAllocationInfo(int poolIndex, out int allocatedCount, out AllocationType type, out int nextIndex)
         {
-            // 指定されたインデックスの位置には、確保した要素の数、メモリ管理情報を管理する
-            // 指定されたインデックスからメモリ確保サイズ分後ろに移動した末尾には、次のフリーリストインデックス、管理情報を含む確保した要素数、を管理する
+            // 指定されたインデックスの位置には [0]確保した要素の数(管理情報を含まない数) [1]メモリ管理情報(管理タイプ) が入っている
             allocatedCount = memoryPool[poolIndex].Value.Int[0];
             type = (AllocationType)memoryPool[poolIndex].Value.Int[1];
-            nextIndex = memoryPool[poolIndex + allocatedCount + 1].Value.Int[0];
+
+
+            // メモリ確保分サイズの末尾には [0]確保した要素の数(管理情報を含む全体の数) [1]次のフリーリストインデックス が入っている
+            nextIndex = memoryPool[poolIndex + HeadMemoryInfoCount + allocatedCount].Value.Int[1];
+        }
+
+
+        /// <summary>
+        /// 指定したメモリプールのインデックスから、1つ前のメモリ管理情報メモリプールインデックスを取得します。
+        /// </summary>
+        /// <param name="poolIndex">取得したい1つ前のメモリ情報を知るためのメモリプールインデックス</param>
+        /// <returns>指定されたプールインデックスの1つ前のメモリ管理情報メモリプールインデックスを取得出来た場合はそのインデックスを返しますが、先頭もしくは見つけられない場合はIndexNotFoundを返します</returns>
+        private unsafe int GetPreviousAllocationInfoIndex(int poolIndex)
+        {
+            // 指定されたインデックス位置が0以下なら
+            if (poolIndex <= 0)
+            {
+                // インデックスを見つけられなかったことを返す
+                return IndexNotFound;
+            }
+
+
+            // 1つ前の要素から確保情報全体サイズを取得後、1つ前のインデックスを求めて負の値なら
+            var totalAllocatedCount = memoryPool[poolIndex - 1].Value.Int[0];
+            var previousMemoryInfoIndex = poolIndex - totalAllocatedCount;
+            if (previousMemoryInfoIndex < 0)
+            {
+                // 取得した管理情報は正しい管理情報ではないので見つけられなかったことを返す
+                return IndexNotFound;
+            }
+
+
+            // 計算されたインデックスを返す
+            return previousMemoryInfoIndex;
         }
         #endregion
 
@@ -262,11 +297,11 @@ namespace SnowRabbit.VirtualMachine.Runtime
         {
             // 事前例外処理をして必要な確保要素数を求める
             ThrowExceptionIfRequestInvalidSizeOrType(size, type);
-            var allocationCount = ByteSizeToElementCount(size);
+            var requestCount = ByteSizeToElementCount(size);
 
 
             // 空き領域を検索して見つけられなかったら
-            var freeIndex = FindFirstFreeBlock(allocationCount);
+            var freeIndex = FindFirstFreeBlock(requestCount);
             if (freeIndex == IndexNotFound)
             {
                 // メモリの空き容量が足りない例外を吐く
@@ -275,12 +310,11 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
             // 見つけた空き領域を適切なサイズに切り取ってもらい、次の空きインデックスを覚えて確保タイプを設定する
-            freeElementIndex = DivideFreeMemoryBlock(freeIndex, allocationCount);
-            SetAllocationInfo(freeIndex, allocationCount, type, freeElementIndex);
+            freePoolHeadIndex = DivideFreeMemoryBlock(freeIndex, requestCount, type);
 
 
-            // 見つけたインデックス+1（先頭は管理領域のため）とサイズでメモリブロックを生成して返す
-            return new MemoryBlock(memoryPool, freeIndex + 1, allocationCount);
+            // 見つけたインデックス+先頭管理領域分の位置とサイズでメモリブロックを生成して返す
+            return new MemoryBlock(memoryPool, freeIndex + HeadMemoryInfoCount, requestCount);
         }
 
 
@@ -304,7 +338,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         private int FindFirstFreeBlock(int count)
         {
             // 空き要素インデックスが負の値なら
-            if (freeElementIndex < 0)
+            if (freePoolHeadIndex < 0)
             {
                 // 見つけられなかったことを返す
                 return IndexNotFound;
@@ -312,9 +346,9 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
             // 最初のメモリ管理情報を取得して収めることの出来るインデックスを見つけるまでループ
-            var findedIndex = freeElementIndex;
-            GetAllocationInfo(findedIndex, out var allocatedCount, out var type, out var nextFreeIndex);
-            while (allocatedCount < count)
+            var hitIndex = freePoolHeadIndex;
+            GetAllocationInfo(hitIndex, out var poolCount, out var type, out var nextFreeIndex);
+            while (poolCount < count)
             {
                 // もし次の管理情報が無いなら
                 if (nextFreeIndex == IndexNotFound)
@@ -325,13 +359,13 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
                 // 次の管理情報を取得する
-                findedIndex = nextFreeIndex;
-                GetAllocationInfo(findedIndex, out allocatedCount, out type, out nextFreeIndex);
+                hitIndex = nextFreeIndex;
+                GetAllocationInfo(hitIndex, out poolCount, out type, out nextFreeIndex);
             }
 
 
             // 見つけたインデックスを返す
-            return findedIndex;
+            return hitIndex;
         }
 
 
@@ -340,30 +374,34 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// </summary>
         /// <param name="poolIndex">分割を行う空き領域の管理要素インデックス</param>
         /// <param name="count">分割する容量</param>
-        /// <returns>分割した次の空き領域を指すインデックスが生成された場合は次の空き領域へのインデックスを返します</returns>
-        private int DivideFreeMemoryBlock(int poolIndex, int count)
+        /// <param name="type">分割したメモリブロックに割り当てるタイプ</param>
+        /// <returns>分割した次の空き領域を指すインデックスが生成された場合は次の空き領域へのインデックスを返します。空きインデックスがない場合は IndexNotFound を返します。</returns>
+        private int DivideFreeMemoryBlock(int poolIndex, int count, AllocationType type)
         {
             // 指定領域のメモリ管理情報を取得する
-            GetAllocationInfo(poolIndex, out var freeCount, out var type, out var nextFreeIndex);
+            GetAllocationInfo(poolIndex, out var freeCount, out var _, out var nextFreeIndex);
 
 
             // もし分割後の後方空き領域が必要空き領域未満 または 空きカウントと必要サイズが一致 したのなら
-            if ((freeCount - RequirePoolCount) < count || freeCount == count)
+            if ((freeCount - RequireMinimumPoolCount) < count || freeCount == count)
             {
                 // そのまま次の空き領域インデックスを返す
                 return nextFreeIndex;
             }
 
 
-            // 一時的に次の空き領域インデックスを覚えてから、次の空き領域インデックスを作って管理情報を更新する
-            var tempNextFreeIndex = nextFreeIndex;
-            nextFreeIndex = poolIndex + count + (RequirePoolCount - 1);
-            SetAllocationInfo(poolIndex, count, AllocationType.Free, nextFreeIndex);
+            // 分割する要求されたサイズを元に管理情報を更新する
+            SetAllocationInfo(poolIndex, count, type, IndexNotFound);
 
 
-            // 次の空き領域インデックスの位置の空き領域情報を更新する
-            SetAllocationInfo(nextFreeIndex, freeCount - (RequirePoolCount - 1), AllocationType.Free, tempNextFreeIndex);
-            return nextFreeIndex;
+            // 次の新しい空き領域のインデックスを求めて管理情報を更新する
+            var newNextFreeIndex = poolIndex + RequireMemoryInfoCount + count;
+            var newFreeCount = freeCount - (RequireMemoryInfoCount + count);
+            SetAllocationInfo(newNextFreeIndex, newFreeCount, AllocationType.Free, nextFreeIndex);
+
+
+            // 新しい空き領域インデックスを返す
+            return newNextFreeIndex;
         }
         #endregion
 
@@ -373,14 +411,14 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// プールサイズが最低限確保するべきサイズを指定されなかった場合例外をスローします
         /// </summary>
         /// <param name="poolSize">確保するプールサイズ</param>
-        /// <exception cref="ArgumentOutOfRangeException">poolSize が RequirePoolSize 未満です</exception>
+        /// <exception cref="ArgumentOutOfRangeException">poolSize が RequireMinimumPoolSize 未満です</exception>
         protected void ThrowExceptionIfInvalidPoolSize(int poolSize)
         {
-            // RequirePoolSize 未満なら
-            if (poolSize < RequirePoolSize)
+            // RequireMinimumPoolSize 未満なら
+            if (poolSize < RequireMinimumPoolSize)
             {
                 // 例外を吐く
-                throw new ArgumentOutOfRangeException(nameof(poolSize), $"{nameof(poolSize)} が {nameof(RequirePoolSize)} 未満です");
+                throw new ArgumentOutOfRangeException(nameof(poolSize), $"{nameof(poolSize)} が {nameof(RequireMinimumPoolSize)} 未満です");
             }
         }
 
@@ -390,7 +428,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// </summary>
         /// <param name="memoryPool">確認する配列</param>
         /// <exception cref="ArgumentNullException">memoryPool が null です</exception>
-        /// <exception cref="ArgumentOutOfRangeException">memoryPool の長さが RequirePoolCount 未満です</exception>
+        /// <exception cref="ArgumentOutOfRangeException">memoryPool の長さが RequireMinimumPoolCount 未満です</exception>
         protected void ThrowExceptionIfInvalidMemoryPool(SrValue[] memoryPool)
         {
             // null の場合は
@@ -401,11 +439,11 @@ namespace SnowRabbit.VirtualMachine.Runtime
             }
 
 
-            // 長さが RequirePoolCount 未満なら
-            if (memoryPool.Length < RequirePoolCount)
+            // 長さが RequireMinimumPoolCount 未満なら
+            if (memoryPool.Length < RequireMinimumPoolCount)
             {
                 // 例外を吐く
-                throw new ArgumentOutOfRangeException($"{nameof(memoryPool)} の長さが {nameof(RequirePoolCount)} 未満です", nameof(memoryPool));
+                throw new ArgumentOutOfRangeException($"{nameof(memoryPool)} の長さが {nameof(RequireMinimumPoolCount)} 未満です", nameof(memoryPool));
             }
         }
         #endregion
