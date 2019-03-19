@@ -185,11 +185,11 @@ namespace SnowRabbit.Test
             // 80要素分のメモリ確保を行い、確保済み領域と空き領域の管理情報を確認をする
             var allocCount = 80;
             var allocSize = MemoryAllocatorUtility.ElementCountToByteSize(allocCount);
-            var memoryBlock = allocator.Allocate(allocSize, AllocationType.General);
+            var memoryBlockA = allocator.Allocate(allocSize, AllocationType.General);
 
             // test memoryblock info.
-            Assert.AreEqual(StandardMemoryAllocator.HeadMemoryInfoCount, memoryBlock.Offset);
-            Assert.AreEqual(allocCount, memoryBlock.Length);
+            Assert.AreEqual(StandardMemoryAllocator.HeadMemoryInfoCount, memoryBlockA.Offset);
+            Assert.AreEqual(allocCount, memoryBlockA.Length);
 
             // test allocated info.
             Assert.AreEqual(allocCount, memoryPool[0].Value.Int[0]);
@@ -210,8 +210,27 @@ namespace SnowRabbit.Test
             Assert.Throws<SrOutOfMemoryException>(() => allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(17), AllocationType.General));
 
 
-            // 更に16要素分の確保をしようとして成功すればピッタリメモリを使用したことになる
-            Assert.DoesNotThrow(() => allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(16), AllocationType.General));
+            // 更に16要素分の確保をしようとして成功すればピッタリメモリを使用したことになる（1バイトでも確保しようとするとOutOfMemoryになるはず）
+            var memoryBlockB = default(MemoryBlock);
+            Assert.DoesNotThrow(() => memoryBlockB = allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(16), AllocationType.General));
+            Assert.Throws<SrOutOfMemoryException>(() => allocator.Allocate(1, AllocationType.General));
+
+
+            // 80要素分のメモリ解放を行う
+            allocator.Deallocate(memoryBlockA);
+
+
+            // 空き領域として生成されたか確認をする
+            Assert.AreEqual(80, memoryPool[0].Value.Int[0]);
+            Assert.AreEqual((int)AllocationType.Free, memoryPool[0].Value.Int[1]);
+
+
+            // 解放された80要素分を2つに分けると最大38要素2つ分の確保が出来るはず（管理サイズを含むため）、その後1バイトも確保できない
+            var memoryBlockC = default(MemoryBlock);
+            var memoryBlockD = default(MemoryBlock);
+            Assert.DoesNotThrow(() => memoryBlockC = allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(38), AllocationType.General));
+            Assert.DoesNotThrow(() => memoryBlockD = allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(38), AllocationType.General));
+            Assert.Throws<SrOutOfMemoryException>(() => allocator.Allocate(1, AllocationType.General));
         }
     }
 }
