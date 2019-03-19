@@ -164,32 +164,54 @@ namespace SnowRabbit.Test
         [Test]
         public unsafe void StandardAllocatorAllocateInfoTest()
         {
+            // 元実装には以下の内容が定義されている想定
+            // 指定されたインデックスの位置には [0]確保した要素の数(管理情報を含まない数) [1]メモリ管理情報(管理タイプ) が設定される
+            // さらに、メモリ確保分サイズの末尾には [0]確保した要素の数(管理情報を含む全体の数) [1]次のフリーリストインデックス が設定される
+
+
             // メモリアロケータのアロケーション状況を生で覗くためのメモリプールを生成して、アロケータインスタンスを生成する
-            var memoryPool = new SrValue[100];
+            var poolSize = 100;
+            var memoryPool = new SrValue[poolSize];
             var allocator = new StandardMemoryAllocator(memoryPool);
 
 
             // 100要素分のプールを渡したので空きサイズが98（管理領域2要素分を引いた）であることと末尾のリンク情報が正しいか確認する
-            Assert.AreEqual(98, memoryPool[0].Value.Int[0]);
+            Assert.AreEqual(poolSize - StandardMemoryAllocator.RequireMemoryInfoCount, memoryPool[0].Value.Int[0]);
             Assert.AreEqual((int)AllocationType.Free, memoryPool[0].Value.Int[1]);
-            Assert.AreEqual(-1, memoryPool[99].Value.Int[0]);
-            Assert.AreEqual(100, memoryPool[99].Value.Int[1]);
+            Assert.AreEqual(100, memoryPool[99].Value.Int[0]);
+            Assert.AreEqual(-1, memoryPool[99].Value.Int[1]);
 
 
             // 80要素分のメモリ確保を行い、確保済み領域と空き領域の管理情報を確認をする
-            var memoryBlock = allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(80), AllocationType.General);
+            var allocCount = 80;
+            var allocSize = MemoryAllocatorUtility.ElementCountToByteSize(allocCount);
+            var memoryBlock = allocator.Allocate(allocSize, AllocationType.General);
 
             // test memoryblock info.
-            Assert.AreEqual(1, memoryBlock.Offset);
-            Assert.AreEqual(80, memoryBlock.Length);
+            Assert.AreEqual(StandardMemoryAllocator.HeadMemoryInfoCount, memoryBlock.Offset);
+            Assert.AreEqual(allocCount, memoryBlock.Length);
 
             // test allocated info.
-            Assert.AreEqual(80, memoryPool[0].Value.Int[0]);
+            Assert.AreEqual(allocCount, memoryPool[0].Value.Int[0]);
             Assert.AreEqual((int)AllocationType.General, memoryPool[0].Value.Int[1]);
-            Assert.AreEqual(82, memoryPool[81].Value.Int[0]);
-            Assert.AreEqual(82, memoryPool[81].Value.Int[1]);
+            Assert.AreEqual(82, memoryPool[StandardMemoryAllocator.HeadMemoryInfoCount + allocCount].Value.Int[0]);
+            Assert.AreEqual(-1, memoryPool[StandardMemoryAllocator.HeadMemoryInfoCount + allocCount].Value.Int[1]);
 
             // test new free area info.
+            var availableFreeCount = poolSize - StandardMemoryAllocator.RequireMemoryInfoCount * 2 - allocCount;
+            var newerHeadFreeIndex = StandardMemoryAllocator.RequireMemoryInfoCount + allocCount;
+            Assert.AreEqual(availableFreeCount, memoryPool[newerHeadFreeIndex].Value.Int[0]);
+            Assert.AreEqual((int)AllocationType.Free, memoryPool[newerHeadFreeIndex].Value.Int[1]);
+            Assert.AreEqual(18, memoryPool[poolSize - 1].Value.Int[0]);
+            Assert.AreEqual(-1, memoryPool[poolSize - 1].Value.Int[1]);
+
+
+            // この段階で16要素数超過のメモリ確保は失敗するはず（プールサイズ - 前回のアロケーションサイズ(管理情報を含む) = 18(管理サイズを含まない残りの空きサイズ)）
+            Assert.Throws<SrOutOfMemoryException>(() => allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(17), AllocationType.General));
+
+
+            // 更に16要素分の確保をしようとして成功すればピッタリメモリを使用したことになる
+            Assert.DoesNotThrow(() => allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(16), AllocationType.General));
         }
     }
 }
