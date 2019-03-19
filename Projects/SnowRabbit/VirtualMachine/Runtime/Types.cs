@@ -167,19 +167,24 @@ namespace SnowRabbit.VirtualMachine.Runtime
         Free = 0,
 
         /// <summary>
+        /// 汎用的な理由によるメモリ確保です
+        /// </summary>
+        General = 1,
+
+        /// <summary>
         /// 仮想マシンのコンテキストメモリ領域です
         /// </summary>
-        VMContext = 1,
+        VMContext = 2,
 
         /// <summary>
         /// 実行コードが格納されているメモリ領域です
         /// </summary>
-        Program = 2,
+        Program = 3,
 
         /// <summary>
         /// 仮想マシンが実行するプロセスのメモリ領域です
         /// </summary>
-        Process = 3,
+        Process = 4,
         #endregion
     }
 
@@ -390,42 +395,6 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
     /// <summary>
-    /// 確保したメモリブロックの情報を表現した構造体です
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MemoryAllocationInfo
-    {
-        #region Info parameter
-        /// <summary>
-        /// このメモリブロック領域の種類
-        /// </summary>
-        public AllocationType Type;
-
-        /// <summary>
-        /// 予約領域です。必ず0であるべきです。
-        /// </summary>
-        public byte Reserved1;
-
-        /// <summary>
-        /// 予約領域です。必ず0であるべきです。
-        /// </summary>
-        public ushort Reserved2;
-
-        /// <summary>
-        /// このメモリブロックの確保済みブロック数
-        /// </summary>
-        public ushort AllocatedBlockCount;
-
-        /// <summary>
-        /// 1つ前の確保済みメモリブロック数
-        /// </summary>
-        public ushort PrevAllocatedBlockCount;
-        #endregion
-    }
-
-
-
-    /// <summary>
     /// 仮想マシンが扱うメモリレイアウトを定義する共用体です
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
@@ -443,12 +412,6 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// </summary>
         [FieldOffset(0)]
         public InstructionCode Instruction;
-
-        /// <summary>
-        /// このメモリブロックのアロケーション情報を持ちます
-        /// </summary>
-        [FieldOffset(0)]
-        public MemoryAllocationInfo AllocationInfo;
         #endregion
     }
 }
