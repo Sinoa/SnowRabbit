@@ -19,51 +19,6 @@ using System.Runtime.Serialization;
 namespace SnowRabbit.VirtualMachine.Runtime
 {
     /// <summary>
-    /// SnowRabbit における基本例外クラスです
-    /// </summary>
-    [Serializable]
-    public class SrException : Exception
-    {
-        /// <summary>
-        /// SrException のインスタンスを初期化します
-        /// </summary>
-        public SrException() : base()
-        {
-        }
-
-
-        /// <summary>
-        /// SrException のインスタンスを初期化します
-        /// </summary>
-        /// <param name="message">発生した例外のメッセージ</param>
-        public SrException(string message) : base(message)
-        {
-        }
-
-
-        /// <summary>
-        /// SrException のインスタンスを初期化します
-        /// </summary>
-        /// <param name="message">発生した例外のメッセージ</param>
-        /// <param name="innerException">この例外を発生させた原因の例外</param>
-        public SrException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-
-        /// <summary>
-        /// シリアル化したデータから SrException のインスタンスを初期化します
-        /// </summary>
-        /// <param name="info">シリアル化されたオブジェクト情報</param>
-        /// <param name="context">シリアルデータの転送コンテキスト</param>
-        protected SrException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
-    }
-
-
-
-    /// <summary>
     /// SnowRabbit仮想マシンが処理を継続する為のメモリが不足した時にスローする例外です
     /// </summary>
     [Serializable]
