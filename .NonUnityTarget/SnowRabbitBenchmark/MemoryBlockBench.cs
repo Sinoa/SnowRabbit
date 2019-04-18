@@ -26,8 +26,10 @@ namespace SnowRabbit.Benchmark
     public class MemoryBlockBench
     {
         // メンバ変数定義
-        private MemoryBlock memoryBlock;
+        private MemoryBlock<SrValue> srvalueMemoryBlock;
+        private MemoryBlock<object> objectMemoryBlock;
         private SrValue[] memoryPool = new SrValue[1 << 20];
+        private object[] objectPool = new object[1 << 20];
         private ulong[] rawPool = new ulong[1 << 20];
 
 
@@ -38,7 +40,8 @@ namespace SnowRabbit.Benchmark
         public MemoryBlockBench()
         {
             // メモリブロックの生成をする
-            memoryBlock = new MemoryBlock(memoryPool, 0, memoryPool.Length);
+            srvalueMemoryBlock = new MemoryBlock<SrValue>(memoryPool, 0, memoryPool.Length);
+            objectMemoryBlock = new MemoryBlock<object>(objectPool, 0, objectPool.Length);
         }
 
 
@@ -49,7 +52,7 @@ namespace SnowRabbit.Benchmark
         public void AllMemoryAllocBlock()
         {
             // プール全体を確保するメモリブロックを生成
-            var memoryBlock = new MemoryBlock(memoryPool, 0, memoryPool.Length);
+            var memoryBlock = new MemoryBlock<SrValue>(memoryPool, 0, memoryPool.Length);
         }
 
 
@@ -91,11 +94,42 @@ namespace SnowRabbit.Benchmark
         public unsafe void AllMemoryWriteBlock()
         {
             // メモリブロック全体をループする
-            var length = memoryBlock.Length;
+            var length = srvalueMemoryBlock.Length;
             for (int i = 0; i < length; ++i)
             {
                 // 要素に値を入れる
-                memoryBlock[i].Value.Ulong[0] = (ulong)i;
+                srvalueMemoryBlock[i].Value.Ulong[0] = (ulong)i;
+            }
+        }
+
+
+        /// <summary>
+        /// 直接オブジェクト配列への書き込み性能を測定します
+        /// </summary>
+        [Benchmark]
+        public void AllObjectWritePool()
+        {
+            // メモリプールの全体を回る
+            for (int i = 0; i < objectPool.Length; ++i)
+            {
+                // 要素に値を入れる
+                objectPool[i] = i;
+            }
+        }
+
+
+        /// <summary>
+        /// メモリブロック経由のオブジェクトの書き込み性能を測定します
+        /// </summary>
+        [Benchmark]
+        public void AllObjectWriteBlock()
+        {
+            // メモリブロック全体をループする
+            var length = objectMemoryBlock.Length;
+            for (int i = 0; i < length; ++i)
+            {
+                // 要素に値を入れる
+                objectMemoryBlock[i] = (ulong)i;
             }
         }
 
@@ -156,10 +190,40 @@ namespace SnowRabbit.Benchmark
         public unsafe void AllMemoryReadBlock()
         {
             // 全体を回る
-            for (int i = 0; i < memoryBlock.Length; ++i)
+            for (int i = 0; i < srvalueMemoryBlock.Length; ++i)
             {
                 // 読み取ってそのまま捨てる
-                var result = memoryBlock[i].Value.Ulong[0];
+                var result = srvalueMemoryBlock[i].Value.Ulong[0];
+            }
+        }
+
+
+        /// <summary>
+        /// オブジェクトプールの読み込み性能を測定します
+        /// </summary>
+        [Benchmark]
+        public void AllObjectReadPool()
+        {
+            // 全体を回る
+            for (int i = 0; i < objectPool.Length; ++i)
+            {
+                // 読み取ってそのまま捨てる
+                var result = objectPool[i];
+            }
+        }
+
+
+        /// <summary>
+        /// メモリブロックからのオブジェクト読み込み性能を測定します
+        /// </summary>
+        [Benchmark]
+        public void AllObjectReadBlock()
+        {
+            // 全体を回る
+            for (int i = 0; i < objectMemoryBlock.Length; ++i)
+            {
+                // 読み取ってそのまま捨てる
+                var result = objectMemoryBlock[i];
             }
         }
 

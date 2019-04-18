@@ -29,9 +29,9 @@ namespace SnowRabbit.Benchmark
         private const int AllocSize = 100;
 
         // メンバ変数定義
-        private IMemoryAllocator dynamicAllocator;
-        private IMemoryAllocator standardAllocator;
-        private MemoryBlock[] memoryBlocks;
+        private IMemoryAllocator<SrValue> dynamicAllocator;
+        private IMemoryAllocator<SrValue> standardAllocator;
+        private MemoryBlock<SrValue>[] memoryBlocks;
 
 
 
@@ -41,9 +41,9 @@ namespace SnowRabbit.Benchmark
         public MemoryAllocatorBench()
         {
             // メモリアロケータを生成する
-            dynamicAllocator = new DynamicManagedMemoryAllocator();
-            standardAllocator = new StandardMemoryAllocator(1 << 30);
-            memoryBlocks = new MemoryBlock[LoopCount];
+            dynamicAllocator = new DynamicManagedMemoryAllocator<SrValue>();
+            standardAllocator = new StandardSrValueAllocator(1 << 30);
+            memoryBlocks = new MemoryBlock<SrValue>[LoopCount];
         }
 
 

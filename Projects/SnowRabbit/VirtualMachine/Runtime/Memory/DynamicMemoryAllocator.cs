@@ -21,7 +21,8 @@ namespace SnowRabbit.VirtualMachine.Runtime
     /// <summary>
     /// 直接.NETランタイムからメモリを割り当てるメモリアロケータクラスです
     /// </summary>
-    public class DynamicManagedMemoryAllocator : MemoryAllocator
+    /// <typeparam name="T">メモリ管理をする対象の型</typeparam>
+    public class DynamicManagedMemoryAllocator<T> : MemoryAllocator<T>
     {
         /// <summary>
         /// メモリの確保をします。確保されるメモリのサイズは size が収まる様に最大8の倍数に調整された確保が行われます。
@@ -32,12 +33,12 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <exception cref="ArgumentOutOfRangeException">確保するサイズに 0 以下の指定は出来ません</exception>
         /// <exception cref="OutOfMemoryException">指定されたサイズのメモリを確保できませんでした</exception>
         /// <exception cref="ArgumentException">メモリ確保の種類に 'Free' の指定は出来ません</exception>
-        public override MemoryBlock Allocate(int size, AllocationType type)
+        public override MemoryBlock<T> Allocate(int size, AllocationType type)
         {
             // 事前の例外ハンドリングをしてから、サイズを計算後メモリブロックを生成して返す
             ThrowExceptionIfRequestInvalidSizeOrType(size, type);
             var allocateBlock = ByteSizeToElementCount(size);
-            return new MemoryBlock(new SrValue[allocateBlock], 0, allocateBlock);
+            return new MemoryBlock<T>(new T[allocateBlock], 0, allocateBlock);
         }
 
 
@@ -45,7 +46,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// 指定されたメモリブロックを解放します。
         /// </summary>
         /// <param name="memoryBlock">解放するメモリブロック</param>
-        public override void Deallocate(MemoryBlock memoryBlock)
+        public override void Deallocate(MemoryBlock<T> memoryBlock)
         {
             // .NETランタイムへ返却するだけなので、このメモリアロケータは何もしません
         }

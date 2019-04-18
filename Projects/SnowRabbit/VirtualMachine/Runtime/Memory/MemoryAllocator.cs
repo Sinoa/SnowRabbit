@@ -20,7 +20,8 @@ namespace SnowRabbit.VirtualMachine.Runtime
     /// <summary>
     /// 仮想マシンが使用するメモリを確保するメモリアロケータの抽象クラスです
     /// </summary>
-    public abstract class MemoryAllocator : IMemoryAllocator
+    /// <typeparam name="T">メモリ管理をする対象の型</typeparam>
+    public abstract class MemoryAllocator<T> : IMemoryAllocator<T>
     {
         /// <summary>
         /// メモリの確保をします。確保されるメモリのサイズは size が収まる様に確保されますが、実際の確保サイズは必ず一致しているかどうかを保証していません。
@@ -31,14 +32,14 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <exception cref="ArgumentOutOfRangeException">確保するサイズに 0 以下の指定は出来ません</exception>
         /// <exception cref="SrOutOfMemoryException">指定されたサイズのメモリを確保できませんでした</exception>
         /// <exception cref="ArgumentException">メモリ確保の種類に 'Free' の指定は出来ません</exception>
-        public abstract MemoryBlock Allocate(int size, AllocationType type);
+        public abstract MemoryBlock<T> Allocate(int size, AllocationType type);
 
 
         /// <summary>
         /// 指定されたメモリブロックを解放します。
         /// </summary>
         /// <param name="memoryBlock">解放するメモリブロック</param>
-        public abstract void Deallocate(MemoryBlock memoryBlock);
+        public abstract void Deallocate(MemoryBlock<T> memoryBlock);
 
 
         /// <summary>

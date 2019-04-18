@@ -19,9 +19,9 @@ using static SnowRabbit.VirtualMachine.Runtime.MemoryAllocatorUtility;
 namespace SnowRabbit.VirtualMachine.Runtime
 {
     /// <summary>
-    /// SnowRabbit 仮想マシンが使用する標準メモリアロケータクラスです
+    /// SnowRabbit 仮想マシンが使用する標準値型メモリアロケータクラスです
     /// </summary>
-    public class StandardMemoryAllocator : MemoryAllocator
+    public class StandardSrValueAllocator : MemoryAllocator<SrValue>
     {
         // 定数定義
         public const int HeadMemoryInfoCount = 1;
@@ -43,7 +43,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// </summary>
         /// <param name="memoryPoolSize">確保しておくメモリプールのバイトサイズ。ただし、内部で SrValue 型のサイズが確保出来るように倍数調整が行われます。</param>
         /// <exception cref="ArgumentOutOfRangeException">poolSize が RequireMinimumPoolSize 未満です</exception>
-        public StandardMemoryAllocator(int memoryPoolSize)
+        public StandardSrValueAllocator(int memoryPoolSize)
         {
             // 事前の例外ハンドリングをして、要求サイズから確保するサイズを求めて配列を生成後初期化する
             ThrowExceptionIfInvalidPoolSize(memoryPoolSize);
@@ -57,7 +57,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <param name="memoryPool">このアロケータに使ってもらうメモリプール</param>
         /// <exception cref="ArgumentNullException">memoryPool が null です</exception>
         /// <exception cref="ArgumentOutOfRangeException">memoryPool の長さが RequireMinimumPoolCount 未満です</exception>
-        public StandardMemoryAllocator(SrValue[] memoryPool)
+        public StandardSrValueAllocator(SrValue[] memoryPool)
         {
             // 渡された引数を使って、そのまま初期化処理を呼ぶ
             Initialize(memoryPool);
@@ -195,7 +195,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <exception cref="ArgumentOutOfRangeException">確保するサイズに 0 以下の指定は出来ません</exception>
         /// <exception cref="SrOutOfMemoryException">指定されたサイズのメモリを確保できませんでした</exception>
         /// <exception cref="ArgumentException">メモリ確保の種類に 'Free' の指定は出来ません</exception>
-        public override MemoryBlock Allocate(int size, AllocationType type)
+        public override MemoryBlock<SrValue> Allocate(int size, AllocationType type)
         {
             // 事前例外処理をして必要な確保要素数を求める
             ThrowExceptionIfRequestInvalidSizeOrType(size, type);
@@ -216,7 +216,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
             // 見つけたインデックス+先頭管理領域分の位置とサイズでメモリブロックを生成して返す
-            return new MemoryBlock(memoryPool, freeIndex + HeadMemoryInfoCount, requestCount);
+            return new MemoryBlock<SrValue>(memoryPool, freeIndex + HeadMemoryInfoCount, requestCount);
         }
 
 
@@ -224,7 +224,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// 指定されたメモリブロックを解放します。
         /// </summary>
         /// <param name="memoryBlock">解放するメモリブロック</param>
-        public override void Deallocate(MemoryBlock memoryBlock)
+        public override void Deallocate(MemoryBlock<SrValue> memoryBlock)
         {
             // 指定されたメモリブロックの1つ前のインデックスを取得して有効なインデックスなら
             var returnedPoolIndex = memoryBlock.Offset - HeadMemoryInfoCount;

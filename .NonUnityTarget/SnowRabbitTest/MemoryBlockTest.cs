@@ -53,12 +53,12 @@ namespace SnowRabbit.Test
             if (exceptionType == null)
             {
                 // 受け取ったパラメータで例外は発生しないテストをする
-                Assert.DoesNotThrow(() => new MemoryBlock(values, start, length));
+                Assert.DoesNotThrow(() => new MemoryBlock<SrValue>(values, start, length));
             }
             else
             {
                 // 受け取った型の例外が発生するテストをする
-                Assert.Throws(exceptionType, () => new MemoryBlock(values, start, length));
+                Assert.Throws(exceptionType, () => new MemoryBlock<SrValue>(values, start, length));
             }
         }
 
@@ -94,7 +94,7 @@ namespace SnowRabbit.Test
         {
             // 0以上の時だけ配列を生成し、それ以外は null で初期化をする
             SrValue[] values = arraySize < 0 ? null : new SrValue[arraySize];
-            var memoryBlock = new MemoryBlock(values, start, length);
+            var memoryBlock = new MemoryBlock<SrValue>(values, start, length);
 
 
             // 例外タイプが指定されていないなら
@@ -119,10 +119,10 @@ namespace SnowRabbit.Test
         {
             // メモリプールといくつかのメモリブロックを用意
             var memoryPool = new SrValue[100];
-            var memoryBlockA = new MemoryBlock(memoryPool, 0, 50);
-            var memoryBlockB = new MemoryBlock(memoryPool, 50, 50);
-            var memoryBlockC = new MemoryBlock(memoryPool, 0, 100);
-            var memoryBlockD = new MemoryBlock(memoryPool, 25, 50);
+            var memoryBlockA = new MemoryBlock<SrValue>(memoryPool, 0, 50);
+            var memoryBlockB = new MemoryBlock<SrValue>(memoryPool, 50, 50);
+            var memoryBlockC = new MemoryBlock<SrValue>(memoryPool, 0, 100);
+            var memoryBlockD = new MemoryBlock<SrValue>(memoryPool, 25, 50);
 
 
             // メモリブロック適当入力値の用意

@@ -58,11 +58,11 @@ namespace SnowRabbit.Test
         public void FreeTypeAllocateTest()
         {
             // 全アロケータの生成関数リスト
-            var allocatorCreateFunctionList = new List<Func<IMemoryAllocator>>()
+            var allocatorCreateFunctionList = new List<Func<IMemoryAllocator<SrValue>>>()
             {
-                new Func<IMemoryAllocator>(() => new DynamicManagedMemoryAllocator()),
-                new Func<IMemoryAllocator>(() => new StandardMemoryAllocator(128)),
-                new Func<IMemoryAllocator>(() => new StandardMemoryAllocator(new SrValue[128])),
+                new Func<IMemoryAllocator<SrValue>>(() => new DynamicManagedMemoryAllocator<SrValue>()),
+                new Func<IMemoryAllocator<SrValue>>(() => new StandardSrValueAllocator(128)),
+                new Func<IMemoryAllocator<SrValue>>(() => new StandardSrValueAllocator(new SrValue[128])),
             };
 
 
@@ -93,8 +93,8 @@ namespace SnowRabbit.Test
         public void DynamicAllocateTest(int size, int expectedLength, Type exceptionType)
         {
             // インスタンスを生成する
-            var allocator = new DynamicManagedMemoryAllocator();
-            var memoryBlock = default(MemoryBlock);
+            var allocator = new DynamicManagedMemoryAllocator<SrValue>();
+            var memoryBlock = default(MemoryBlock<SrValue>);
 
 
             // 例外タイプの指定がないなら
@@ -132,9 +132,9 @@ namespace SnowRabbit.Test
         public void StandardAllocateTest(int size, int expectedLength, Type exceptionType)
         {
             // 2パターン分のインスタンスを生成する
-            var allocatorA = new StandardMemoryAllocator(1024);
-            var allocatorB = new StandardMemoryAllocator(new SrValue[1024]);
-            var memoryBlock = default(MemoryBlock);
+            var allocatorA = new StandardSrValueAllocator(1024);
+            var allocatorB = new StandardSrValueAllocator(new SrValue[1024]);
+            var memoryBlock = default(MemoryBlock<SrValue>);
 
 
             // 例外タイプの指定が無いなら
@@ -172,11 +172,11 @@ namespace SnowRabbit.Test
             // メモリアロケータのアロケーション状況を生で覗くためのメモリプールを生成して、アロケータインスタンスを生成する
             var poolSize = 100;
             var memoryPool = new SrValue[poolSize];
-            var allocator = new StandardMemoryAllocator(memoryPool);
+            var allocator = new StandardSrValueAllocator(memoryPool);
 
 
             // 100要素分のプールを渡したので空きサイズが98（管理領域2要素分を引いた）であることと末尾のリンク情報が正しいか確認する
-            Assert.AreEqual(poolSize - StandardMemoryAllocator.RequireMemoryInfoCount, memoryPool[0].Value.Int[0]);
+            Assert.AreEqual(poolSize - StandardSrValueAllocator.RequireMemoryInfoCount, memoryPool[0].Value.Int[0]);
             Assert.AreEqual((int)AllocationType.Free, memoryPool[0].Value.Int[1]);
             Assert.AreEqual(100, memoryPool[99].Value.Int[0]);
             Assert.AreEqual(-1, memoryPool[99].Value.Int[1]);
@@ -188,18 +188,18 @@ namespace SnowRabbit.Test
             var memoryBlockA = allocator.Allocate(allocSize, AllocationType.General);
 
             // test memoryblock info.
-            Assert.AreEqual(StandardMemoryAllocator.HeadMemoryInfoCount, memoryBlockA.Offset);
+            Assert.AreEqual(StandardSrValueAllocator.HeadMemoryInfoCount, memoryBlockA.Offset);
             Assert.AreEqual(allocCount, memoryBlockA.Length);
 
             // test allocated info.
             Assert.AreEqual(allocCount, memoryPool[0].Value.Int[0]);
             Assert.AreEqual((int)AllocationType.General, memoryPool[0].Value.Int[1]);
-            Assert.AreEqual(82, memoryPool[StandardMemoryAllocator.HeadMemoryInfoCount + allocCount].Value.Int[0]);
-            Assert.AreEqual(-1, memoryPool[StandardMemoryAllocator.HeadMemoryInfoCount + allocCount].Value.Int[1]);
+            Assert.AreEqual(82, memoryPool[StandardSrValueAllocator.HeadMemoryInfoCount + allocCount].Value.Int[0]);
+            Assert.AreEqual(-1, memoryPool[StandardSrValueAllocator.HeadMemoryInfoCount + allocCount].Value.Int[1]);
 
             // test new free area info.
-            var availableFreeCount = poolSize - StandardMemoryAllocator.RequireMemoryInfoCount * 2 - allocCount;
-            var newerHeadFreeIndex = StandardMemoryAllocator.RequireMemoryInfoCount + allocCount;
+            var availableFreeCount = poolSize - StandardSrValueAllocator.RequireMemoryInfoCount * 2 - allocCount;
+            var newerHeadFreeIndex = StandardSrValueAllocator.RequireMemoryInfoCount + allocCount;
             Assert.AreEqual(availableFreeCount, memoryPool[newerHeadFreeIndex].Value.Int[0]);
             Assert.AreEqual((int)AllocationType.Free, memoryPool[newerHeadFreeIndex].Value.Int[1]);
             Assert.AreEqual(18, memoryPool[poolSize - 1].Value.Int[0]);
@@ -211,7 +211,7 @@ namespace SnowRabbit.Test
 
 
             // 更に16要素分の確保をしようとして成功すればピッタリメモリを使用したことになる（1バイトでも確保しようとするとOutOfMemoryになるはず）
-            var memoryBlockB = default(MemoryBlock);
+            var memoryBlockB = default(MemoryBlock<SrValue>);
             Assert.DoesNotThrow(() => memoryBlockB = allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(16), AllocationType.General));
             Assert.Throws<SrOutOfMemoryException>(() => allocator.Allocate(1, AllocationType.General));
 
@@ -226,8 +226,8 @@ namespace SnowRabbit.Test
 
 
             // 解放された80要素分を2つに分けると最大38要素2つ分の確保が出来るはず（管理サイズを含むため）、その後1バイトも確保できない
-            var memoryBlockC = default(MemoryBlock);
-            var memoryBlockD = default(MemoryBlock);
+            var memoryBlockC = default(MemoryBlock<SrValue>);
+            var memoryBlockD = default(MemoryBlock<SrValue>);
             Assert.DoesNotThrow(() => memoryBlockC = allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(38), AllocationType.General));
             Assert.DoesNotThrow(() => memoryBlockD = allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(38), AllocationType.General));
             Assert.Throws<SrOutOfMemoryException>(() => allocator.Allocate(1, AllocationType.General));

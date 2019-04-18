@@ -18,15 +18,16 @@ using System;
 namespace SnowRabbit.VirtualMachine.Runtime
 {
     /// <summary>
-    /// SrValue の固定長配列から、特定の範囲を切り出したブロックを読み書きするための構造体です。
+    /// T の固定長配列から特定の範囲を切り出したブロックを参照として読み書きするための構造体です。
     /// </summary>
+    /// <typeparam name="T">固定長配列の宣言をしている型</typeparam>
     /// <remarks>
     /// UnityGameEngineにSystem.Memory.dllのSpan<T>が入った場合は、差し替わる予定になっています。
     /// </remarks>
-    public readonly struct MemoryBlock
+    public readonly struct MemoryBlock<T>
     {
         // メンバ変数定義
-        private readonly SrValue[] memoryPool;
+        private readonly T[] memoryPool;
 
         /// <summary>
         /// 内部メモリプールの参照を開始するオフセット
@@ -43,9 +44,9 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// このメモリブロックにおける範囲のインデックスで参照アクセスをします
         /// </summary>
         /// <param name="index">アクセスするインデックス</param>
-        /// <returns>インデックスの場所の SrValue 参照を取得します</returns>
+        /// <returns>インデックスの場所にある T の参照を取得します</returns>
         /// <exception cref="ArgumentOutOfRangeException">index が MemoryBlock コンストラクタで指定された範囲を超えています</exception>
-        public ref SrValue this[int index]
+        public ref T this[int index]
         {
             get
             {
@@ -69,12 +70,12 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <summary>
         /// MemoryBlock インスタンスの初期化を行います
         /// </summary>
-        /// <param name="values">メモリブロックとして利用する SrValue の配列</param>
+        /// <param name="values">メモリブロックとして利用する T の配列</param>
         /// <param name="start">values の参照を開始するインデックス位置</param>
         /// <param name="length">values から利用する長さ</param>
         /// <exception cref="ArgumentNullException">values が null です</exception>
         /// <exception cref="ArgumentOutOfRangeException">start が 0 未満 または length が 0 未満 または start と length の合計が values の境界を超えています</exception>
-        public MemoryBlock(SrValue[] values, int start, int length)
+        public MemoryBlock(T[] values, int start, int length)
         {
             // null を渡されたら
             if (values == null)
