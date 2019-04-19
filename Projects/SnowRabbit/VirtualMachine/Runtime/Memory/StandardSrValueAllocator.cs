@@ -39,7 +39,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
         #region Constructor and initializer
         /// <summary>
-        /// メモリプールの容量を指定して StandardMemoryAllocator のインスタンスを初期化します
+        /// メモリプールの容量を指定して StandardSrValueAllocator のインスタンスを初期化します
         /// </summary>
         /// <param name="memoryPoolSize">確保しておくメモリプールのバイトサイズ。ただし、内部で SrValue 型のサイズが確保出来るように倍数調整が行われます。</param>
         /// <exception cref="ArgumentOutOfRangeException">poolSize が RequireMinimumPoolSize 未満です</exception>
@@ -52,7 +52,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
         /// <summary>
-        /// メモリプールを直接渡して StandardMemoryAllocator のインスタンスを初期化します
+        /// メモリプールを直接渡して StandardSrValueAllocator のインスタンスを初期化します
         /// </summary>
         /// <param name="memoryPool">このアロケータに使ってもらうメモリプール</param>
         /// <exception cref="ArgumentNullException">memoryPool が null です</exception>
