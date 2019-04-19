@@ -98,10 +98,10 @@ namespace SnowRabbit.VirtualMachine.Runtime
             // さらに、メモリ確保分サイズの末尾には [0]確保した要素の数(管理情報を含む全体の数) [1]次のフリーリストインデックス が設定される
             var headInfoIndex = poolIndex;
             var tailInfoIndex = poolIndex + HeadMemoryInfoCount + allocatedCount;
-            memoryPool[headInfoIndex].Value.Int[0] = allocatedCount;
-            memoryPool[headInfoIndex].Value.Int[1] = (int)type;
-            memoryPool[tailInfoIndex].Value.Int[0] = allocatedCount + RequireMemoryInfoCount;
-            memoryPool[tailInfoIndex].Value.Int[1] = nextIndex;
+            memoryPool[headInfoIndex].AllocationInfo.AllocatedCount = allocatedCount;
+            memoryPool[headInfoIndex].AllocationInfo.AllocationType = (int)type;
+            memoryPool[tailInfoIndex].AllocationInfo.AllocatedTotalCount = allocatedCount + RequireMemoryInfoCount;
+            memoryPool[tailInfoIndex].AllocationInfo.NextMemoryBlockIndex = nextIndex;
         }
 
 
@@ -115,12 +115,12 @@ namespace SnowRabbit.VirtualMachine.Runtime
         private unsafe void GetAllocationInfo(int poolIndex, out int allocatedCount, out AllocationType type, out int nextIndex)
         {
             // 指定されたインデックスの位置には [0]確保した要素の数(管理情報を含まない数) [1]メモリ管理情報(管理タイプ) が入っている
-            allocatedCount = memoryPool[poolIndex].Value.Int[0];
-            type = (AllocationType)memoryPool[poolIndex].Value.Int[1];
+            allocatedCount = memoryPool[poolIndex].AllocationInfo.AllocatedCount;
+            type = (AllocationType)memoryPool[poolIndex].AllocationInfo.AllocationType;
 
 
             // メモリ確保分サイズの末尾には [0]確保した要素の数(管理情報を含む全体の数) [1]次のフリーリストインデックス が入っている
-            nextIndex = memoryPool[poolIndex + HeadMemoryInfoCount + allocatedCount].Value.Int[1];
+            nextIndex = memoryPool[poolIndex + HeadMemoryInfoCount + allocatedCount].AllocationInfo.NextMemoryBlockIndex;
         }
 
 
@@ -140,7 +140,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
             // 1つ前の要素から確保情報全体サイズを取得後、1つ前のインデックスを求めて負の値なら
-            var totalAllocatedCount = memoryPool[poolIndex - 1].Value.Int[0];
+            var totalAllocatedCount = memoryPool[poolIndex - 1].AllocationInfo.AllocatedTotalCount;
             var previousMemoryInfoIndex = poolIndex - totalAllocatedCount;
             if (previousMemoryInfoIndex < 0)
             {
