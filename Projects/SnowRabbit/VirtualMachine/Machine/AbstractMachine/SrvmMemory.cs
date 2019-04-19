@@ -22,5 +22,35 @@ namespace SnowRabbit.VirtualMachine.Machine
     /// </summary>
     public abstract class SrvmMemory
     {
+        /// <summary>
+        /// 値型メモリを確保します
+        /// </summary>
+        /// <param name="size">確保するサイズ</param>
+        /// <param name="type">確保するメモリの種類</param>
+        /// <returns>確保された値型メモリのメモリブロックを返します</returns>
+        public abstract MemoryBlock<SrValue> AllocateValue(int size, AllocationType type);
+
+
+        /// <summary>
+        /// 参照型メモリを確保します
+        /// </summary>
+        /// <param name="count">確保する参照数</param>
+        /// <param name="type">確保するメモリの種類</param>
+        /// <returns>確保された参照型メモリのメモリブロックを返します</returns>
+        public abstract MemoryBlock<SrObject> AllocateObject(int count, AllocationType type);
+
+
+        /// <summary>
+        /// 値型メモリブロックを解放します
+        /// </summary>
+        /// <param name="memoryBlock">解放する値型メモリブロック</param>
+        public abstract void DeallocateValue(MemoryBlock<SrValue> memoryBlock);
+
+
+        /// <summary>
+        /// 参照型メモリブロックを解放します
+        /// </summary>
+        /// <param name="memoryBlock">解放する参照型メモリブロック</param>
+        public abstract void DeallocateObject(MemoryBlock<SrObject> memoryBlock);
     }
 }
