@@ -20,7 +20,7 @@ namespace SnowRabbit.VirtualMachine.Machine
     /// <summary>
     /// 仮想マシンが実装する仮想マシンメモリの抽象クラスです
     /// </summary>
-    public abstract class SrvmMemory
+    public abstract class SrvmMemory : SrvmMachineParts
     {
         /// <summary>
         /// 値型メモリを確保します
