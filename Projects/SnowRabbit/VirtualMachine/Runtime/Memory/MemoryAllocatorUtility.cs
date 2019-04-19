@@ -23,6 +23,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <summary>
         /// バイトサイズから配列の要素数を求めます
         /// </summary>
+        /// <remarks>この関数は 8byte ブロックサイズを既定として計算されます。別のブロックサイズを使用する場合は ByteSizeToElementCount(int, int) を参照してください</remarks>
         /// <param name="size">計算するバイト数</param>
         /// <returns>バイト数から要素数に変換した値を返します</returns>
         public static int ByteSizeToElementCount(int size)
@@ -39,12 +40,43 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <summary>
         /// 配列の要素数からバイトサイズを求めます
         /// </summary>
+        /// <remarks>この関数は 8byte ブロックサイズを既定として計算されます。別のブロックサイズを使用する場合は ElementCountToByteSize(int, int) を参照してください</remarks>
         /// <param name="count">計算する要素数</param>
         /// <returns>要素数からバイト数に変換した値を返します</returns>
         public static int ElementCountToByteSize(int count)
         {
             // ブロックサイズは8byteなのでそのまま8倍にして返す
             return count << 3;
+        }
+
+
+        /// <summary>
+        /// バイトサイズから配列の要素数を求めます
+        /// </summary>
+        /// <param name="size">計算するバイト数</param>
+        /// <param name="blockSize">1要素のブロックサイズ</param>
+        /// <returns>バイト数から要素数に変換した値を返します</returns>
+        public static int ByteSizeToElementCount(int size, int blockSize)
+        {
+            // パディング込みの計算式例（ビット演算ではなく汎用計算式の場合）
+            // paddingSize = (blockSize - (dataSize % blockSize)) % blockSize
+            // finalSize = dataSize + paddingSize
+            // blockCount = finalSize / blockSize
+            // サイズから確保するべき配列の要素数を求める（1ブロック8byteなので8byte倍数に収まるようにしてから求める）
+            return (size + ((blockSize - (size % blockSize)) % blockSize)) / blockSize;
+        }
+
+
+        /// <summary>
+        /// 配列の要素数からバイトサイズを求めます
+        /// </summary>
+        /// <param name="count">計算する要素数</param>
+        /// <param name="blockSize">1要素のブロックサイズ</param>
+        /// <returns>要素数からバイト数に変換した値を返します</returns>
+        public static int ElementCountToByteSize(int count, int blockSize)
+        {
+            // ブロックサイズの倍数をそのまま計算して返す
+            return count * blockSize;
         }
     }
 }

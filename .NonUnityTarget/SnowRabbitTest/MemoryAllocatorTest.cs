@@ -27,27 +27,76 @@ namespace SnowRabbit.Test
     public class MemoryAllocatorTest
     {
         /// <summary>
-        /// MemoryAllocatorUtility クラスのサイズ計算ユーティリティ関数のテストを行います
+        /// MemoryAllocatorUtility クラスのサイズ計算ユーティリティ関数 ByteSizeToElementCount(int) のテストを行います
         /// </summary>
-        [Test]
-        public void SizeUtilityTest()
+        /// <param name="expected">想定される要素数</param>
+        /// <param name="byteSize">要求するバイト数</param>
+        [TestCase(0, 0)]
+        [TestCase(1, 1)]
+        [TestCase(1, 8)]
+        [TestCase(2, 10)]
+        [TestCase(2, 16)]
+        [TestCase(13, 100)]
+        public void ByteSizeToElementCountTest(int expected, int byteSize)
         {
             // サイズ計算ユーティリティを叩いて想定した結果が返ってくればそれで良い
-            // （負の値も受け入れるが原則想定された使われ方ではない上結果を保証しないので無視する）
-            // Size => Element
-            Assert.AreEqual(0, MemoryAllocatorUtility.ByteSizeToElementCount(0));
-            Assert.AreEqual(1, MemoryAllocatorUtility.ByteSizeToElementCount(1));
-            Assert.AreEqual(1, MemoryAllocatorUtility.ByteSizeToElementCount(8));
-            Assert.AreEqual(2, MemoryAllocatorUtility.ByteSizeToElementCount(10));
-            Assert.AreEqual(2, MemoryAllocatorUtility.ByteSizeToElementCount(16));
-            Assert.AreEqual(13, MemoryAllocatorUtility.ByteSizeToElementCount(100));
-            // Element => Size
-            Assert.AreEqual(0, MemoryAllocatorUtility.ElementCountToByteSize(0));
-            Assert.AreEqual(8, MemoryAllocatorUtility.ElementCountToByteSize(1));
-            Assert.AreEqual(16, MemoryAllocatorUtility.ElementCountToByteSize(2));
-            Assert.AreEqual(24, MemoryAllocatorUtility.ElementCountToByteSize(3));
-            Assert.AreEqual(32, MemoryAllocatorUtility.ElementCountToByteSize(4));
-            Assert.AreEqual(80, MemoryAllocatorUtility.ElementCountToByteSize(10));
+            Assert.AreEqual(expected, MemoryAllocatorUtility.ByteSizeToElementCount(byteSize));
+        }
+
+
+        /// <summary>
+        /// MemoryAllocatorUtility クラスのサイズ計算ユーティリティ関数 ElementCountToByteSize(int) のテストを行います
+        /// </summary>
+        /// <param name="expected">想定されるバイト数</param>
+        /// <param name="elementCount">要求する要素数</param>
+        [TestCase(0, 0)]
+        [TestCase(8, 1)]
+        [TestCase(16, 2)]
+        [TestCase(24, 3)]
+        [TestCase(32, 4)]
+        [TestCase(80, 10)]
+        public void ElementCountToByteSizeTest(int expected, int elementCount)
+        {
+            // サイズ計算ユーティリティを叩いて想定した結果が返ってくればそれで良い
+            Assert.AreEqual(expected, MemoryAllocatorUtility.ElementCountToByteSize(elementCount));
+        }
+
+
+        /// <summary>
+        /// MemoryAllocatorUtility クラスのサイズ計算ユーティリティ関数 ByteSizeToElementCount(int, int) のテストを行います
+        /// </summary>
+        /// <param name="expected">想定される要素数</param>
+        /// <param name="byteSize">要求するバイト数</param>
+        /// <param name="blockSize">要求するメモリのブロックサイズ</param>
+        [TestCase(0, 0, 10)]
+        [TestCase(1, 1, 10)]
+        [TestCase(1, 10, 10)]
+        [TestCase(1, 20, 20)]
+        [TestCase(2, 21, 20)]
+        [TestCase(10, 100, 10)]
+        public void ByteSizeToElementCountFlexibleTest(int expected, int byteSize, int blockSize)
+        {
+            // サイズ計算ユーティリティを叩いて想定した結果が返ってくればそれで良い
+            Assert.AreEqual(expected, MemoryAllocatorUtility.ByteSizeToElementCount(byteSize, blockSize));
+        }
+
+
+        /// <summary>
+        /// MemoryAllocatorUtility クラスのサイズ計算ユーティリティ関数 ElementCountToByteSize(int, int) のテストを行います
+        /// </summary>
+        /// <param name="expected">想定されるバイト数</param>
+        /// <param name="elementCount">要求する要素数</param>
+        /// <param name="blockSize">要求するメモリのブロックサイズ</param>
+        [TestCase(0, 0, 20)]
+        [TestCase(20, 1, 20)]
+        [TestCase(40, 2, 20)]
+        [TestCase(60, 3, 20)]
+        [TestCase(200, 4, 50)]
+        [TestCase(200, 10, 20)]
+        public void ElementCountToByteSizeFlexibleTest(int expected, int elementCount, int blockSize)
+        {
+            // サイズ計算ユーティリティを叩いて想定した結果が返ってくればそれで良い
+            Assert.AreEqual(expected, MemoryAllocatorUtility.ElementCountToByteSize(elementCount, blockSize));
         }
 
 
