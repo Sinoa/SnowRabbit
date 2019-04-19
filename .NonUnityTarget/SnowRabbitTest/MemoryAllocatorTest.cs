@@ -178,7 +178,7 @@ namespace SnowRabbit.Test
         [TestCase(9, 2, null)]
         [TestCase(16, 2, null)]
         [TestCase(100, 13, null)]
-        public void StandardAllocateTest(int size, int expectedLength, Type exceptionType)
+        public void StandardSrValueAllocateTest(int size, int expectedLength, Type exceptionType)
         {
             // 2パターン分のインスタンスを生成する
             var allocatorA = new StandardSrValueAllocator(1024);
@@ -211,7 +211,7 @@ namespace SnowRabbit.Test
         /// StandardMemoryAllocator のメモリ管理情報制御が正しく動作するかテストを行います
         /// </summary>
         [Test]
-        public unsafe void StandardAllocatorAllocateInfoTest()
+        public unsafe void StandardSrValueAllocatorAllocateInfoTest()
         {
             // 元実装には以下の内容が定義されている想定
             // 指定されたインデックスの位置には [0]確保した要素の数(管理情報を含まない数) [1]メモリ管理情報(管理タイプ) が設定される
@@ -225,10 +225,10 @@ namespace SnowRabbit.Test
 
 
             // 100要素分のプールを渡したので空きサイズが98（管理領域2要素分を引いた）であることと末尾のリンク情報が正しいか確認する
-            Assert.AreEqual(poolSize - StandardSrValueAllocator.RequireMemoryInfoCount, memoryPool[0].Value.Int[0]);
-            Assert.AreEqual((int)AllocationType.Free, memoryPool[0].Value.Int[1]);
-            Assert.AreEqual(100, memoryPool[99].Value.Int[0]);
-            Assert.AreEqual(-1, memoryPool[99].Value.Int[1]);
+            Assert.AreEqual(poolSize - StandardSrValueAllocator.RequireMemoryInfoCount, memoryPool[0].AllocationInfo.AllocatedCount);
+            Assert.AreEqual((int)AllocationType.Free, memoryPool[0].AllocationInfo.AllocationType);
+            Assert.AreEqual(100, memoryPool[99].AllocationInfo.AllocatedTotalCount);
+            Assert.AreEqual(-1, memoryPool[99].AllocationInfo.NextMemoryBlockIndex);
 
 
             // 80要素分のメモリ確保を行い、確保済み領域と空き領域の管理情報を確認をする
@@ -241,18 +241,18 @@ namespace SnowRabbit.Test
             Assert.AreEqual(allocCount, memoryBlockA.Length);
 
             // test allocated info.
-            Assert.AreEqual(allocCount, memoryPool[0].Value.Int[0]);
-            Assert.AreEqual((int)AllocationType.General, memoryPool[0].Value.Int[1]);
-            Assert.AreEqual(82, memoryPool[StandardSrValueAllocator.HeadMemoryInfoCount + allocCount].Value.Int[0]);
-            Assert.AreEqual(-1, memoryPool[StandardSrValueAllocator.HeadMemoryInfoCount + allocCount].Value.Int[1]);
+            Assert.AreEqual(allocCount, memoryPool[0].AllocationInfo.AllocatedCount);
+            Assert.AreEqual((int)AllocationType.General, memoryPool[0].AllocationInfo.AllocationType);
+            Assert.AreEqual(82, memoryPool[StandardSrValueAllocator.HeadMemoryInfoCount + allocCount].AllocationInfo.AllocatedTotalCount);
+            Assert.AreEqual(-1, memoryPool[StandardSrValueAllocator.HeadMemoryInfoCount + allocCount].AllocationInfo.NextMemoryBlockIndex);
 
             // test new free area info.
             var availableFreeCount = poolSize - StandardSrValueAllocator.RequireMemoryInfoCount * 2 - allocCount;
             var newerHeadFreeIndex = StandardSrValueAllocator.RequireMemoryInfoCount + allocCount;
-            Assert.AreEqual(availableFreeCount, memoryPool[newerHeadFreeIndex].Value.Int[0]);
-            Assert.AreEqual((int)AllocationType.Free, memoryPool[newerHeadFreeIndex].Value.Int[1]);
-            Assert.AreEqual(18, memoryPool[poolSize - 1].Value.Int[0]);
-            Assert.AreEqual(-1, memoryPool[poolSize - 1].Value.Int[1]);
+            Assert.AreEqual(availableFreeCount, memoryPool[newerHeadFreeIndex].AllocationInfo.AllocatedCount);
+            Assert.AreEqual((int)AllocationType.Free, memoryPool[newerHeadFreeIndex].AllocationInfo.AllocationType);
+            Assert.AreEqual(18, memoryPool[poolSize - 1].AllocationInfo.AllocatedTotalCount);
+            Assert.AreEqual(-1, memoryPool[poolSize - 1].AllocationInfo.NextMemoryBlockIndex);
 
 
             // この段階で16要素数超過のメモリ確保は失敗するはず（プールサイズ - 前回のアロケーションサイズ(管理情報を含む) = 18(管理サイズを含まない残りの空きサイズ)）
@@ -270,8 +270,8 @@ namespace SnowRabbit.Test
 
 
             // 空き領域として生成されたか確認をする
-            Assert.AreEqual(80, memoryPool[0].Value.Int[0]);
-            Assert.AreEqual((int)AllocationType.Free, memoryPool[0].Value.Int[1]);
+            Assert.AreEqual(80, memoryPool[0].AllocationInfo.AllocatedCount);
+            Assert.AreEqual((int)AllocationType.Free, memoryPool[0].AllocationInfo.AllocationType);
 
 
             // 解放された80要素分を2つに分けると最大38要素2つ分の確保が出来るはず（管理サイズを含むため）、その後1バイトも確保できない
@@ -279,6 +279,123 @@ namespace SnowRabbit.Test
             var memoryBlockD = default(MemoryBlock<SrValue>);
             Assert.DoesNotThrow(() => memoryBlockC = allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(38), AllocationType.General));
             Assert.DoesNotThrow(() => memoryBlockD = allocator.Allocate(MemoryAllocatorUtility.ElementCountToByteSize(38), AllocationType.General));
+            Assert.Throws<SrOutOfMemoryException>(() => allocator.Allocate(1, AllocationType.General));
+        }
+
+
+        /// <summary>
+        /// StandardSrObjectAllocator のメモリ確保テストを行います
+        /// </summary>
+        /// <param name="size">確保しようとしているメモリサイズ</param>
+        /// <param name="expectedLength">確保されたはずの配列の長さ（このテストケースではsizeと一致していればよい）</param>
+        /// <param name="exceptionType">例外が発生する場合の例外タイプ、発生しない場合は null</param>
+        [TestCase(-1, 0, typeof(ArgumentOutOfRangeException))]
+        [TestCase(0, 0, typeof(ArgumentOutOfRangeException))]
+        [TestCase(1, 1, null)]
+        [TestCase(1, 1, null)]
+        [TestCase(2, 2, null)]
+        [TestCase(2, 2, null)]
+        [TestCase(13, 13, null)]
+        public void StandardSrObjectAllocateTest(int size, int expectedLength, Type exceptionType)
+        {
+            // 2パターン分のインスタンスを生成する
+            var allocatorA = new StandardSrObjectAllocator(1024);
+            var allocatorB = new StandardSrObjectAllocator(new SrObject[1024]);
+            var memoryBlock = default(MemoryBlock<SrObject>);
+
+
+            // 例外タイプの指定が無いなら
+            if (exceptionType == null)
+            {
+                // メモリの確保は成功するテストを実行
+                Assert.DoesNotThrow(() => memoryBlock = allocatorA.Allocate(size, AllocationType.General));
+                Assert.DoesNotThrow(() => memoryBlock = allocatorB.Allocate(size, AllocationType.General));
+            }
+            else
+            {
+                // メモリ確保時に例外が発生するテストを実行して終了する（そもそも確保に失敗したら何も出来ない）
+                Assert.Throws(exceptionType, () => allocatorA.Allocate(size, AllocationType.General));
+                Assert.Throws(exceptionType, () => allocatorB.Allocate(size, AllocationType.General));
+                return;
+            }
+
+
+            // 通常、メモリアロケータは絶対的なサイズで確保することは無いので、希望サイズ以上の確保サイズならよしとする
+            Assert.GreaterOrEqual(expectedLength, memoryBlock.Length);
+        }
+
+
+        /// <summary>
+        /// StandardSrObjectAllocator のメモリ管理情報制御が正しく動作するかテストを行います
+        /// </summary>
+        [Test]
+        public unsafe void StandardSrObjectAllocatorAllocateInfoTest()
+        {
+            // 元実装には以下の内容が定義されている想定
+            // 指定されたインデックスの位置には [0]確保した要素の数(管理情報を含まない数) [1]メモリ管理情報(管理タイプ) が設定される
+            // さらに、メモリ確保分サイズの末尾には [0]確保した要素の数(管理情報を含む全体の数) [1]次のフリーリストインデックス が設定される
+
+
+            // メモリアロケータのアロケーション状況を生で覗くためのメモリプールを生成して、アロケータインスタンスを生成する
+            var poolSize = 100;
+            var memoryPool = new SrObject[poolSize];
+            var allocator = new StandardSrObjectAllocator(memoryPool);
+
+
+            // 100要素分のプールを渡したので空きサイズが98（管理領域2要素分を引いた）であることと末尾のリンク情報が正しいか確認する
+            Assert.AreEqual(poolSize - StandardSrValueAllocator.RequireMemoryInfoCount, memoryPool[0].AllocationInfo.AllocatedCount);
+            Assert.AreEqual((int)AllocationType.Free, memoryPool[0].AllocationInfo.AllocationType);
+            Assert.AreEqual(100, memoryPool[99].AllocationInfo.AllocatedTotalCount);
+            Assert.AreEqual(-1, memoryPool[99].AllocationInfo.NextMemoryBlockIndex);
+
+
+            // 80要素分のメモリ確保を行い、確保済み領域と空き領域の管理情報を確認をする（Objectアロケータは要求数がそのまま確保数になる）
+            var allocCount = 80;
+            var memoryBlockA = allocator.Allocate(allocCount, AllocationType.General);
+
+            // test memoryblock info.
+            Assert.AreEqual(StandardSrValueAllocator.HeadMemoryInfoCount, memoryBlockA.Offset);
+            Assert.AreEqual(allocCount, memoryBlockA.Length);
+
+            // test allocated info.
+            Assert.AreEqual(allocCount, memoryPool[0].AllocationInfo.AllocatedCount);
+            Assert.AreEqual((int)AllocationType.General, memoryPool[0].AllocationInfo.AllocationType);
+            Assert.AreEqual(82, memoryPool[StandardSrValueAllocator.HeadMemoryInfoCount + allocCount].AllocationInfo.AllocatedTotalCount);
+            Assert.AreEqual(-1, memoryPool[StandardSrValueAllocator.HeadMemoryInfoCount + allocCount].AllocationInfo.NextMemoryBlockIndex);
+
+            // test new free area info.
+            var availableFreeCount = poolSize - StandardSrValueAllocator.RequireMemoryInfoCount * 2 - allocCount;
+            var newerHeadFreeIndex = StandardSrValueAllocator.RequireMemoryInfoCount + allocCount;
+            Assert.AreEqual(availableFreeCount, memoryPool[newerHeadFreeIndex].AllocationInfo.AllocatedCount);
+            Assert.AreEqual((int)AllocationType.Free, memoryPool[newerHeadFreeIndex].AllocationInfo.AllocationType);
+            Assert.AreEqual(18, memoryPool[poolSize - 1].AllocationInfo.AllocatedTotalCount);
+            Assert.AreEqual(-1, memoryPool[poolSize - 1].AllocationInfo.NextMemoryBlockIndex);
+
+
+            // この段階で16要素数超過のメモリ確保は失敗するはず（Objectアロケータは要求数がそのまま確保数になる）
+            Assert.Throws<SrOutOfMemoryException>(() => allocator.Allocate(17, AllocationType.General));
+
+
+            // 更に16要素分の確保をしようとして成功すればピッタリメモリを使用したことになる（Objectアロケータは要求数がそのまま確保数になる）
+            var memoryBlockB = default(MemoryBlock<SrObject>);
+            Assert.DoesNotThrow(() => memoryBlockB = allocator.Allocate(16, AllocationType.General));
+            Assert.Throws<SrOutOfMemoryException>(() => allocator.Allocate(1, AllocationType.General));
+
+
+            // 80要素分のメモリ解放を行う
+            allocator.Deallocate(memoryBlockA);
+
+
+            // 空き領域として生成されたか確認をする
+            Assert.AreEqual(80, memoryPool[0].AllocationInfo.AllocatedCount);
+            Assert.AreEqual((int)AllocationType.Free, memoryPool[0].AllocationInfo.AllocationType);
+
+
+            // 解放された80要素分を2つに分けると最大38要素2つ分の確保が出来るはず（管理サイズを含むため）、その後1バイトも確保できない（Objectアロケータは要求数がそのまま確保数になる）
+            var memoryBlockC = default(MemoryBlock<SrObject>);
+            var memoryBlockD = default(MemoryBlock<SrObject>);
+            Assert.DoesNotThrow(() => memoryBlockC = allocator.Allocate(38, AllocationType.General));
+            Assert.DoesNotThrow(() => memoryBlockD = allocator.Allocate(38, AllocationType.General));
             Assert.Throws<SrOutOfMemoryException>(() => allocator.Allocate(1, AllocationType.General));
         }
     }
