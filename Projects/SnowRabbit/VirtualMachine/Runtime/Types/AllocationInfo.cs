@@ -18,27 +18,33 @@ using System.Runtime.InteropServices;
 namespace SnowRabbit.VirtualMachine.Runtime
 {
     /// <summary>
-    /// 仮想マシンが扱うメモリレイアウトを定義する共用体です
+    /// 仮想マシンが扱うメモリ確保情報を定義する共用体です
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct SrValue
+    public struct AllocationInfo
     {
         /// <summary>
-        /// メモリの確保情報を持つ値です
+        /// 要求された確保メモリブロック数
         /// </summary>
         [FieldOffset(0)]
-        public AllocationInfo AllocationInfo;
+        public int AllocatedCount;
 
         /// <summary>
-        /// 仮想マシンが扱う型毎の値です
+        /// メモリの確保タイプ
         /// </summary>
-        [FieldOffset(0)]
-        public SrTypeValue Value;
+        [FieldOffset(4)]
+        public int AllocationType;
 
         /// <summary>
-        /// 仮想マシンが扱う命令コードの値です
+        /// 管理情報を含む確保済みメモリブロック数
         /// </summary>
         [FieldOffset(0)]
-        public InstructionCode Instruction;
+        public int AllocatedTotalCount;
+
+        /// <summary>
+        /// 次に参照しているメモリブロックのインデックス
+        /// </summary>
+        [FieldOffset(4)]
+        public int NextMemoryBlockIndex;
     }
 }
