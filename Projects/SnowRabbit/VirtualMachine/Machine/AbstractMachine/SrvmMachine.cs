@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using SnowRabbit.VirtualMachine.Runtime;
 
 namespace SnowRabbit.VirtualMachine.Machine
 {
@@ -132,6 +133,27 @@ namespace SnowRabbit.VirtualMachine.Machine
             machineParts.Memory.Shutdown();
             machineParts.Processor.Shutdown();
             machineParts.Firmware.Shutdown();
+        }
+
+
+        /// <summary>
+        /// 仮想マシンに実行してもらうプログラムを指定してプロセスを生成します
+        /// </summary>
+        /// <param name="programPath">実行するプログラムパス</param>
+        /// <param name="process">プログラムを実行するプロセスを出力します</param>
+        public void CreateProcess(string programPath, out SrProcess process)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        /// <summary>
+        /// 仮想マシンに指定されたプロセスを実行させます
+        /// </summary>
+        /// <param name="process">実行するプロセス</param>
+        public void ExecuteProcess(ref SrProcess process)
+        {
+            throw new NotImplementedException();
         }
 
 

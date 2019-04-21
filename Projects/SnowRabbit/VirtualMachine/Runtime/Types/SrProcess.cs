@@ -13,21 +13,31 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using SnowRabbit.VirtualMachine.Runtime;
-
-namespace SnowRabbit.VirtualMachine.Machine
+namespace SnowRabbit.VirtualMachine.Runtime
 {
     /// <summary>
-    /// 仮想マシンが実装する仮想マシンプロセッサの抽象クラスです
+    /// 仮想マシンが実際に実行するプロセスを表す構造体です
     /// </summary>
-    public abstract class SrvmProcessor : SrvmMachineParts
+    public struct SrProcess
     {
         /// <summary>
-        /// 指定されたプロセスを実行します
+        /// このプロセスが実行するプログラムデータを持つメモリブロック
         /// </summary>
-        /// <param name="process">実行するプロセスへの参照</param>
-        internal void Execute(ref SrProcess process)
-        {
-        }
+        internal MemoryBlock<SrValue> Program;
+
+        /// <summary>
+        /// このプロセスを実行するプロセッサコンテキストのメモリブロック
+        /// </summary>
+        internal MemoryBlock<SrValue> ProcessorContext;
+
+        /// <summary>
+        /// このプロセスが持つスタックメモリブロック
+        /// </summary>
+        internal MemoryBlock<SrValue> StackMemory;
+
+        /// <summary>
+        /// このプロセスが持つオブジェクトメモリブロック
+        /// </summary>
+        internal MemoryBlock<SrObject> ObjectMemory;
     }
 }
