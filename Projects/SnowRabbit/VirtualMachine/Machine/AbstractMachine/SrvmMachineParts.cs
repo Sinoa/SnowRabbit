@@ -24,5 +24,22 @@ namespace SnowRabbit.VirtualMachine.Machine
         /// このメモリを搭載している仮想マシン
         /// </summary>
         protected internal SrvmMachine Machine { get; internal set; }
+
+
+
+        /// <summary>
+        /// 仮想マシンパーツの起動を行います
+        /// </summary>
+        protected internal virtual void Startup()
+        {
+        }
+
+
+        /// <summary>
+        /// 仮想マシンパーツの停止を行います
+        /// </summary>
+        protected internal virtual void Shutdown()
+        {
+        }
     }
 }
