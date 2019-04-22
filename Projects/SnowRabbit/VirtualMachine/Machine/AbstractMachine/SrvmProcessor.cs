@@ -22,6 +22,41 @@ namespace SnowRabbit.VirtualMachine.Machine
     /// </summary>
     public abstract class SrvmProcessor : SrvmMachineParts
     {
+        // 定数定義
+        // Register Index
+        public const int RegisterAIndex = 0;
+        public const int RegisterBIndex = 1;
+        public const int RegisterCIndex = 2;
+        public const int RegisterDIndex = 3;
+        public const int RegisterSIIndex = 4;
+        public const int RegisterDIIndex = 5;
+        public const int RegisterBPIndex = 6;
+        public const int RegisterSPIndex = 7;
+        public const int RegisterRnBaseIndex = 8;
+        public const int RegisterIPIndex = 16;
+        public const int RegisterFlagIndex = 17;
+        // Register Information
+        public const int RegisterTotalCount = RegisterFlagIndex + 1;
+        public const int ProcessorContextSize = RegisterTotalCount * 8;
+
+
+
+        /// <summary>
+        /// 指定されたプロセスのプロセッサコンテキストを初期化します
+        /// </summary>
+        /// <param name="process">初期化するプロセス</param>
+        internal unsafe void InitializeContext(ref SrProcess process)
+        {
+            // メモリモジュールからVMコンテキストとしてメモリを貰って全てゼロクリアする
+            process.ProcessorContext = Machine.Memory.AllocateValue(ProcessorContextSize, AllocationType.VMContext);
+            for (int i = 0; i < RegisterTotalCount; ++i)
+            {
+                // 値を0クリア
+                process.ProcessorContext[i].Value.Ulong[0] = 0UL;
+            }
+        }
+
+
         /// <summary>
         /// 指定されたプロセスを実行します
         /// </summary>

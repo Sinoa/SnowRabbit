@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.VirtualMachine.Runtime;
+
 namespace SnowRabbit.VirtualMachine.Machine
 {
     /// <summary>
@@ -20,5 +22,12 @@ namespace SnowRabbit.VirtualMachine.Machine
     /// </summary>
     public abstract class SrvmFirmware : SrvmMachineParts
     {
+        /// <summary>
+        /// 指定されたプロセスにプログラムをロードします
+        /// </summary>
+        /// <param name="programPath">ロードするプログラム</param>
+        /// <param name="process">ロードする先のプロセス</param>
+        /// <exception cref="SrProgramNotFoundException">指定されたパス '{path}' のプログラムを見つけられませんでした</exception>
+        protected internal abstract void LoadProgram(string programPath, ref SrProcess process);
     }
 }

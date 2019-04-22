@@ -69,10 +69,10 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
             // 1つでもマシンパーツがnullになっていたら駄目なのでチェックしつつ仮想マシンの参照を設定する
-            (machineParts.Firmware ?? throw new InvalidOperationException("仮想マシンのファームウェアが正しく実装されていません")).Machine = this;
-            (machineParts.Processor ?? throw new InvalidOperationException("仮想マシンのプロセッサが正しく実装されていません")).Machine = this;
-            (machineParts.Memory ?? throw new InvalidOperationException("仮想マシンのメモリが正しく実装されていません")).Machine = this;
-            (machineParts.Storage ?? throw new InvalidOperationException("仮想マシンのストレージが正しく実装されていません")).Machine = this;
+            (Firmware ?? throw new InvalidOperationException("仮想マシンのファームウェアが正しく実装されていません")).Machine = this;
+            (Processor ?? throw new InvalidOperationException("仮想マシンのプロセッサが正しく実装されていません")).Machine = this;
+            (Memory ?? throw new InvalidOperationException("仮想マシンのメモリが正しく実装されていません")).Machine = this;
+            (Storage ?? throw new InvalidOperationException("仮想マシンのストレージが正しく実装されていません")).Machine = this;
 
 
             // 周辺装置の数分回って仮想マシンの参照を設定するが、配列がnullなら長さ0で初期化する
@@ -99,10 +99,10 @@ namespace SnowRabbit.VirtualMachine.Machine
         public void PowerOn()
         {
             // 仮想マシンパーツの初期化をしていく
-            machineParts.Firmware.Startup();
-            machineParts.Processor.Startup();
-            machineParts.Memory.Startup();
-            machineParts.Storage.Startup();
+            Firmware.Startup();
+            Processor.Startup();
+            Memory.Startup();
+            Storage.Startup();
 
 
             // 周辺装置の初期化もしていく
@@ -116,7 +116,7 @@ namespace SnowRabbit.VirtualMachine.Machine
 
         /// <summary>
         /// 仮想マシンの電源を切ります。
-        /// 仮想マシンパーツのすべてを停止してから、想マシンが動作停止出来るようにします
+        /// 仮想マシンパーツのすべてを停止してから、仮想マシンが動作停止出来るようにします
         /// </summary>
         public void PowerOff()
         {
@@ -129,21 +129,26 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
             // 仮想マシンパーツの停止をしていく
-            machineParts.Storage.Shutdown();
-            machineParts.Memory.Shutdown();
-            machineParts.Processor.Shutdown();
-            machineParts.Firmware.Shutdown();
+            Storage.Shutdown();
+            Memory.Shutdown();
+            Processor.Shutdown();
+            Firmware.Shutdown();
         }
 
 
         /// <summary>
-        /// 仮想マシンに実行してもらうプログラムを指定してプロセスを生成します
+        /// 仮想マシンに実行してもらうプログラムを指定してプロセスを生成します。
         /// </summary>
         /// <param name="programPath">実行するプログラムパス</param>
         /// <param name="process">プログラムを実行するプロセスを出力します</param>
+        /// <exception cref="ArgumentNullException">programPath が null です</exception>
+        /// <exception cref="SrProgramNotFoundException">指定されたパス '{path}' のプログラムを見つけられませんでした</exception>
         public void CreateProcess(string programPath, out SrProcess process)
         {
-            throw new NotImplementedException();
+            // プロセスの既定初期化をしてからファームウェアにプログラムのロードをしてもらう
+            process = default;
+            Firmware.LoadProgram(programPath ?? throw new ArgumentNullException(nameof(programPath)), ref process);
+            Processor.InitializeContext(ref process);
         }
 
 
@@ -153,7 +158,8 @@ namespace SnowRabbit.VirtualMachine.Machine
         /// <param name="process">実行するプロセス</param>
         public void ExecuteProcess(ref SrProcess process)
         {
-            throw new NotImplementedException();
+            // プロセッサにそのまま実行してもらう
+            Processor.Execute(ref process);
         }
 
 
