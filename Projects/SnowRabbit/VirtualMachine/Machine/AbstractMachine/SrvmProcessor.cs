@@ -24,17 +24,17 @@ namespace SnowRabbit.VirtualMachine.Machine
     {
         // 定数定義
         // Register Index
-        public const int RegisterAIndex = 0;
-        public const int RegisterBIndex = 1;
-        public const int RegisterCIndex = 2;
-        public const int RegisterDIndex = 3;
-        public const int RegisterSIIndex = 4;
-        public const int RegisterDIIndex = 5;
-        public const int RegisterBPIndex = 6;
-        public const int RegisterSPIndex = 7;
-        public const int RegisterRnBaseIndex = 8;
-        public const int RegisterIPIndex = 16;
-        public const int RegisterFlagIndex = 17;
+        public const int RegisterAIndex = 0; // General Accumulator Register
+        public const int RegisterBIndex = 1; // General Base Register
+        public const int RegisterCIndex = 2; // General Counter Register
+        public const int RegisterDIndex = 3; // General Data Register
+        public const int RegisterSIIndex = 4; // General SourceIndex Register
+        public const int RegisterDIIndex = 5; // General DestinationIndex Register
+        public const int RegisterBPIndex = 6; // General BasePointer Register
+        public const int RegisterSPIndex = 7; // General StackPointer Register
+        public const int RegisterRnBaseIndex = 8; // FullGeneral Register (x8)
+        public const int RegisterIPIndex = 16; // InstructionPointer Register
+        public const int RegisterFlagIndex = 17; // Flag Register
         // Register Information
         public const int RegisterTotalCount = RegisterFlagIndex + 1;
         public const int ProcessorContextSize = RegisterTotalCount * 8;
@@ -61,7 +61,7 @@ namespace SnowRabbit.VirtualMachine.Machine
         /// 指定されたプロセスを実行します
         /// </summary>
         /// <param name="process">実行するプロセスへの参照</param>
-        internal void Execute(ref SrProcess process)
+        internal unsafe void Execute(ref SrProcess process)
         {
         }
     }
