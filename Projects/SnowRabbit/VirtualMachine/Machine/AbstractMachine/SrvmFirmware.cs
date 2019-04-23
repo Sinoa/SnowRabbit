@@ -14,6 +14,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using SnowRabbit.VirtualMachine.Runtime;
+using System.IO;
+using System;
 
 namespace SnowRabbit.VirtualMachine.Machine
 {
@@ -22,12 +24,150 @@ namespace SnowRabbit.VirtualMachine.Machine
     /// </summary>
     public abstract class SrvmFirmware : SrvmMachineParts
     {
+        // 定数定義
+        private const int ReadBufferSize = 1 << 10;
+        private const byte CarrotObjectFormatSignature0 = 0xCC;
+        private const byte CarrotObjectFormatSignature1 = 0x00;
+        private const byte CarrotObjectFormatSignature2 = 0xBB;
+        private const byte CarrotObjectFormatSignature3 = 0xFF;
+
+        // メンバ変数定義
+        private byte[] readBuffer; // Span<byte> readBuffer = stackalloc byte[n];が目標（UnityがSpan<T>対応してくれれば考える）
+
+
+
+        /// <summary>
+        /// SrvmFirmware のインスタンスを初期化します
+        /// </summary>
+        public SrvmFirmware()
+        {
+            // 読み込みバッファを予め生成しておく（可能ならばスタック上に確保したいがUnity側都合などで一旦フィールドに置いてしまう）
+            readBuffer = new byte[ReadBufferSize];
+        }
+
+
         /// <summary>
         /// 指定されたプロセスにプログラムをロードします
         /// </summary>
         /// <param name="programPath">ロードするプログラム</param>
         /// <param name="process">ロードする先のプロセス</param>
         /// <exception cref="SrProgramNotFoundException">指定されたパス '{path}' のプログラムを見つけられませんでした</exception>
-        protected internal abstract void LoadProgram(string programPath, ref SrProcess process);
+        internal void LoadProgram(string programPath, ref SrProcess process)
+        {
+            // ストレージからプログラムのリソースをオープンする
+            var programStream = Machine.Storage.Open(programPath);
+            if (programStream == null)
+            {
+                // プログラムを見つけられなかった例外を吐く
+                throw new SrProgramNotFoundException(programPath);
+            }
+
+
+            // シグネチャをチェックして不一致なら
+            if (!CheckMagicSignature(programStream))
+            {
+                // ストリームを閉じて例外を吐く
+                programStream.Close();
+                throw new InvalidOperationException("プログラムのシグネチャが不正です");
+            }
+
+
+            // プログラムコードのサイズ（命令数）、大域変数の数、最低確保オブジェクト数を読み込む
+            var instructionNumber = ReadInt(programStream);
+            var globalVariableNumber = ReadInt(programStream);
+            var minimumObjectNumber = ReadInt(programStream);
+
+
+            // プロセスに必要なサイズとオブジェクトメモリに必要なサイズを計算する
+            var processMemorySize = (instructionNumber + globalVariableNumber + minimumObjectNumber) * 8 + (4 << 10);
+            var objectMemorySize = minimumObjectNumber + 100;
+
+
+            // メモリを確保する
+            process.ProcessMemory = Machine.Memory.AllocateValue(processMemorySize, AllocationType.Process);
+            process.ObjectMemory = Machine.Memory.AllocateObject(objectMemorySize, AllocationType.Process);
+
+
+            // プログラムコードを読み込む
+            ReadProgramCode(programStream, ref process.ProcessMemory, instructionNumber);
+        }
+
+
+        /// <summary>
+        /// 対象のストリームから Carrot Object Format である証明をするためのシグネチャをチェックします
+        /// TODO:BinaryReader/Writerのようにリトルエンディアンのみではなくビッグエンディアンにも対応した読み書きクラスを実装する
+        /// </summary>
+        /// <param name="stream">開かれたプログラムストリーム</param>
+        /// <returns>シグネチャが正しく一致した場合は true を、一致しなかった場合は false を返します</returns>
+        /// <exception cref="EndOfStreamException"></exception>
+        private bool CheckMagicSignature(Stream stream)
+        {
+            // 4byte分ロードするが4byteも読み込めていなかったら
+            var readSize = stream.Read(readBuffer, 0, 4);
+            if (readSize < 4)
+            {
+                // 末尾に達してしまった
+                throw new EndOfStreamException();
+            }
+
+
+            // 読み取ったデータに、1つでもシグネチャと一致しないのなら
+            if (readBuffer[0] != CarrotObjectFormatSignature0 || readBuffer[1] != CarrotObjectFormatSignature1 ||
+                readBuffer[2] != CarrotObjectFormatSignature2 || readBuffer[3] != CarrotObjectFormatSignature3)
+            {
+                // シグネチャと一致しないことを返す
+                return false;
+            }
+
+
+            // ここまで来たら一致したという事で返す
+            return true;
+        }
+
+
+        /// <summary>
+        /// ストリームから int を読み込みます。
+        /// TODO:BinaryReader/Writerのようにリトルエンディアンのみではなくビッグエンディアンにも対応した読み書きクラスを実装する
+        /// </summary>
+        /// <param name="stream">読み込むストリーム</param>
+        /// <returns>読み込まれた int を返します</returns>
+        /// <exception cref="EndOfStreamException"></exception>
+        private int ReadInt(Stream stream)
+        {
+            var readSize = stream.Read(readBuffer, 0, 4);
+            if (readSize < 4)
+            {
+                // 末尾に達してしまった
+                throw new EndOfStreamException();
+            }
+
+
+            // もしビッグエンディアンCPU環境なら
+            if (!BitConverter.IsLittleEndian)
+            {
+                // データを反転
+                Array.Reverse(readBuffer, 0, 4);
+            }
+
+
+            // intとして返す
+            return BitConverter.ToInt32(readBuffer, 0);
+        }
+
+
+        private void ReadProgramCode(Stream stream, ref MemoryBlock<SrValue> processMemory, int instructionNumber)
+        {
+            for (int i = 0; i < instructionNumber; ++i)
+            {
+                stream.Read(readBuffer, 0, 4);
+                var instructionCode = new InstructionCode();
+                instructionCode.OpCode = (OpCode)readBuffer[0];
+                instructionCode.Ra = readBuffer[1];
+                instructionCode.Rb = readBuffer[2];
+                instructionCode.Rc = readBuffer[3];
+                instructionCode.Immediate.Int = ReadInt(stream);
+                processMemory[i].Instruction = instructionCode;
+            }
+        }
     }
 }

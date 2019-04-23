@@ -21,19 +21,14 @@ namespace SnowRabbit.VirtualMachine.Runtime
     public struct SrProcess
     {
         /// <summary>
-        /// このプロセスが実行するプログラムデータを持つメモリブロック
-        /// </summary>
-        internal MemoryBlock<SrValue> Program;
-
-        /// <summary>
         /// このプロセスを実行するプロセッサコンテキストのメモリブロック
         /// </summary>
         internal MemoryBlock<SrValue> ProcessorContext;
 
         /// <summary>
-        /// このプロセスが持つスタックメモリブロック
+        /// このプロセスが持つ従来のメモリブロック
         /// </summary>
-        internal MemoryBlock<SrValue> StackMemory;
+        internal MemoryBlock<SrValue> ProcessMemory;
 
         /// <summary>
         /// このプロセスが持つオブジェクトメモリブロック

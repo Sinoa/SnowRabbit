@@ -54,6 +54,10 @@ namespace SnowRabbit.VirtualMachine.Machine
                 // 値を0クリア
                 process.ProcessorContext[i].Value.Ulong[0] = 0UL;
             }
+
+
+            // スタックポインタはプロセスメモリの末尾へ
+            process.ProcessorContext[RegisterSPIndex].Value.Long[0] = process.ProcessMemory.Length - 1;
         }
 
 
