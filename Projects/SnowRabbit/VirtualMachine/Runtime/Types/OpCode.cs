@@ -27,12 +27,12 @@ namespace SnowRabbit.VirtualMachine.Runtime
         Mov = 0x10,
 
         /// <summary>
-        /// メモリからレジスタへロードします：Ra = [Rb]
+        /// メモリからレジスタへロードします：Ra = [Rb+Imm]
         /// </summary>
         Ldr = 0x11,
 
         /// <summary>
-        /// レジスタからメモリへストアします：[Ra] = Rb
+        /// レジスタからメモリへストアします：[Rb+Imm] = Ra
         /// </summary>
         Str = 0x12,
         #endregion
