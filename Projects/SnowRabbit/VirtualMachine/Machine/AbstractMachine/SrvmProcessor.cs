@@ -13,6 +13,7 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System.Runtime.CompilerServices;
 using SnowRabbit.VirtualMachine.Runtime;
 
 namespace SnowRabbit.VirtualMachine.Machine
@@ -67,6 +68,24 @@ namespace SnowRabbit.VirtualMachine.Machine
         /// <param name="process">実行するプロセスへの参照</param>
         internal unsafe void Execute(ref SrProcess process)
         {
+            FetchInstruction(ref process, out var instruction, out var instructionPointer);
+            instructionPointer += 1;
+
+
+            switch (instruction.OpCode)
+            {
+                case OpCode.Mov:
+                    process.ProcessorContext[instruction.Ra].Value.Long[0] = process.ProcessorContext[instruction.Rb].Value.Long[0] + instruction.Immediate.Int;
+                    break;
+            }
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe static void FetchInstruction(ref SrProcess process, out InstructionCode instruction, out int instructionPointer)
+        {
+            instructionPointer = (int)process.ProcessorContext[RegisterIPIndex].Value.Long[0];
+            instruction = process.ProcessMemory[instructionPointer].Instruction;
         }
     }
 }

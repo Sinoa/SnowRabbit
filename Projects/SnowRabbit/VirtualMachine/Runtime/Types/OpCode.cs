@@ -22,7 +22,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
     {
         #region Data Transfer
         /// <summary>
-        /// レジスタ間または即値のコピーをします：Ra = Rb, Ra = Imm
+        /// レジスタ間または即値のコピーをします：Ra = Rb + Imm
         /// </summary>
         Mov = 0x10,
 
