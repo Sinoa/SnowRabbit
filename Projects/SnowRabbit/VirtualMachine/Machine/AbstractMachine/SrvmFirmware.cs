@@ -13,9 +13,10 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using SnowRabbit.VirtualMachine.Runtime;
-using System.IO;
 using System;
+using System.IO;
+using System.Text;
+using SnowRabbit.VirtualMachine.Runtime;
 
 namespace SnowRabbit.VirtualMachine.Machine
 {
@@ -33,6 +34,7 @@ namespace SnowRabbit.VirtualMachine.Machine
 
         // メンバ変数定義
         private byte[] readBuffer; // Span<byte> readBuffer = stackalloc byte[n];が目標（UnityがSpan<T>対応してくれれば考える）
+        private Encoding encoding;
 
 
 
@@ -43,6 +45,10 @@ namespace SnowRabbit.VirtualMachine.Machine
         {
             // 読み込みバッファを予め生成しておく（可能ならばスタック上に確保したいがUnity側都合などで一旦フィールドに置いてしまう）
             readBuffer = new byte[ReadBufferSize];
+
+
+            // UTF-8エンコーディングを生成しておく
+            encoding = new UTF8Encoding(false);
         }
 
 
@@ -76,11 +82,12 @@ namespace SnowRabbit.VirtualMachine.Machine
             var instructionNumber = ReadInt(programStream);
             var globalVariableNumber = ReadInt(programStream);
             var minimumObjectNumber = ReadInt(programStream);
+            var constStringNumber = ReadInt(programStream);
 
 
             // プロセスに必要なサイズとオブジェクトメモリに必要なサイズを計算する
-            var processMemorySize = (instructionNumber + globalVariableNumber + minimumObjectNumber) * 8 + (4 << 10);
-            var objectMemorySize = minimumObjectNumber + 100;
+            var processMemorySize = (instructionNumber + minimumObjectNumber) * 8 + globalVariableNumber + (4 << 10);
+            var objectMemorySize = minimumObjectNumber + constStringNumber + 100;
 
 
             // メモリを確保する
@@ -90,6 +97,7 @@ namespace SnowRabbit.VirtualMachine.Machine
 
             // プログラムコードを読み込む
             ReadProgramCode(programStream, ref process.ProcessMemory, instructionNumber);
+            ReadConstStringData(programStream, ref process.ObjectMemory, constStringNumber);
         }
 
 
@@ -167,6 +175,22 @@ namespace SnowRabbit.VirtualMachine.Machine
                 instructionCode.Rc = readBuffer[3];
                 instructionCode.Immediate.Int = ReadInt(stream);
                 processMemory[i].Instruction = instructionCode;
+            }
+        }
+
+
+        private void ReadConstStringData(Stream stream, ref MemoryBlock<SrObject> objectMemory, int constStringNumber)
+        {
+            var stringReadBuffer = readBuffer;
+
+
+            for (int i = 0; i < constStringNumber; ++i)
+            {
+                var dataSize = ReadInt(stream);
+                var index = ReadInt(stream);
+                stringReadBuffer = stringReadBuffer.Length >= dataSize ? stringReadBuffer : new byte[dataSize];
+                stream.Read(stringReadBuffer, 0, dataSize);
+                objectMemory[index].Value = encoding.GetString(stringReadBuffer, 0, dataSize);
             }
         }
     }
