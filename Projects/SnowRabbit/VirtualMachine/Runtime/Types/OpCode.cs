@@ -165,7 +165,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
         #region CSharp Host Control
         /// <summary>
-        /// 指定されたレジスタが示すホスト関数アドレスを呼び出します
+        /// 指定されたレジスタが示すホスト関数アドレスを呼び出します：Call[Ra]
         /// </summary>
         HostCall = 0x50,
         #endregion
