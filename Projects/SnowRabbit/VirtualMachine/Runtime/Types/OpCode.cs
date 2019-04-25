@@ -35,6 +35,16 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// レジスタからメモリへストアします：[Rb+Imm] = Ra
         /// </summary>
         Str = 0x12,
+
+        /// <summary>
+        /// スタックポインタをデクリメントしてから、レジスタ内容をスタックへプッシュします：--SP; Stack = Ra
+        /// </summary>
+        Push = 0x13,
+
+        /// <summary>
+        /// スタックからレジスタ内容へポップし、スタックポインタをインクリメントします：Ra = Stack; ++SP;
+        /// </summary>
+        Pop = 0x14,
         #endregion
 
         #region Arithmetic
@@ -86,61 +96,71 @@ namespace SnowRabbit.VirtualMachine.Runtime
         And = 0x32,
 
         /// <summary>
-        /// レジスタの論理否定を求めます：Ra = !Ra
+        /// レジスタのビット反転を求めます：Ra = ~Ra
         /// </summary>
         Not = 0x33,
 
         /// <summary>
+        /// レジスタの論理否定を求めます：Ra = !Ra
+        /// </summary>
+        Lnot = 0x34,
+
+        /// <summary>
         /// レジスタ間の左方向ビットシフトをします：Ra = Rb << Rc
         /// </summary>
-        Shl = 0x34,
+        Shl = 0x35,
 
         /// <summary>
         /// レジスタ間の右方向ビットシフトをします：Ra = Rb >> Rc
         /// </summary>
-        Shr = 0x35,
+        Shr = 0x36,
         #endregion
 
         #region Flow Control
         /// <summary>
-        /// 無条件で指定されたアドレスへ分岐します：PC = Ra, PC = Imm
+        /// 無条件で指定されたアドレスへ分岐します：PC = Ra
         /// </summary>
-        B = 0x40,
+        Br = 0x40,
 
         /// <summary>
-        /// ステータスレジスタのZフラグがOffの場合指に指定されたアドレスへ分岐します：PC = Z == 0 ? Ra : PC, PC = Z == 0 ? Imm : PC
+        /// 現在の命令ポインタの次の命令アドレスをリンクレジスタへ設定してから、無条件で指定されたアドレスへ分岐します：LR = PC + 1; PC = Ra
         /// </summary>
-        Bne = 0x41,
+        Blr = 0x41,
 
         /// <summary>
-        /// ステータスレジスタのZフラグがOnまたはPフラグがOnの場合に指定されたアドレスへ分岐します：PC = (Z == 1 || P == 1) ? Ra : PC, PC = (Z == 1 || P == 1) ? Imm : PC
+        /// リンクレジスタに設定されているアドレスへ分岐します：PC = LR
         /// </summary>
-        Bge = 0x42,
+        Ret = 0x42,
 
         /// <summary>
-        /// ステータスレジスタのZフラグがOnまたはNフラグがOnの場合に指定されたアドレスへ分岐します：PC = (Z == 1 || N == 1) ? Ra : PC, PC = (Z == 1 || N == 1) ? Imm : PC
+        /// ステータスレジスタのZフラグがOffの場合指に、現在の命令ポインタの次の命令アドレスをリンクレジスタへ設定してから、指定されたアドレスへ分岐します：PC = Z == 0 ? Ra : PC
         /// </summary>
-        Ble = 0x43,
+        Bne = 0x43,
 
         /// <summary>
-        /// ステータスレジスタのPフラグがOnの場合に指定されたアドレスへ分岐します：PC = P == 1 ? Ra : PC, PC = P == 1 ? Imm : PC
+        /// ステータスレジスタのZフラグがOnまたはPフラグがOnの場合に、現在の命令ポインタの次の命令アドレスをリンクレジスタへ設定してから、指定されたアドレスへ分岐します：PC = (Z == 1 || P == 1) ? Ra : PC
         /// </summary>
-        Bg = 0x44,
+        Bge = 0x44,
 
         /// <summary>
-        /// ステータスレジスタのNフラグがOnの場合に指定されたアドレスへ分岐します：PC = N == 1 ? Ra : PC, PC = N == 1 ? Imm : PC
+        /// ステータスレジスタのZフラグがOnまたはNフラグがOnの場合に、現在の命令ポインタの次の命令アドレスをリンクレジスタへ設定してから、指定されたアドレスへ分岐します：PC = (Z == 1 || N == 1) ? Ra : PC
         /// </summary>
-        Bl = 0x45,
+        Bls = 0x45,
 
         /// <summary>
-        /// 現在のプログラムカウンタの次の命令アドレスをプッシュして指定されたアドレスへ分岐します：Push PC; PC = Ra, Push PC; PC = Imm
+        /// ステータスレジスタのPフラグがOnの場合に、現在の命令ポインタの次の命令アドレスをリンクレジスタへ設定してから、指定されたアドレスへ分岐します：PC = P == 1 ? Ra : PC
         /// </summary>
-        Call = 0x46,
+        Bgt = 0x46,
 
         /// <summary>
-        /// 現在のスタックトップからポップしたアドレスへ分岐します：Pop Ra; PC = Ra
+        /// ステータスレジスタのNフラグがOnの場合に、現在の命令ポインタの次の命令アドレスをリンクレジスタへ設定してから、指定されたアドレスへ分岐します：PC = N == 1 ? Ra : PC
         /// </summary>
-        Ret = 0x47,
+        Blt = 0x47,
+
+        /// <summary>
+        /// カウンタレジスタが1以上の場合に、カウンタレジスタをデクリメントしてから、指定されたアドレスへ分岐します：PC = CReg >= 1 ? {--CReg; Ra;} : PC
+        /// </summary>
+        Blp = 0x48,
         #endregion
 
         #region CSharp Host Control
