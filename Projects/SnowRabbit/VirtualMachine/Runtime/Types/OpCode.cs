@@ -39,64 +39,64 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
         #region Arithmetic
         /// <summary>
-        /// レジスタ間または即値の加算をします：Ra = Rb + Rc, Ra = Rb + Imm
+        /// レジスタ間の加算をします：Ra = Rb + Rc
         /// </summary>
         Add = 0x20,
 
         /// <summary>
-        /// レジスタ間または即値の減算をします：Ra = Rb - Rc, Ra = Rb - Imm
+        /// レジスタ間の減算をします：Ra = Rb - Rc
         /// </summary>
         Sub = 0x21,
 
         /// <summary>
-        /// レジスタ間または即値の乗算をします：Ra = Rb * Rc, Ra = Rb * Imm
+        /// レジスタ間の乗算をします：Ra = Rb * Rc
         /// </summary>
         Mul = 0x22,
 
         /// <summary>
-        /// レジスタ間または即値の除算をします：Ra = Rb / Rc, Ra = Rb / Imm
+        /// レジスタ間の除算をします：Ra = Rb / Rc
         /// </summary>
         Div = 0x23,
 
         /// <summary>
-        /// レジスタ間または即値の剰余を求めます：Ra = Rb % Rc, Ra = Rb % Imm
+        /// レジスタ間の剰余を求めます：Ra = Rb % Rc
         /// </summary>
         Mod = 0x24,
 
         /// <summary>
-        /// レジスタ間または即値の累乗を求めます：Ra = Pow(Rb, Rc), Ra = Pow(Rb, Imm)
+        /// レジスタ間の累乗を求めます：Ra = Pow(Rb, Rc)
         /// </summary>
         Pow = 0x25,
         #endregion
 
         #region Logic
         /// <summary>
-        /// レジスタ間または即値の論理和を求めます：Ra = Rb | Rc, Ra = Rb | Imm
+        /// レジスタ間の論理和を求めます：Ra = Rb | Rc
         /// </summary>
         Or = 0x30,
 
         /// <summary>
-        /// レジスタ間または即値の排他的論理和を求めます：Ra = Rb ^ Rc, Ra = Rb | Imm
+        /// レジスタ間の排他的論理和を求めます：Ra = Rb ^ Rc
         /// </summary>
         Xor = 0x31,
 
         /// <summary>
-        /// レジスタ間または即値の論理積を求めます：Ra = Rb & Rc, Ra = Rb & Imm
+        /// レジスタ間の論理積を求めます：Ra = Rb & Rc
         /// </summary>
         And = 0x32,
 
         /// <summary>
-        /// レジスタまたは即値の論理否定を求めます：Ra = !Ra, Ra = !Imm
+        /// レジスタの論理否定を求めます：Ra = !Ra
         /// </summary>
         Not = 0x33,
 
         /// <summary>
-        /// レジスタ間または即値の左方向ビットシフトをします：Ra = Rb << Rc, Ra = Rb << Imm
+        /// レジスタ間の左方向ビットシフトをします：Ra = Rb << Rc
         /// </summary>
         Shl = 0x34,
 
         /// <summary>
-        /// レジスタ間または即値の右方向ビットシフトをします：Ra = Rb >> Rc, Ra = Rb >> Imm
+        /// レジスタ間の右方向ビットシフトをします：Ra = Rb >> Rc
         /// </summary>
         Shr = 0x35,
         #endregion
