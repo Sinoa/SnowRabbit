@@ -31,13 +31,12 @@ namespace SnowRabbit.VirtualMachine.Runtime
         private MemoryBlock<SrObject> objectMemory;
 
         /// <summary>
-        /// ホストマシンからの値型としての戻り値、および型としての保持をします
+        /// ホストマシンからの値型としての戻り値を保持します。
         /// </summary>
         private SrValue resultValue;
 
         /// <summary>
         /// ホストマシンからの参照型としての戻り値を保持します。
-        /// resultValue の型が参照型ではない場合は、この値は無視されます。
         /// </summary>
         private SrObject resultObject;
 
@@ -68,6 +67,30 @@ namespace SnowRabbit.VirtualMachine.Runtime
         public unsafe object GetObject(int index)
         {
             return objectMemory[(int)stack[index].Value.Long[0]].Value;
+        }
+
+
+        public unsafe long GetResultValue()
+        {
+            return resultValue.Value.Long[0];
+        }
+
+
+        public unsafe object GetResultObject()
+        {
+            return resultObject.Value;
+        }
+
+
+        public unsafe void SetResultValue(long value)
+        {
+            resultValue.Value.Long[0] = value;
+        }
+
+
+        public unsafe void SetResultObject(object value)
+        {
+            resultObject.Value = value;
         }
     }
 }
