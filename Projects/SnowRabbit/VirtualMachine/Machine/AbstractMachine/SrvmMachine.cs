@@ -129,9 +129,15 @@ namespace SnowRabbit.VirtualMachine.Machine
             // 周辺装置の停止をしていく
             for (int i = machineParts.Peripherals.Length - 1; i >= 0; --i)
             {
-                // 停止を呼ぶ
-                machineParts.Peripherals[i].Shutdown();
+                // 周辺機器関数の登録を全て解除して停止を呼ぶ
+                var peripheral = machineParts.Peripherals[i];
+                peripheral.UnregisterFunctionAll();
+                peripheral.Shutdown();
             }
+
+
+            // 周辺装置を全て分解する
+            Firmware.DisassemblyPeripheralAll();
 
 
             // 仮想マシンパーツの停止をしていく

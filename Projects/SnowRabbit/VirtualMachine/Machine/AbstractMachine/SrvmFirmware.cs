@@ -223,5 +223,12 @@ namespace SnowRabbit.VirtualMachine.Machine
         {
             return peripheralIDTable.TryGetValue(name, out var id) ? id : -1;
         }
+
+
+        internal void DisassemblyPeripheralAll()
+        {
+            peripheralTable.Clear();
+            peripheralIDTable.Clear();
+        }
     }
 }

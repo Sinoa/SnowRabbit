@@ -47,6 +47,13 @@ namespace SnowRabbit.VirtualMachine.Machine
         }
 
 
+        internal void UnregisterFunctionAll()
+        {
+            functionTable.Clear();
+            functionIDTable.Clear();
+        }
+
+
         private void AddFunction(string name, Action<SrStackFrame> hostFunction)
         {
             var functionID = nextFunctionID++;
