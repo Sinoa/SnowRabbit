@@ -339,14 +339,21 @@ namespace SnowRabbit.VirtualMachine.Machine
 
                 #region CSharp Host Control
                 case OpCode.CallPeripheralFunction:
+                    var peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
+                    var function = peripheral.GetFunction((int)context[regBNumber].Value.Long[0]);
+                    var stackFrame = memory.Slice((int)context[RegisterSPIndex].Value.Long[0], (int)context[regCNumber].Value.Long[0]);
+                    function(new SrStackFrame(stackFrame, process.ObjectMemory));
                     break;
 
 
                 case OpCode.GetPeripheralId:
+                    context[regANumber].Value.Long[0] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[(int)context[regANumber].Value.Long[0]].Value);
                     break;
 
 
                 case OpCode.GetPeripheralFunctionId:
+                    peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
+                    context[regBNumber].Value.Long[0] = peripheral.GetFunctionID((string)process.ObjectMemory[(int)context[regBNumber].Value.Long[0]].Value);
                     break;
                 #endregion
 

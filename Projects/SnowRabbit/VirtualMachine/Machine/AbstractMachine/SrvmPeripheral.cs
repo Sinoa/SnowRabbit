@@ -54,6 +54,18 @@ namespace SnowRabbit.VirtualMachine.Machine
         }
 
 
+        internal int GetFunctionID(string name)
+        {
+            return functionIDTable.TryGetValue(name, out var id) ? id : -1;
+        }
+
+
+        internal Action<SrStackFrame> GetFunction(int id)
+        {
+            return functionTable.TryGetValue(id, out var function) ? function : null;
+        }
+
+
         private void AddFunction(string name, Action<SrStackFrame> hostFunction)
         {
             var functionID = nextFunctionID++;
