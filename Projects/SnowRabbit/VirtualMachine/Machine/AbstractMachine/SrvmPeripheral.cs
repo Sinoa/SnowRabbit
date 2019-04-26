@@ -33,6 +33,14 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
 
+        public SrvmPeripheral()
+        {
+            nextFunctionID = 0;
+            functionIDTable = new Dictionary<string, int>();
+            functionTable = new Dictionary<int, Action<SrStackFrame>>();
+        }
+
+
         internal void InitializeFunctionTable()
         {
             SetupFunction(AddFunction);
