@@ -108,8 +108,14 @@ namespace SnowRabbit.VirtualMachine.Machine
             // 周辺装置の初期化もしていく
             for (int i = 0; i < machineParts.Peripherals.Length; ++i)
             {
-                // 初期化を呼ぶ
-                machineParts.Peripherals[i].Startup();
+                // 周辺機器の初期化をする
+                var peripheral = machineParts.Peripherals[i];
+                peripheral.Startup();
+
+
+                // ファームウェアに周辺機器を追加して周辺機器関数の初期化も行う
+                Firmware.AddPeripheral(peripheral.PeripheralName, peripheral);
+                peripheral.InitializeFunctionTable();
             }
         }
 
