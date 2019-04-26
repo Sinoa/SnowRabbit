@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using SnowRabbit.VirtualMachine.Runtime;
 
 namespace SnowRabbit.VirtualMachine.Machine
 {
@@ -28,12 +29,24 @@ namespace SnowRabbit.VirtualMachine.Machine
 
         private int nextFunctionID;
         private Dictionary<string, int> functionIDTable;
-        private Dictionary<int, Action> functionTable;
+        private Dictionary<int, Action<SrStackFrame>> functionTable;
 
 
 
         internal void InitializeFunctionTable()
         {
+            SetupFunction(AddFunction);
         }
+
+
+        private void AddFunction(string name, Action<SrStackFrame> hostFunction)
+        {
+            var functionID = nextFunctionID++;
+            functionIDTable[name] = functionID;
+            functionTable[functionID] = hostFunction;
+        }
+
+
+        protected abstract void SetupFunction(Action<string, Action<SrStackFrame>> registryHandler);
     }
 }
