@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using SnowRabbit.VirtualMachine.Runtime;
@@ -35,6 +36,9 @@ namespace SnowRabbit.VirtualMachine.Machine
         // メンバ変数定義
         private byte[] readBuffer; // Span<byte> readBuffer = stackalloc byte[n];が目標（UnityがSpan<T>対応してくれれば考える）
         private Encoding encoding;
+        private int nextPeripheralID;
+        private Dictionary<string, int> peripheralIDTable;
+        private Dictionary<int, SrvmPeripheral> peripheralTable;
 
 
 
@@ -49,6 +53,12 @@ namespace SnowRabbit.VirtualMachine.Machine
 
             // UTF-8エンコーディングを生成しておく
             encoding = new UTF8Encoding(false);
+
+
+            // 次の決定された周辺機器ID
+            peripheralIDTable = new Dictionary<string, int>();
+            peripheralTable = new Dictionary<int, SrvmPeripheral>();
+            nextPeripheralID = 0;
         }
 
 
@@ -192,6 +202,26 @@ namespace SnowRabbit.VirtualMachine.Machine
                 stream.Read(stringReadBuffer, 0, dataSize);
                 objectMemory[index].Value = encoding.GetString(stringReadBuffer, 0, dataSize);
             }
+        }
+
+
+        internal void AddPeripheral(string name, SrvmPeripheral peripheral)
+        {
+            var peripheralId = nextPeripheralID++;
+            peripheralIDTable[name] = peripheralId;
+            peripheralTable[peripheralId] = peripheral;
+        }
+
+
+        internal SrvmPeripheral GetPeripheral(int id)
+        {
+            return peripheralTable.TryGetValue(id, out var peripheral) ? peripheral : null;
+        }
+
+
+        internal int GetPeripheralID(string name)
+        {
+            return peripheralIDTable.TryGetValue(name, out var id) ? id : -1;
         }
     }
 }
