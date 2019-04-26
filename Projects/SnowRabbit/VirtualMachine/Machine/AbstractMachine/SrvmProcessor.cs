@@ -70,302 +70,313 @@ namespace SnowRabbit.VirtualMachine.Machine
         /// <param name="process">実行するプロセスへの参照</param>
         internal unsafe void Execute(ref SrProcess process)
         {
-            FetchInstruction(ref process, out var instruction, out var instructionPointer);
-            FetchRegisterInfo(ref instruction, out var regANumber, out var regBNumber, out var regCNumber, out var regAType, out var regBType, out var regCType);
-            var nextInstructionPointer = instructionPointer + 1;
-            var immediate = instruction.Immediate.Int;
-            ref var context = ref process.ProcessorContext;
-            ref var memory = ref process.ProcessMemory;
-
-
-            switch (instruction.OpCode)
+            var execution = true;
+            while (execution)
             {
-                #region Data Transfer
-                case OpCode.Mov:
-                    var result = context[regBNumber].Value.Long[0] + immediate;
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
+                FetchInstruction(ref process, out var instruction, out var instructionPointer);
+                FetchRegisterInfo(ref instruction, out var regANumber, out var regBNumber, out var regCNumber, out var regAType, out var regBType, out var regCType);
+                var nextInstructionPointer = instructionPointer + 1;
+                var immediate = instruction.Immediate.Int;
+                ref var context = ref process.ProcessorContext;
+                ref var memory = ref process.ProcessMemory;
 
 
-                case OpCode.Ldr:
-                    context[regANumber].Value.Long[0] = memory[regBNumber + immediate].Value.Long[0];
-                    break;
-
-
-                case OpCode.Str:
-                    memory[regBNumber + immediate].Value.Long[0] = context[regANumber].Value.Long[0];
-                    break;
-
-
-                case OpCode.Push:
-                    var sp = context[RegisterSPIndex].Value.Long[0] - 1;
-                    memory[(int)sp].Value.Long[0] = context[regANumber].Value.Long[0];
-                    context[RegisterSPIndex].Value.Long[0] = sp;
-                    break;
-
-
-                case OpCode.Pop:
-                    sp = context[RegisterSPIndex].Value.Long[0];
-                    context[regANumber].Value.Long[0] = memory[(int)sp].Value.Long[0];
-                    context[RegisterSPIndex].Value.Long[0] = sp - 1;
-                    break;
-                #endregion
-
-
-                #region Arithmetic
-                case OpCode.Add:
-                    result = context[regBNumber].Value.Long[0] + context[regCNumber].Value.Long[0];
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-
-
-                case OpCode.Sub:
-                    result = context[regBNumber].Value.Long[0] - context[regCNumber].Value.Long[0];
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-
-
-                case OpCode.Mul:
-                    result = context[regBNumber].Value.Long[0] * context[regCNumber].Value.Long[0];
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-
-
-                case OpCode.Div:
-                    result = context[regBNumber].Value.Long[0] / context[regCNumber].Value.Long[0];
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-
-
-                case OpCode.Mod:
-                    result = context[regBNumber].Value.Long[0] % context[regCNumber].Value.Long[0];
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-
-
-                case OpCode.Pow:
-                    result = (long)Math.Pow(context[regBNumber].Value.Long[0], context[regCNumber].Value.Long[0]);
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-                #endregion
-
-
-                #region Logic
-                case OpCode.Or:
-                    result = context[regBNumber].Value.Long[0] | context[regCNumber].Value.Long[0];
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-
-
-                case OpCode.Xor:
-                    result = context[regBNumber].Value.Long[0] ^ context[regCNumber].Value.Long[0];
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-
-
-                case OpCode.And:
-                    result = context[regBNumber].Value.Long[0] & context[regCNumber].Value.Long[0];
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-
-
-                case OpCode.Not:
-                    result = ~context[regANumber].Value.Long[0];
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-
-
-                case OpCode.Lnot:
-                    var boolresult = !context[regANumber].Value.Bool[0];
-                    context[regANumber].Value.Bool[0] = boolresult;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (boolresult == false)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-
-
-                case OpCode.Shl:
-                    result = context[regBNumber].Value.Long[0] << (int)(context[regCNumber].Value.Long[0]);
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-
-
-                case OpCode.Shr:
-                    result = context[regBNumber].Value.Long[0] >> (int)(context[regCNumber].Value.Long[0]);
-                    context[regANumber].Value.Long[0] = result;
-                    ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                    if (result == 0)
-                    {
-                        SetFlagRegister(ref process, FlagRegisterMask.Z);
-                    }
-                    break;
-                #endregion
-
-
-                #region Flow Control
-                case OpCode.Br:
-                    nextInstructionPointer = context[regANumber].Value.Long[0];
-                    break;
-
-
-                case OpCode.Blr:
-                    context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
-                    nextInstructionPointer = context[regANumber].Value.Long[0];
-                    break;
-
-
-                case OpCode.Ret:
-                    nextInstructionPointer = context[RegisterLinkIndex].Value.Long[0];
-                    break;
-
-
-                case OpCode.Bne:
-                    if (IsFlagRegisterClear(ref process, FlagRegisterMask.Z))
-                    {
-                        context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
-                        nextInstructionPointer = context[regANumber].Value.Long[0];
-                    }
-                    break;
-
-
-                case OpCode.Bge:
-                    if (IsFlagRegisterSet(ref process, FlagRegisterMask.Z | FlagRegisterMask.P))
-                    {
-                        context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
-                        nextInstructionPointer = context[regANumber].Value.Long[0];
-                    }
-                    break;
-
-
-                case OpCode.Bls:
-                    if (IsFlagRegisterSet(ref process, FlagRegisterMask.Z | FlagRegisterMask.N))
-                    {
-                        context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
-                        nextInstructionPointer = context[regANumber].Value.Long[0];
-                    }
-                    break;
-
-
-                case OpCode.Bgt:
-                    if (IsFlagRegisterSet(ref process, FlagRegisterMask.P))
-                    {
-                        context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
-                        nextInstructionPointer = context[regANumber].Value.Long[0];
-                    }
-                    break;
-
-
-                case OpCode.Blt:
-                    if (IsFlagRegisterSet(ref process, FlagRegisterMask.N))
-                    {
-                        context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
-                        nextInstructionPointer = context[regANumber].Value.Long[0];
-                    }
-                    break;
-
-
-                case OpCode.Blp:
-                    if (context[RegisterCIndex].Value.Long[0] >= 1)
-                    {
-                        --context[RegisterCIndex].Value.Long[0];
-                        context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
-                        nextInstructionPointer = context[regANumber].Value.Long[0];
-                    }
-                    break;
-                #endregion
-
-
-                #region CSharp Host Control
-                case OpCode.CallPeripheralFunction:
-                    var peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
-                    var function = peripheral.GetFunction((int)context[regBNumber].Value.Long[0]);
-                    var stackFrame = memory.Slice((int)context[RegisterSPIndex].Value.Long[0], (int)context[regCNumber].Value.Long[0]);
-                    function(new SrStackFrame(stackFrame, process.ObjectMemory));
-                    break;
-
-
-                case OpCode.GetPeripheralId:
-                    context[regANumber].Value.Long[0] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[(int)context[regANumber].Value.Long[0]].Value);
-                    break;
-
-
-                case OpCode.GetPeripheralFunctionId:
-                    peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
-                    context[regBNumber].Value.Long[0] = peripheral.GetFunctionID((string)process.ObjectMemory[(int)context[regBNumber].Value.Long[0]].Value);
-                    break;
-                #endregion
-
-
-                #region Undefined
-                default:
-                    break;
+                switch (instruction.OpCode)
+                {
+                    #region CPU Control
+                    case OpCode.Halt:
+                        execution = false;
+                        break;
                     #endregion
+
+
+                    #region Data Transfer
+                    case OpCode.Mov:
+                        var result = context[regBNumber].Value.Long[0] + immediate;
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Ldr:
+                        context[regANumber].Value.Long[0] = memory[regBNumber + immediate].Value.Long[0];
+                        break;
+
+
+                    case OpCode.Str:
+                        memory[regBNumber + immediate].Value.Long[0] = context[regANumber].Value.Long[0];
+                        break;
+
+
+                    case OpCode.Push:
+                        var sp = context[RegisterSPIndex].Value.Long[0] - 1;
+                        memory[(int)sp].Value.Long[0] = context[regANumber].Value.Long[0];
+                        context[RegisterSPIndex].Value.Long[0] = sp;
+                        break;
+
+
+                    case OpCode.Pop:
+                        sp = context[RegisterSPIndex].Value.Long[0];
+                        context[regANumber].Value.Long[0] = memory[(int)sp].Value.Long[0];
+                        context[RegisterSPIndex].Value.Long[0] = sp - 1;
+                        break;
+                    #endregion
+
+
+                    #region Arithmetic
+                    case OpCode.Add:
+                        result = context[regBNumber].Value.Long[0] + context[regCNumber].Value.Long[0];
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Sub:
+                        result = context[regBNumber].Value.Long[0] - context[regCNumber].Value.Long[0];
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Mul:
+                        result = context[regBNumber].Value.Long[0] * context[regCNumber].Value.Long[0];
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Div:
+                        result = context[regBNumber].Value.Long[0] / context[regCNumber].Value.Long[0];
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Mod:
+                        result = context[regBNumber].Value.Long[0] % context[regCNumber].Value.Long[0];
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Pow:
+                        result = (long)Math.Pow(context[regBNumber].Value.Long[0], context[regCNumber].Value.Long[0]);
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+                    #endregion
+
+
+                    #region Logic
+                    case OpCode.Or:
+                        result = context[regBNumber].Value.Long[0] | context[regCNumber].Value.Long[0];
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Xor:
+                        result = context[regBNumber].Value.Long[0] ^ context[regCNumber].Value.Long[0];
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.And:
+                        result = context[regBNumber].Value.Long[0] & context[regCNumber].Value.Long[0];
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Not:
+                        result = ~context[regANumber].Value.Long[0];
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Lnot:
+                        var boolresult = !context[regANumber].Value.Bool[0];
+                        context[regANumber].Value.Bool[0] = boolresult;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (boolresult == false)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Shl:
+                        result = context[regBNumber].Value.Long[0] << (int)(context[regCNumber].Value.Long[0]);
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Shr:
+                        result = context[regBNumber].Value.Long[0] >> (int)(context[regCNumber].Value.Long[0]);
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+                    #endregion
+
+
+                    #region Flow Control
+                    case OpCode.Br:
+                        nextInstructionPointer = context[regANumber].Value.Long[0];
+                        break;
+
+
+                    case OpCode.Blr:
+                        context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
+                        nextInstructionPointer = context[regANumber].Value.Long[0];
+                        break;
+
+
+                    case OpCode.Ret:
+                        nextInstructionPointer = context[RegisterLinkIndex].Value.Long[0];
+                        break;
+
+
+                    case OpCode.Bne:
+                        if (IsFlagRegisterClear(ref process, FlagRegisterMask.Z))
+                        {
+                            context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
+                            nextInstructionPointer = context[regANumber].Value.Long[0];
+                        }
+                        break;
+
+
+                    case OpCode.Bge:
+                        if (IsFlagRegisterSet(ref process, FlagRegisterMask.Z | FlagRegisterMask.P))
+                        {
+                            context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
+                            nextInstructionPointer = context[regANumber].Value.Long[0];
+                        }
+                        break;
+
+
+                    case OpCode.Bls:
+                        if (IsFlagRegisterSet(ref process, FlagRegisterMask.Z | FlagRegisterMask.N))
+                        {
+                            context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
+                            nextInstructionPointer = context[regANumber].Value.Long[0];
+                        }
+                        break;
+
+
+                    case OpCode.Bgt:
+                        if (IsFlagRegisterSet(ref process, FlagRegisterMask.P))
+                        {
+                            context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
+                            nextInstructionPointer = context[regANumber].Value.Long[0];
+                        }
+                        break;
+
+
+                    case OpCode.Blt:
+                        if (IsFlagRegisterSet(ref process, FlagRegisterMask.N))
+                        {
+                            context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
+                            nextInstructionPointer = context[regANumber].Value.Long[0];
+                        }
+                        break;
+
+
+                    case OpCode.Blp:
+                        if (context[RegisterCIndex].Value.Long[0] >= 1)
+                        {
+                            --context[RegisterCIndex].Value.Long[0];
+                            context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
+                            nextInstructionPointer = context[regANumber].Value.Long[0];
+                        }
+                        break;
+                    #endregion
+
+
+                    #region CSharp Host Control
+                    case OpCode.CallPeripheralFunction:
+                        var peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
+                        var function = peripheral.GetFunction((int)context[regBNumber].Value.Long[0]);
+                        var stackFrame = memory.Slice((int)context[RegisterSPIndex].Value.Long[0], (int)context[regCNumber].Value.Long[0]);
+                        function(new SrStackFrame(stackFrame, process.ObjectMemory));
+                        break;
+
+
+                    case OpCode.GetPeripheralId:
+                        context[regANumber].Value.Long[0] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[(int)context[regANumber].Value.Long[0]].Value);
+                        break;
+
+
+                    case OpCode.GetPeripheralFunctionId:
+                        peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
+                        context[regBNumber].Value.Long[0] = peripheral.GetFunctionID((string)process.ObjectMemory[(int)context[regBNumber].Value.Long[0]].Value);
+                        break;
+                    #endregion
+
+
+                    #region Undefined
+                    default:
+                        break;
+                        #endregion
+                }
+
+
+                UpdateInstructionPointer(ref process, nextInstructionPointer);
             }
-
-
-            UpdateInstructionPointer(ref process, nextInstructionPointer);
         }
 
 

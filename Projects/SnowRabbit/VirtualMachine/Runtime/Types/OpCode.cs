@@ -20,6 +20,13 @@ namespace SnowRabbit.VirtualMachine.Runtime
     /// </summary>
     public enum OpCode : byte
     {
+        #region CPU Control
+        /// <summary>
+        /// CPUを無条件に停止します
+        /// </summary>
+        Halt = 0x00,
+        #endregion
+
         #region Data Transfer
         /// <summary>
         /// レジスタ間または即値のコピーをします：Ra = Rb + Imm
