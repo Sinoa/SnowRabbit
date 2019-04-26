@@ -145,5 +145,42 @@ namespace SnowRabbit.Test
             Assert.AreEqual(valueB, memoryBlockC[50].Value.Int[0]);
             Assert.AreEqual(valueD, memoryBlockC[25].Value.Int[0]);
         }
+
+
+        /// <summary>
+        /// メモリブロックから新しいメモリブロックを切り出す Slice 関数のテストをします
+        /// </summary>
+        [Test]
+        public void SliceTest()
+        {
+            // 簡単なint型メモリブロックを用意する
+            var memoryPool = new int[100];
+            var memoryBlock = new MemoryBlock<int>(memoryPool, 0, memoryPool.Length);
+
+
+            // オリジナルメモリブロックに値を入れる
+            for (int i = 0; i < memoryBlock.Length; ++i)
+            {
+                // ただひたすら代入
+                memoryBlock[i] = i;
+            }
+
+
+            // まずは適当な範囲を切り出して値がインデックスの範囲の値通りか確認
+            var memoryBlockB = memoryBlock.Slice(50, 10);
+            Assert.AreEqual(50, memoryBlockB.Offset);
+            Assert.AreEqual(10, memoryBlockB.Length);
+            var memoryBlockBB = memoryBlockB.Slice(10, 5);
+            Assert.AreEqual(60, memoryBlockBB.Offset);
+            Assert.AreEqual(5, memoryBlockBB.Length);
+            for (int i = 0; i < memoryBlockB.Length; ++i)
+            {
+                Assert.AreEqual(i + memoryBlockB.Offset, memoryBlockB[i]);
+            }
+            for (int i = 0; i < memoryBlockBB.Length; ++i)
+            {
+                Assert.AreEqual(i + memoryBlockBB.Offset, memoryBlockBB[i]);
+            }
+        }
     }
 }

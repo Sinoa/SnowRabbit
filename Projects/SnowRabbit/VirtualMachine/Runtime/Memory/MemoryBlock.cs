@@ -96,5 +96,18 @@ namespace SnowRabbit.VirtualMachine.Runtime
             Offset = start;
             Length = length;
         }
+
+
+        /// <summary>
+        /// このメモリブロックの範囲内から指定された、位置と長さで新しいメモリブロックを切り出します
+        /// </summary>
+        /// <param name="offset">このメモリブロックにおける開始位置</param>
+        /// <param name="count">切り出すメモリブロックの数</param>
+        /// <returns>このメモリブロックから指定された範囲の新しく切り出した MemoryBlock のインスタンスを返します</returns>
+        public MemoryBlock<T> Slice(int offset, int count)
+        {
+            // 指定された範囲で新しいメモリブロックを生成する
+            return new MemoryBlock<T>(memoryPool, Offset + offset, count);
+        }
     }
 }
