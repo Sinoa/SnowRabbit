@@ -338,7 +338,15 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
                 #region CSharp Host Control
-                case OpCode.HostCall:
+                case OpCode.CallPeripheralFunction:
+                    break;
+
+
+                case OpCode.GetPeripheralId:
+                    break;
+
+
+                case OpCode.GetPeripheralFunctionId:
                     break;
                 #endregion
 

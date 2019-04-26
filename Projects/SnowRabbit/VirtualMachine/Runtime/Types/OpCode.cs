@@ -165,9 +165,19 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
         #region CSharp Host Control
         /// <summary>
-        /// 指定されたレジスタが示すホスト関数アドレスを呼び出します：Call[Ra]
+        /// レジスタが示す周辺機器関数を呼び出します：Peripheral #Ra -> Call #Rb( ArgNum #Rc )
         /// </summary>
-        HostCall = 0x50,
+        CallPeripheralFunction = 0x50,
+
+        /// <summary>
+        /// レジスタが示す周辺機器名から周辺機器IDを取得します：Ra = GetPeripheralId([Ra])
+        /// </summary>
+        GetPeripheralId = 0x51,
+
+        /// <summary>
+        /// レジスタが示す周辺機器IDの周辺機器関数名から周辺機器関数IDを取得します：Rb = GetFuncId(Ra, [Rb])
+        /// </summary>
+        GetPeripheralFunctionId = 0x52,
         #endregion
     }
 }
