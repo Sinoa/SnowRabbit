@@ -92,13 +92,12 @@ namespace SnowRabbit.VirtualMachine.Machine
 
                     #region Data Transfer
                     case OpCode.Mov:
-                        var result = context[regBNumber].Value.Long[0] + immediate;
-                        context[regANumber].Value.Long[0] = result;
-                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
-                        if (result == 0)
-                        {
-                            SetFlagRegister(ref process, FlagRegisterMask.Z);
-                        }
+                        context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0];
+                        break;
+
+
+                    case OpCode.Movl:
+                        context[regANumber].Value.Long[0] = immediate;
                         break;
 
 
@@ -129,7 +128,18 @@ namespace SnowRabbit.VirtualMachine.Machine
 
                     #region Arithmetic
                     case OpCode.Add:
-                        result = context[regBNumber].Value.Long[0] + context[regCNumber].Value.Long[0];
+                        var result = context[regBNumber].Value.Long[0] + context[regCNumber].Value.Long[0];
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Addl:
+                        result = context[regBNumber].Value.Long[0] + immediate;
                         context[regANumber].Value.Long[0] = result;
                         ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
                         if (result == 0)
@@ -150,8 +160,30 @@ namespace SnowRabbit.VirtualMachine.Machine
                         break;
 
 
+                    case OpCode.Subl:
+                        result = context[regBNumber].Value.Long[0] - immediate;
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
                     case OpCode.Mul:
                         result = context[regBNumber].Value.Long[0] * context[regCNumber].Value.Long[0];
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Mull:
+                        result = context[regBNumber].Value.Long[0] * immediate;
                         context[regANumber].Value.Long[0] = result;
                         ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
                         if (result == 0)
@@ -172,6 +204,17 @@ namespace SnowRabbit.VirtualMachine.Machine
                         break;
 
 
+                    case OpCode.Divl:
+                        result = context[regBNumber].Value.Long[0] / immediate;
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
                     case OpCode.Mod:
                         result = context[regBNumber].Value.Long[0] % context[regCNumber].Value.Long[0];
                         context[regANumber].Value.Long[0] = result;
@@ -183,8 +226,30 @@ namespace SnowRabbit.VirtualMachine.Machine
                         break;
 
 
+                    case OpCode.Modl:
+                        result = context[regBNumber].Value.Long[0] % immediate;
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
                     case OpCode.Pow:
                         result = (long)Math.Pow(context[regBNumber].Value.Long[0], context[regCNumber].Value.Long[0]);
+                        context[regANumber].Value.Long[0] = result;
+                        ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
+                        if (result == 0)
+                        {
+                            SetFlagRegister(ref process, FlagRegisterMask.Z);
+                        }
+                        break;
+
+
+                    case OpCode.Powl:
+                        result = (long)Math.Pow(context[regBNumber].Value.Long[0], immediate);
                         context[regANumber].Value.Long[0] = result;
                         ClearFlagRegister(ref process, FlagRegisterMask.N | FlagRegisterMask.P | FlagRegisterMask.Z);
                         if (result == 0)
@@ -348,7 +413,7 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
                     #region CSharp Host Control
-                    case OpCode.CallPeripheralFunction:
+                    case OpCode.Cpf:
                         var peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
                         var function = peripheral.GetFunction((int)context[regBNumber].Value.Long[0]);
                         var stackFrame = memory.Slice((int)context[RegisterSPIndex].Value.Long[0], (int)context[regCNumber].Value.Long[0]);
@@ -356,21 +421,39 @@ namespace SnowRabbit.VirtualMachine.Machine
                         break;
 
 
-                    case OpCode.GetPeripheralId:
+                    case OpCode.Cpfl:
+                        peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
+                        function = peripheral.GetFunction((int)context[regBNumber].Value.Long[0]);
+                        stackFrame = memory.Slice((int)context[RegisterSPIndex].Value.Long[0], immediate);
+                        function(new SrStackFrame(stackFrame, process.ObjectMemory));
+                        break;
+
+
+                    case OpCode.Gpid:
                         context[regANumber].Value.Long[0] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[(int)context[regANumber].Value.Long[0]].Value);
                         break;
 
 
-                    case OpCode.GetPeripheralFunctionId:
+                    case OpCode.Gpidl:
+                        context[regANumber].Value.Long[0] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[immediate].Value);
+                        break;
+
+
+                    case OpCode.Gpfid:
                         peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
                         context[regBNumber].Value.Long[0] = peripheral.GetFunctionID((string)process.ObjectMemory[(int)context[regBNumber].Value.Long[0]].Value);
+                        break;
+
+
+                    case OpCode.Gpfidl:
+                        peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
+                        context[regBNumber].Value.Long[0] = peripheral.GetFunctionID((string)process.ObjectMemory[immediate].Value);
                         break;
                     #endregion
 
 
                     #region Undefined
-                    default:
-                        break;
+                    default: throw new NotImplementedException($"Unknown machine code {(byte)instruction.OpCode}");
                         #endregion
                 }
 

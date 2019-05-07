@@ -29,29 +29,34 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
         #region Data Transfer
         /// <summary>
-        /// レジスタ間または即値のコピーをします：Ra = Rb + Imm
+        /// レジスタ間のコピーをします：Ra = Rb
         /// </summary>
         Mov = 0x10,
 
         /// <summary>
+        /// レジスタへ即値をコピーします：Ra = Imm
+        /// </summary>
+        Movl = 0x11,
+
+        /// <summary>
         /// メモリからレジスタへロードします：Ra = [Rb+Imm]
         /// </summary>
-        Ldr = 0x11,
+        Ldr = 0x12,
 
         /// <summary>
         /// レジスタからメモリへストアします：[Rb+Imm] = Ra
         /// </summary>
-        Str = 0x12,
+        Str = 0x13,
 
         /// <summary>
         /// スタックポインタをデクリメントしてから、レジスタ内容をスタックへプッシュします：--SP; Stack = Ra
         /// </summary>
-        Push = 0x13,
+        Push = 0x14,
 
         /// <summary>
         /// スタックからレジスタ内容へポップし、スタックポインタをインクリメントします：Ra = Stack; ++SP;
         /// </summary>
-        Pop = 0x14,
+        Pop = 0x15,
         #endregion
 
         #region Arithmetic
@@ -61,29 +66,59 @@ namespace SnowRabbit.VirtualMachine.Runtime
         Add = 0x20,
 
         /// <summary>
+        /// レジスタと即値の加算をします：Ra = Rb + Imm
+        /// </summary>
+        Addl = 0x21,
+
+        /// <summary>
         /// レジスタ間の減算をします：Ra = Rb - Rc
         /// </summary>
-        Sub = 0x21,
+        Sub = 0x22,
+
+        /// <summary>
+        /// レジスタと即値の減算をします：Ra = Rb - Imm
+        /// </summary>
+        Subl = 0x23,
 
         /// <summary>
         /// レジスタ間の乗算をします：Ra = Rb * Rc
         /// </summary>
-        Mul = 0x22,
+        Mul = 0x24,
+
+        /// <summary>
+        /// レジスタと即値の乗算をします：Ra = Rb * Imm
+        /// </summary>
+        Mull = 0x25,
 
         /// <summary>
         /// レジスタ間の除算をします：Ra = Rb / Rc
         /// </summary>
-        Div = 0x23,
+        Div = 0x26,
+
+        /// <summary>
+        /// レジスタと即値の除算をします：Ra = Rb / Imm
+        /// </summary>
+        Divl = 0x27,
 
         /// <summary>
         /// レジスタ間の剰余を求めます：Ra = Rb % Rc
         /// </summary>
-        Mod = 0x24,
+        Mod = 0x28,
+
+        /// <summary>
+        /// レジスタと即値の剰余を求めます：Ra = Rb % Imm
+        /// </summary>
+        Modl = 0x29,
 
         /// <summary>
         /// レジスタ間の累乗を求めます：Ra = Pow(Rb, Rc)
         /// </summary>
-        Pow = 0x25,
+        Pow = 0x2A,
+
+        /// <summary>
+        /// レジスタと即値の累乗を求めます：Ra = Pow(Rb, Imm)
+        /// </summary>
+        Powl = 0x2B,
         #endregion
 
         #region Logic
@@ -173,18 +208,39 @@ namespace SnowRabbit.VirtualMachine.Runtime
         #region CSharp Host Control
         /// <summary>
         /// レジスタが示す周辺機器関数を呼び出します：Peripheral #Ra -> Call #Rb( ArgNum #Rc )
+        /// [CallPeripheralFunction]
         /// </summary>
-        CallPeripheralFunction = 0x50,
+        Cpf = 0x50,
+
+        /// <summary>
+        /// レジスタと即値が示す周辺機器関数を呼び出します：Peripheral #Ra -> Call #Rb( ArgNum Imm )
+        /// [CallPeripheralFunction Literal argnum]
+        /// </summary>
+        Cpfl = 0x51,
 
         /// <summary>
         /// レジスタが示す周辺機器名から周辺機器IDを取得します：Ra = GetPeripheralId([Ra])
+        /// [GetPeripheralId]
         /// </summary>
-        GetPeripheralId = 0x51,
+        Gpid = 0x52,
+
+        /// <summary>
+        /// 即値が示す周辺機器名から周辺機器IDを取得します：Ra = GetPeripheralId([Imm])
+        /// [GetPeripheralId Literal peripheralName]
+        /// </summary>
+        Gpidl = 0x53,
 
         /// <summary>
         /// レジスタが示す周辺機器IDの周辺機器関数名から周辺機器関数IDを取得します：Rb = GetFuncId(Ra, [Rb])
+        /// [GetPeripheralFunctionId]
         /// </summary>
-        GetPeripheralFunctionId = 0x52,
+        Gpfid = 0x54,
+
+        /// <summary>
+        /// レジスタと即値が示す周辺機器IDの周辺機器関数名から周辺機器関数IDを取得します：Rb = GetFuncId(Ra, [Imm])
+        /// [GetPeripheralFunctionId Literal peripheralFunctionName]
+        /// </summary>
+        Gpfidl = 0x55,
         #endregion
     }
 }
