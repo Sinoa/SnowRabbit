@@ -83,7 +83,7 @@ namespace SnowRabbit.VirtualMachine.Machine
             if (!CheckMagicSignature(programStream))
             {
                 // ストリームを閉じて例外を吐く
-                programStream.Close();
+                Machine.Storage.Close(programStream);
                 throw new InvalidOperationException("プログラムのシグネチャが不正です");
             }
 
@@ -111,7 +111,7 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
             // ストリームを閉じる
-            programStream.Close();
+            Machine.Storage.Close(programStream);
         }
 
 
