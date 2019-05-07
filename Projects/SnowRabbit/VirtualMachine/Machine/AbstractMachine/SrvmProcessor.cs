@@ -430,7 +430,7 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
                     case OpCode.Gpid:
-                        context[regANumber].Value.Long[0] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[(int)context[regANumber].Value.Long[0]].Value);
+                        context[regANumber].Value.Long[0] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[(int)context[regBNumber].Value.Long[0]].Value);
                         break;
 
 
@@ -440,14 +440,14 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
                     case OpCode.Gpfid:
-                        peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
-                        context[regBNumber].Value.Long[0] = peripheral.GetFunctionID((string)process.ObjectMemory[(int)context[regBNumber].Value.Long[0]].Value);
+                        peripheral = Machine.Firmware.GetPeripheral((int)context[regBNumber].Value.Long[0]);
+                        context[regANumber].Value.Long[0] = peripheral.GetFunctionID((string)process.ObjectMemory[(int)context[regCNumber].Value.Long[0]].Value);
                         break;
 
 
                     case OpCode.Gpfidl:
-                        peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
-                        context[regBNumber].Value.Long[0] = peripheral.GetFunctionID((string)process.ObjectMemory[immediate].Value);
+                        peripheral = Machine.Firmware.GetPeripheral((int)context[regBNumber].Value.Long[0]);
+                        context[regANumber].Value.Long[0] = peripheral.GetFunctionID((string)process.ObjectMemory[immediate].Value);
                         break;
                     #endregion
 

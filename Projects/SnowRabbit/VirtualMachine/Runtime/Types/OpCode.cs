@@ -219,7 +219,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         Cpfl = 0x51,
 
         /// <summary>
-        /// レジスタが示す周辺機器名から周辺機器IDを取得します：Ra = GetPeripheralId([Ra])
+        /// レジスタが示す周辺機器名から周辺機器IDを取得します：Ra = GetPeripheralId([Rb])
         /// [GetPeripheralId]
         /// </summary>
         Gpid = 0x52,
@@ -231,13 +231,13 @@ namespace SnowRabbit.VirtualMachine.Runtime
         Gpidl = 0x53,
 
         /// <summary>
-        /// レジスタが示す周辺機器IDの周辺機器関数名から周辺機器関数IDを取得します：Rb = GetFuncId(Ra, [Rb])
+        /// レジスタが示す周辺機器IDの周辺機器関数名から周辺機器関数IDを取得します：Ra = GetFuncId(Rb, [Rc])
         /// [GetPeripheralFunctionId]
         /// </summary>
         Gpfid = 0x54,
 
         /// <summary>
-        /// レジスタと即値が示す周辺機器IDの周辺機器関数名から周辺機器関数IDを取得します：Rb = GetFuncId(Ra, [Imm])
+        /// レジスタと即値が示す周辺機器IDの周辺機器関数名から周辺機器関数IDを取得します：Ra = GetFuncId(Rb, [Imm])
         /// [GetPeripheralFunctionId Literal peripheralFunctionName]
         /// </summary>
         Gpfidl = 0x55,
