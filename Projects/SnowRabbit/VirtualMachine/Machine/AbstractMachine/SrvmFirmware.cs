@@ -108,6 +108,10 @@ namespace SnowRabbit.VirtualMachine.Machine
             // プログラムコードを読み込む
             ReadProgramCode(programStream, ref process.ProcessMemory, instructionNumber);
             ReadConstStringData(programStream, ref process.ObjectMemory, constStringNumber);
+
+
+            // ストリームを閉じる
+            programStream.Close();
         }
 
 
