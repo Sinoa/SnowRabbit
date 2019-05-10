@@ -49,14 +49,19 @@ namespace SnowRabbit.VirtualMachine.Runtime
         Str = 0x13,
 
         /// <summary>
-        /// スタックポインタをデクリメントしてから、レジスタ内容をスタックへプッシュします：--SP; Stack = Ra
+        /// スタックポインタをデクリメントしてから、レジスタ内容をスタックへプッシュします：--SP; [SP] = Ra
         /// </summary>
         Push = 0x14,
 
         /// <summary>
-        /// スタックからレジスタ内容へポップし、スタックポインタをインクリメントします：Ra = Stack; ++SP;
+        /// スタックポインタをデクリメントしてから、即値をスタックへプッシュします：--SP; [SP] = Imm
         /// </summary>
-        Pop = 0x15,
+        Pushl = 0x15,
+
+        /// <summary>
+        /// スタックからレジスタ内容へポップし、スタックポインタをインクリメントします：Ra = [SP]; ++SP;
+        /// </summary>
+        Pop = 0x16,
         #endregion
 
         #region Arithmetic
@@ -156,53 +161,83 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// レジスタ間の右方向ビットシフトをします：Ra = Rb >> Rc
         /// </summary>
         Shr = 0x36,
+
+        /// <summary>
+        /// レジスタ間の等価テストを行い、真であれば1を偽であれば0をレジスタに設定します：Ra = Rb == Rc ? 1 : 0
+        /// </summary>
+        Teq = 0x37,
+
+        /// <summary>
+        /// レジスタ間の否等価テストを行い、真であれば1を偽であれば0をレジスタに設定します：Ra = Rb != Rc ? 1 : 0
+        /// </summary>
+        Tne = 0x38,
+
+        /// <summary>
+        /// レジスタ間の大なりテストを行い、真であれば1を偽であれば0をレジスタに設定します：Ra = Rb > Rc ? 1 : 0
+        /// </summary>
+        Tg = 0x39,
+
+        /// <summary>
+        /// レジスタ間の大なり等価テストを行い、真であれば1を偽であれば0をレジスタに設定します：Ra = Rb >= Rc ? 1 : 0
+        /// </summary>
+        Tge = 0x3A,
+
+        /// <summary>
+        /// レジスタ間の小なりテストを行い、真であれば1を偽であれば0をレジスタに設定します：Ra = Rb < Rc ? 1 : 0
+        /// </summary>
+        Tl = 0x3B,
+
+        /// <summary>
+        /// レジスタ間の小なり等価テストを行い、真であれば1を偽であれば0をレジスタに設定します：Ra = Rb <= Rc ? 1 : 0
+        /// </summary>
+        Tle = 0x3C,
         #endregion
 
         #region Flow Control
         /// <summary>
-        /// 無条件で指定されたアドレスへ分岐します：PC = Ra
+        /// 無条件でレジスタによって指定されたアドレスへ分岐します：IP = Ra
         /// </summary>
-        Br = 0x40,
+        Br = 0x80,
 
         /// <summary>
-        /// 現在の命令ポインタの次の命令アドレスをリンクレジスタへ設定してから、無条件で指定されたアドレスへ分岐します：LR = PC + 1; PC = Ra
+        /// 無条件で即値によって指定されたアドレスへ分岐します：IP = Imm
         /// </summary>
-        Blr = 0x41,
+        Brl = 0x81,
 
         /// <summary>
-        /// リンクレジスタに設定されているアドレスへ分岐します：PC = LR
+        /// 指定されたレジスタが0でない場合に、レジスタによって指定されたアドレスへ分岐します：IP = Rb != 0 ? Ra : IP
         /// </summary>
-        Ret = 0x42,
+        Bnz = 0x82,
 
         /// <summary>
-        /// ステータスレジスタのZフラグがOffの場合指に、現在の命令ポインタの次の命令アドレスをリンクレジスタへ設定してから、指定されたアドレスへ分岐します：PC = Z == 0 ? Ra : PC
+        /// 指定されたレジスタが0でない場合に、即値によって指定されたアドレスへ分岐します：IP = Rb != 0 ? Imm : IP
         /// </summary>
-        Bne = 0x43,
+        Bnzl = 0x83,
 
         /// <summary>
-        /// ステータスレジスタのZフラグがOnまたはPフラグがOnの場合に、現在の命令ポインタの次の命令アドレスをリンクレジスタへ設定してから、指定されたアドレスへ分岐します：PC = (Z == 1 || P == 1) ? Ra : PC
+        /// 次に実行するべき命令のアドレスをプッシュして、レジスタによって指定されたアドレスへ分岐します：PUSH(IP+1); IP = Ra
         /// </summary>
-        Bge = 0x44,
+        Call = 0x84,
 
         /// <summary>
-        /// ステータスレジスタのZフラグがOnまたはNフラグがOnの場合に、現在の命令ポインタの次の命令アドレスをリンクレジスタへ設定してから、指定されたアドレスへ分岐します：PC = (Z == 1 || N == 1) ? Ra : PC
+        /// 次に実行するべき命令のアドレスをプッシュして、即値によって指定されたアドレスへ分岐します：PUSH(IP+1); IP = Imm
         /// </summary>
-        Bls = 0x45,
+        Calll = 0x85,
 
         /// <summary>
-        /// ステータスレジスタのPフラグがOnの場合に、現在の命令ポインタの次の命令アドレスをリンクレジスタへ設定してから、指定されたアドレスへ分岐します：PC = P == 1 ? Ra : PC
+        /// 指定されたレジスタが0でない場合に、次に実行するべき命令のアドレスをプッシュして、レジスタによって指定されたアドレスへ分岐します：if (Rb != 0) { PUSH(IP+1); IP = Ra; }
         /// </summary>
-        Bgt = 0x46,
+        Callnz = 0x86,
 
         /// <summary>
-        /// ステータスレジスタのNフラグがOnの場合に、現在の命令ポインタの次の命令アドレスをリンクレジスタへ設定してから、指定されたアドレスへ分岐します：PC = N == 1 ? Ra : PC
+        /// 指定されたレジスタが0でない場合に、次に実行するべき命令のアドレスをプッシュして、即値によって指定されたアドレスへ分岐します：if (Rb != 0) { PUSH(IP+1); IP = Imm; }
         /// </summary>
-        Blt = 0x47,
+        Callnzl = 0x87,
 
         /// <summary>
-        /// カウンタレジスタが1以上の場合に、カウンタレジスタをデクリメントしてから、指定されたアドレスへ分岐します：PC = CReg >= 1 ? {--CReg; Ra;} : PC
+        /// スタックから値をポップしてポップした値のアドレスへ分岐します：IP = POP();
         /// </summary>
-        Blp = 0x48,
+        Ret = 0x89,
         #endregion
 
         #region CSharp Host Control
@@ -210,37 +245,37 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// レジスタが示す周辺機器関数を呼び出します：Peripheral #Ra -> Call #Rb( ArgNum #Rc )
         /// [CallPeripheralFunction]
         /// </summary>
-        Cpf = 0x50,
+        Cpf = 0xF0,
 
         /// <summary>
         /// レジスタと即値が示す周辺機器関数を呼び出します：Peripheral #Ra -> Call #Rb( ArgNum Imm )
         /// [CallPeripheralFunction Literal argnum]
         /// </summary>
-        Cpfl = 0x51,
+        Cpfl = 0xF1,
 
         /// <summary>
         /// レジスタが示す周辺機器名から周辺機器IDを取得します：Ra = GetPeripheralId([Rb])
         /// [GetPeripheralId]
         /// </summary>
-        Gpid = 0x52,
+        Gpid = 0xF2,
 
         /// <summary>
         /// 即値が示す周辺機器名から周辺機器IDを取得します：Ra = GetPeripheralId([Imm])
         /// [GetPeripheralId Literal peripheralName]
         /// </summary>
-        Gpidl = 0x53,
+        Gpidl = 0xF3,
 
         /// <summary>
         /// レジスタが示す周辺機器IDの周辺機器関数名から周辺機器関数IDを取得します：Ra = GetFuncId(Rb, [Rc])
         /// [GetPeripheralFunctionId]
         /// </summary>
-        Gpfid = 0x54,
+        Gpfid = 0xF4,
 
         /// <summary>
         /// レジスタと即値が示す周辺機器IDの周辺機器関数名から周辺機器関数IDを取得します：Ra = GetFuncId(Rb, [Imm])
         /// [GetPeripheralFunctionId Literal peripheralFunctionName]
         /// </summary>
-        Gpfidl = 0x55,
+        Gpfidl = 0xF5,
         #endregion
     }
 }

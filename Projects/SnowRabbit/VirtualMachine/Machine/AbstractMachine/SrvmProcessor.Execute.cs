@@ -187,50 +187,6 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
                     #region Flow Control
-                    case OpCode.Br:
-                        nextInstructionPointer = context[regANumber].Value.Long[0];
-                        break;
-
-
-                    case OpCode.Blr:
-                        context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
-                        nextInstructionPointer = context[regANumber].Value.Long[0];
-                        break;
-
-
-                    case OpCode.Ret:
-                        nextInstructionPointer = context[RegisterLinkIndex].Value.Long[0];
-                        break;
-
-
-                    case OpCode.Bne:
-                        break;
-
-
-                    case OpCode.Bge:
-                        break;
-
-
-                    case OpCode.Bls:
-                        break;
-
-
-                    case OpCode.Bgt:
-                        break;
-
-
-                    case OpCode.Blt:
-                        break;
-
-
-                    case OpCode.Blp:
-                        if (context[RegisterCIndex].Value.Long[0] >= 1)
-                        {
-                            --context[RegisterCIndex].Value.Long[0];
-                            context[RegisterLinkIndex].Value.Long[0] = nextInstructionPointer;
-                            nextInstructionPointer = context[regANumber].Value.Long[0];
-                        }
-                        break;
                     #endregion
 
 

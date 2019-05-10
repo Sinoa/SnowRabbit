@@ -34,9 +34,8 @@ namespace SnowRabbit.VirtualMachine.Machine
         public const int RegisterSPIndex = 7; // General StackPointer Register[RSP]
         public const int RegisterRnBaseIndex = 8; // FullGeneral Register (x8)[Rx => R8 - R15]
         public const int RegisterIPIndex = 16; // InstructionPointer Register (SpecialRegister index 0)[IP]
-        public const int RegisterLinkIndex = 17; // Link Register (SpecialRegister index 2)[LINK]
         // Register Information
-        public const int RegisterTotalCount = RegisterLinkIndex + 1;
+        public const int RegisterTotalCount = RegisterIPIndex + 1;
         public const int ProcessorContextSize = RegisterTotalCount * 8;
 
 
