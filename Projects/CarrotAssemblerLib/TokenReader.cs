@@ -123,12 +123,77 @@ namespace CarrotAssemblerLib.IO
 
         /// <summary>
         /// ストリームから次に読み取れる文字を読み込みます。
-        /// また、この関数はコメント行を認識した場合は、読み捨てを行い代わりに半角空白スペースを返します。
+        /// また、この関数はコメント行を認識した場合は、読み捨てを行い代わりにラインフィールドを返します。
+        /// さらに、この関数は文字を読み進めるたびに状況に応じて、行番号及び列番号の更新も行います。
         /// </summary>
-        /// <returns>読み取られた文字を返します。読み取れなくなった場合は -1 を返します。</returns>
+        /// <returns>読み取られた文字を返します。読み取れなくなった場合は EndOfStream を返します。</returns>
         private int ReadNextChara()
         {
-            throw new NotImplementedException();
+            // 最後に読み込んだ文字が最終ストリームか既にストリームが最終位置なら
+            if (lastReadChara == EndOfStream || reader.EndOfStream)
+            {
+                // これ以上の読み込みはないことを返す
+                return EndOfStream;
+            }
+
+
+            // 前回に読み込んだ文字が改行コードなら
+            if (lastReadChara == '\n')
+            {
+                // 行番号を増やして列番号を先頭に移動する
+                ++currentLineNumber;
+                currentColumnNumber = 0;
+            }
+
+
+            // 文字を読み込んで列番号を進める
+            var readChara = reader.Read();
+            ++currentColumnNumber;
+
+
+            // もし読み取り結果が -1 なら
+            if (readChara == -1)
+            {
+                // 最終読み込みであることを返す
+                lastReadChara = EndOfStream;
+                return lastReadChara;
+            }
+
+
+            // もしキャリッジリターンなら
+            if (readChara == '\r')
+            {
+                // キャリッジリターンは空白スペースとして認知させる
+                lastReadChara = ' ';
+                return lastReadChara;
+            }
+
+
+            // もしスラッシュなら
+            if (readChara == '/')
+            {
+                // 次の文字もスラッシュなら
+                if (reader.Peek() == '/')
+                {
+                    // 行コメントとして認知して行末または文字として扱えない文字までループ
+                    while (readChara != '\n' && readChara != -1)
+                    {
+                        // 次の文字を読み込んで列番号も増やす
+                        readChara = reader.Read();
+                        ++currentColumnNumber;
+                    }
+
+
+                    // ストリーム最後であったとしても行コメントは改行コードとして返す
+                    lastReadChara = '\n';
+                    return lastReadChara;
+                }
+            }
+
+
+            // 最後に読み込んだ文字として覚えて文字を返す
+            lastReadChara = readChara;
+            return lastReadChara;
         }
         #endregion
 
