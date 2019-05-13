@@ -117,7 +117,71 @@ namespace CarrotAssemblerLib.IO
             ThrowIfDisposed();
 
 
-            throw new NotImplementedException();
+            // まずは一文字目を読み込む
+            var readChara = ReadNextChara();
+
+
+            // もし空白文字なら、空白以外がくるまで読み飛ばす
+            while (char.IsWhiteSpace((char)readChara))
+            {
+                // 次の文字を読み込む
+                readChara = ReadNextChara();
+            }
+
+
+            // もしストリームの最後なら
+            if (readChara == EndOfStream)
+            {
+                // 読み切ったトークンを設定してtrueを返す
+                token = new Token(TokenKind.EndOfToken, string.Empty, 0, currentLineNumber, currentColumnNumber);
+                return true;
+            }
+
+
+            // 読み取った最初の文字によってトークン読み込み関数を呼び分ける
+            switch ((char)readChara)
+            {
+                // コロンなら
+                case char c when c == ':':
+                    // コロンのトークンとして設定する
+                    token = new Token(TokenKind.Coron, ":", 0, currentLineNumber, currentColumnNumber);
+                    return true;
+
+
+                // シャープなら
+                case char c when c == '#':
+                    // シャープのトークンとして設定する
+                    token = new Token(TokenKind.Sharp, "#", 0, currentLineNumber, currentColumnNumber);
+                    return true;
+
+
+                // ダブルクォートまたはシングルクォートなら
+                case char c when c == '"' || c == '\'':
+                    // 文字列トークンとして読み込む
+                    ReadStringToken(readChara, out token);
+                    return true;
+
+
+                // 数字なら
+                case char n when char.IsDigit(n):
+                    // 数値トークンとして読み込む
+                    ReadIntegerToken(readChara, out token);
+                    return true;
+
+
+                // アンダーバーまたはレター文字なら
+                case char c when char.IsLetter(c) || c == '_':
+                    // 識別子トークンとして読み込む
+                    ReadIdentifierToken(readChara, out token);
+                    return true;
+
+
+                // 上記どれでもないなら
+                default:
+                    // 無効なトークンとして設定して読み取りに失敗したことを返す
+                    Token.CreateInvalidToken(new string(new char[] { (char)readChara }), out token);
+                    return false;
+            }
         }
 
 
@@ -194,6 +258,41 @@ namespace CarrotAssemblerLib.IO
             // 最後に読み込んだ文字として覚えて文字を返す
             lastReadChara = readChara;
             return lastReadChara;
+        }
+        #endregion
+
+
+        #region TokenRead functions
+        /// <summary>
+        /// ストリームから識別子トークンとして読み込みトークンを形成します
+        /// </summary>
+        /// <param name="firstChara">最初に読み取られた文字</param>
+        /// <param name="token">形成したトークンを設定する参照</param>
+        private void ReadIdentifierToken(int firstChara, out Token token)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        /// <summary>
+        /// ストリームから文字列トークンとして読み込みトークンを形成します
+        /// </summary>
+        /// <param name="firstChara">最初に読み取られた文字</param>
+        /// <param name="token">形成したトークンを設定する参照</param>
+        private void ReadStringToken(int firstChara, out Token token)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        /// <summary>
+        /// ストリームから整数数値トークンとして読み込みトークンを形成します
+        /// </summary>
+        /// <param name="firstChara">最初に読み取られた文字</param>
+        /// <param name="token">形成したトークンを設定する参照</param>
+        private void ReadIntegerToken(int firstChara, out Token token)
+        {
+            throw new NotImplementedException();
         }
         #endregion
 
