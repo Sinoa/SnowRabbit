@@ -57,6 +57,12 @@ namespace CarrotAssemblerLib.Common
         Sharp,
 
         /// <summary>
+        /// カンマ
+        /// ,
+        /// </summary>
+        Comma,
+
+        /// <summary>
         /// 定数キーワード
         /// <const>
         /// </summary>

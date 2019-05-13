@@ -176,6 +176,14 @@ namespace CarrotAssemblerLib.IO
                     return true;
 
 
+                // カンマなら
+                case char c when c == ',':
+                    // カンマのトークンとして設定してから一文字読み進める
+                    token = new Token(TokenKind.Comma, ",", 0, currentLineNumber, currentColumnNumber);
+                    ReadNextChara();
+                    return true;
+
+
                 // ダブルクォートまたはシングルクォートなら
                 case char c when c == '"' || c == '\'':
                     // 文字列トークンとして読み込む
@@ -423,7 +431,20 @@ namespace CarrotAssemblerLib.IO
         /// <param name="token">形成したトークンを設定する参照</param>
         private void ReadIntegerToken(int firstChara, out Token token)
         {
-            throw new NotImplementedException();
+            // 数字が読み込まれる間はループ
+            var readChara = firstChara;
+            long result = 0L;
+            while (char.IsDigit((char)readChara))
+            {
+                // 数字から数値へ変換して次の文字を読み取る
+                result = result * 10 + (firstChara - 0x30);
+                readChara = ReadNextChara();
+            }
+
+
+            // トークンを初期化する
+            token = new Token(TokenKind.Integer, result.ToString(), result, currentLineNumber, currentColumnNumber);
+
         }
         #endregion
 
