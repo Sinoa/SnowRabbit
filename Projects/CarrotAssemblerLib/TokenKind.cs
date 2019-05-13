@@ -57,6 +57,12 @@ namespace CarrotAssemblerLib.Common
         Sharp,
 
         /// <summary>
+        /// 定数キーワード
+        /// <const>
+        /// </summary>
+        Const,
+
+        /// <summary>
         /// これ以上のトークンは存在しないトークン
         /// </summary>
         EndOfToken,

@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using CarrotAssemblerLib.Common;
@@ -29,9 +30,13 @@ namespace CarrotAssemblerLib.IO
         public const int DefaultBufferSize = (4 << 10);
         public const int EndOfStream = -1;
 
+        // 静的メンバ変数定義
+        private static readonly Dictionary<string, TokenKind> KeywordTable;
+
         // メンバ変数定義
         private bool disposed;
         private StreamReader reader;
+        private StringBuilder tokenReadBuffer;
         private int lastReadChara;
         private int currentLineNumber;
         private int currentColumnNumber;
@@ -48,9 +53,23 @@ namespace CarrotAssemblerLib.IO
         {
             // リーダーインスタンスを生成して書くメンバ変数の初期化
             reader = new StreamReader(inputStream ?? throw new ArgumentNullException(nameof(inputStream)), Encoding.UTF8, true, DefaultBufferSize, leaveOpen);
+            tokenReadBuffer = new StringBuilder();
             lastReadChara = 0;
             currentLineNumber = 1;
             currentColumnNumber = 0;
+        }
+
+
+        /// <summary>
+        /// TokenReader クラスの初期化をします
+        /// </summary>
+        static TokenReader()
+        {
+            // キーワードテーブルを構築する
+            KeywordTable = new Dictionary<string, TokenKind>()
+            {
+                { "const", TokenKind.Const }
+            };
         }
 
 
@@ -171,8 +190,8 @@ namespace CarrotAssemblerLib.IO
 
                 // アンダーバーまたはレター文字なら
                 case char c when char.IsLetter(c) || c == '_':
-                    // 識別子トークンとして読み込む
-                    ReadIdentifierToken(readChara, out token);
+                    // 識別子またはキーワードトークンとして読み込む
+                    ReadIdentifierOrKeywordToken(readChara, out token);
                     return true;
 
 
@@ -264,11 +283,11 @@ namespace CarrotAssemblerLib.IO
 
         #region TokenRead functions
         /// <summary>
-        /// ストリームから識別子トークンとして読み込みトークンを形成します
+        /// ストリームから識別子またはキーワードトークンとして読み込みトークンを形成します
         /// </summary>
         /// <param name="firstChara">最初に読み取られた文字</param>
         /// <param name="token">形成したトークンを設定する参照</param>
-        private void ReadIdentifierToken(int firstChara, out Token token)
+        private void ReadIdentifierOrKeywordToken(int firstChara, out Token token)
         {
             throw new NotImplementedException();
         }
