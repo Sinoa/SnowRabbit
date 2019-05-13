@@ -200,7 +200,7 @@ namespace CarrotAssemblerLib.IO
                 // 上記どれでもないなら
                 default:
                     // 無効なトークンとして設定して読み取りに失敗したことを返す
-                    Token.CreateInvalidToken(new string(new char[] { (char)readChara }), out token);
+                    token = new Token(TokenKind.Unknown, new string(new char[] { (char)readChara }), 0, currentLineNumber, currentColumnNumber);
                     return false;
             }
         }
@@ -338,14 +338,81 @@ namespace CarrotAssemblerLib.IO
             var startColumnNumber = currentColumnNumber;
 
 
-            // 次の文字を読み込んでダブルクォートまたはシングルクォートがくるまでループ
+            // 次の文字を読み込んでダブルクォートまたはシングルクォート（最初に読み込んだ文字）がくるまでループ
             var readChara = ReadNextChara();
-            while (!(readChara == '"' || readChara == '\''))
+            while (readChara != firstChara)
             {
+                // もしバックスラッシュが読み込まれていたら
+                if (readChara == '\\')
+                {
+                    // 次の文字を読み込む
+                    readChara = ReadNextChara();
+
+
+                    // nなら
+                    if (readChara == 'n')
+                    {
+                        // 改行コードをバッファに入れる
+                        tokenReadBuffer.Append('\n');
+                    }
+                    // tなら
+                    else if (readChara == 't')
+                    {
+                        // タブをバッファに入れる
+                        tokenReadBuffer.Append('\t');
+                    }
+                    // 再びバックスラッシュなら
+                    else if (readChara == '\\')
+                    {
+                        // バックスラッシュをバッファに入れる
+                        tokenReadBuffer.Append('\\');
+                    }
+                    // ダブルクォートなら
+                    else if (readChara == '"')
+                    {
+                        // ダブルクォートをバッファに入れる
+                        tokenReadBuffer.Append('"');
+                    }
+                    // シングルクォートなら
+                    else if (readChara == '\'')
+                    {
+                        // シングルクォートをバッファに入れる
+                        tokenReadBuffer.Append('\'');
+                    }
+                    else
+                    {
+                        // それ以外の場合は無効なエスケープシーケンスとしてトークンを設定して終了
+                        token = new Token(TokenKind.Unknown, $"無効なエスケープ文字 '{(char)readChara}' です", 0, currentLineNumber, currentColumnNumber);
+                        return;
+                    }
+
+
+                    // ループを継続する
+                    continue;
+                }
+
+
+                // もしストリームが終了していたら
+                if (readChara == EndOfStream)
+                {
+                    // 無効な文字列設定として終了
+                    token = new Token(TokenKind.Unknown, "文字列が正しく終了していません", 0, currentLineNumber, currentColumnNumber);
+                    return;
+                }
+
+
+                // 文字をそのままバッファに詰める
+                tokenReadBuffer.Append((char)readChara);
+
+
+                // 次の文字を読み込む
+                readChara = ReadNextChara();
             }
 
 
-            throw new NotImplementedException();
+            // 文字列トークンを生成して次の文字を読み取っておく
+            token = new Token(TokenKind.String, tokenReadBuffer.ToString(), 0, startLineNumber, startColumnNumber);
+            ReadNextChara();
         }
 
 

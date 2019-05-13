@@ -64,31 +64,5 @@ namespace CarrotAssemblerLib.Common
             LineNumber = lineNumber;
             ColumnNumber = columnNumber;
         }
-
-
-        /// <summary>
-        /// 無効なトークンインスタンスを生成します
-        /// </summary>
-        /// <param name="text">無効として取り扱ったトークンの文字列</param>
-        /// <param name="token">無効なトークンを生成した結果を設定するトークンへの参照</param>
-        public static void CreateInvalidToken(string text, out Token token)
-        {
-            // 無効なトークンとして設定する
-            token = new Token(TokenKind.Unknown, text, 0, -1, -1);
-        }
-
-
-        /// <summary>
-        /// このトークンが無効なトークンであるかどうかを判断します
-        /// </summary>
-        /// <returns>無効なトークンの場合は true を、有効なトークンの場合は false を返します</returns>
-        public bool IsInvalid()
-        {
-            return
-                Kind == TokenKind.Unknown &&
-                Integer == 0 &&
-                LineNumber == -1 &&
-                ColumnNumber == -1;
-        }
     }
 }
