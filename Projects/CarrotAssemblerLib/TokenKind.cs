@@ -21,8 +21,8 @@ namespace CarrotAssemblerLib.Common
     public enum TokenKind
     {
         /// <summary>
-        /// 不明なトークン(通常は無効値として扱われます)
-        /// invalid token kind
+        /// 不明なトークン(通常は無効値として扱われ無効な識別子としても扱います)
+        /// invalid token kind and invalid identifier.
         /// </summary>
         Unknown,
 
