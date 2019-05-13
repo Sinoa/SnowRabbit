@@ -140,8 +140,8 @@ namespace CarrotAssemblerLib.IO
             var readChara = lastReadChara;
 
 
-            // もし空白文字なら、空白以外がくるまで読み飛ばす
-            while (char.IsWhiteSpace((char)readChara))
+            // もし空白文字または改行コードなら、有効な文字がくるまで読み飛ばす
+            while (char.IsWhiteSpace((char)readChara) || readChara == '\n')
             {
                 // 次の文字を読み込む
                 readChara = ReadNextChara();
@@ -291,8 +291,10 @@ namespace CarrotAssemblerLib.IO
         /// <param name="token">形成したトークンを設定する参照</param>
         private void ReadIdentifierOrKeywordToken(int firstChara, out Token token)
         {
-            // まずはバッファをクリアして
+            // バッファのクリアをして、行番号と列番号を覚える
             tokenReadBuffer.Clear();
+            var startLineNumber = currentLineNumber;
+            var startColumnNumber = currentColumnNumber;
 
 
             // 次の文字を読み込んで識別子として有効な文字の間はループ（レター文字, 数字, アンダーバー）
@@ -313,13 +315,13 @@ namespace CarrotAssemblerLib.IO
             if (KeywordTable.TryGetValue(text, out var kind))
             {
                 // キーワードトークンであることを設定する
-                token = new Token(kind, text, 0, currentLineNumber, currentColumnNumber);
+                token = new Token(kind, text, 0, startLineNumber, startColumnNumber);
                 return;
             }
 
 
             // キーワードではないのなら識別子としてトークンを初期化する
-            token = new Token(TokenKind.Identifier, text, 0, currentLineNumber, currentColumnNumber);
+            token = new Token(TokenKind.Identifier, text, 0, startLineNumber, startColumnNumber);
         }
 
 
@@ -330,6 +332,19 @@ namespace CarrotAssemblerLib.IO
         /// <param name="token">形成したトークンを設定する参照</param>
         private void ReadStringToken(int firstChara, out Token token)
         {
+            // バッファのクリアをして、行番号と列番号を覚える
+            tokenReadBuffer.Clear();
+            var startLineNumber = currentLineNumber;
+            var startColumnNumber = currentColumnNumber;
+
+
+            // 次の文字を読み込んでダブルクォートまたはシングルクォートがくるまでループ
+            var readChara = ReadNextChara();
+            while (!(readChara == '"' || readChara == '\''))
+            {
+            }
+
+
             throw new NotImplementedException();
         }
 
