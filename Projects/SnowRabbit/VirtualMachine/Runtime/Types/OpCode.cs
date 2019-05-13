@@ -143,14 +143,9 @@ namespace SnowRabbit.VirtualMachine.Runtime
         And = 0x32,
 
         /// <summary>
-        /// レジスタのビット反転を求めます：Ra = ~Ra
+        /// レジスタの論理否定を求めます：Ra = ~Ra
         /// </summary>
         Not = 0x33,
-
-        /// <summary>
-        /// レジスタの論理否定を求めます：Ra = !Ra
-        /// </summary>
-        Lnot = 0x34,
 
         /// <summary>
         /// レジスタ間の左方向ビットシフトをします：Ra = Rb << Rc

@@ -63,18 +63,27 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
                     case OpCode.Ldr:
-                        context[regANumber].Value.Long[0] = memory[regBNumber + immediate].Value.Long[0];
+                        var offsetAddress = (int)context[regBNumber].Value.Long[0];
+                        context[regANumber].Value.Long[0] = memory[offsetAddress + immediate].Value.Long[0];
                         break;
 
 
                     case OpCode.Str:
-                        memory[regBNumber + immediate].Value.Long[0] = context[regANumber].Value.Long[0];
+                        offsetAddress = (int)context[regBNumber].Value.Long[0];
+                        memory[offsetAddress + immediate].Value.Long[0] = context[regANumber].Value.Long[0];
                         break;
 
 
                     case OpCode.Push:
                         var sp = context[RegisterSPIndex].Value.Long[0] - 1;
                         memory[(int)sp].Value.Long[0] = context[regANumber].Value.Long[0];
+                        context[RegisterSPIndex].Value.Long[0] = sp;
+                        break;
+
+
+                    case OpCode.Pushl:
+                        sp = context[RegisterSPIndex].Value.Long[0] - 1;
+                        memory[(int)sp].Value.Long[0] = immediate;
                         context[RegisterSPIndex].Value.Long[0] = sp;
                         break;
 
@@ -170,11 +179,6 @@ namespace SnowRabbit.VirtualMachine.Machine
                         break;
 
 
-                    case OpCode.Lnot:
-                        context[regANumber].Value.Bool[0] = !context[regANumber].Value.Bool[0];
-                        break;
-
-
                     case OpCode.Shl:
                         context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] << (int)(context[regCNumber].Value.Long[0]);
                         break;
@@ -183,10 +187,103 @@ namespace SnowRabbit.VirtualMachine.Machine
                     case OpCode.Shr:
                         context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] >> (int)(context[regCNumber].Value.Long[0]);
                         break;
+
+
+                    case OpCode.Teq:
+                        context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] == context[regCNumber].Value.Long[0] ? 1L : 0L;
+                        break;
+
+
+                    case OpCode.Tne:
+                        context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] != context[regCNumber].Value.Long[0] ? 1L : 0L;
+                        break;
+
+
+                    case OpCode.Tg:
+                        context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] > context[regCNumber].Value.Long[0] ? 1L : 0L;
+                        break;
+
+
+                    case OpCode.Tge:
+                        context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] >= context[regCNumber].Value.Long[0] ? 1L : 0L;
+                        break;
+
+
+                    case OpCode.Tl:
+                        context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] < context[regCNumber].Value.Long[0] ? 1L : 0L;
+                        break;
+
+
+                    case OpCode.Tle:
+                        context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] <= context[regCNumber].Value.Long[0] ? 1L : 0L;
+                        break;
                     #endregion
 
 
                     #region Flow Control
+                    case OpCode.Br:
+                        nextInstructionPointer = context[regANumber].Value.Long[0];
+                        break;
+
+
+                    case OpCode.Brl:
+                        nextInstructionPointer = immediate;
+                        break;
+
+
+                    case OpCode.Bnz:
+                        nextInstructionPointer = context[regBNumber].Value.Long[0] != 0 ? context[regANumber].Value.Long[0] : nextInstructionPointer;
+                        break;
+
+
+                    case OpCode.Bnzl:
+                        nextInstructionPointer = context[regBNumber].Value.Long[0] != 0 ? immediate : nextInstructionPointer;
+                        break;
+
+
+                    case OpCode.Call:
+                        sp = context[RegisterSPIndex].Value.Long[0] - 1;
+                        memory[(int)sp].Value.Long[0] = nextInstructionPointer;
+                        context[RegisterSPIndex].Value.Long[0] = sp;
+                        nextInstructionPointer = context[regANumber].Value.Long[0];
+                        break;
+
+
+                    case OpCode.Calll:
+                        sp = context[RegisterSPIndex].Value.Long[0] - 1;
+                        memory[(int)sp].Value.Long[0] = nextInstructionPointer;
+                        context[RegisterSPIndex].Value.Long[0] = sp;
+                        nextInstructionPointer = immediate;
+                        break;
+
+
+                    case OpCode.Callnz:
+                        if (context[regBNumber].Value.Long[0] != 0)
+                        {
+                            sp = context[RegisterSPIndex].Value.Long[0] - 1;
+                            memory[(int)sp].Value.Long[0] = nextInstructionPointer;
+                            context[RegisterSPIndex].Value.Long[0] = sp;
+                            nextInstructionPointer = context[regANumber].Value.Long[0];
+                        }
+                        break;
+
+
+                    case OpCode.Callnzl:
+                        if (context[regBNumber].Value.Long[0] != 0)
+                        {
+                            sp = context[RegisterSPIndex].Value.Long[0] - 1;
+                            memory[(int)sp].Value.Long[0] = nextInstructionPointer;
+                            context[RegisterSPIndex].Value.Long[0] = sp;
+                            nextInstructionPointer = immediate;
+                        }
+                        break;
+
+
+                    case OpCode.Ret:
+                        sp = context[RegisterSPIndex].Value.Long[0];
+                        nextInstructionPointer = memory[(int)sp].Value.Long[0];
+                        context[RegisterSPIndex].Value.Long[0] = sp - 1;
+                        break;
                     #endregion
 
 
