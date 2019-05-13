@@ -54,7 +54,7 @@ namespace CarrotAssemblerLib.IO
             // リーダーインスタンスを生成して書くメンバ変数の初期化
             reader = new StreamReader(inputStream ?? throw new ArgumentNullException(nameof(inputStream)), Encoding.UTF8, true, DefaultBufferSize, leaveOpen);
             tokenReadBuffer = new StringBuilder();
-            lastReadChara = 0;
+            lastReadChara = ' ';
             currentLineNumber = 1;
             currentColumnNumber = 0;
         }
