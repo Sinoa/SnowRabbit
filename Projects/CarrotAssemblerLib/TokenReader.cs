@@ -136,8 +136,8 @@ namespace CarrotAssemblerLib.IO
             ThrowIfDisposed();
 
 
-            // まずは一文字目を読み込む
-            var readChara = ReadNextChara();
+            // 最後に読み込んだ文字を取得する
+            var readChara = lastReadChara;
 
 
             // もし空白文字なら、空白以外がくるまで読み飛ばす
@@ -162,15 +162,17 @@ namespace CarrotAssemblerLib.IO
             {
                 // コロンなら
                 case char c when c == ':':
-                    // コロンのトークンとして設定する
+                    // コロンのトークンとして設定してから一文字読み進める
                     token = new Token(TokenKind.Coron, ":", 0, currentLineNumber, currentColumnNumber);
+                    ReadNextChara();
                     return true;
 
 
                 // シャープなら
                 case char c when c == '#':
-                    // シャープのトークンとして設定する
+                    // シャープのトークンとして設定してから一文字読み進める
                     token = new Token(TokenKind.Sharp, "#", 0, currentLineNumber, currentColumnNumber);
+                    ReadNextChara();
                     return true;
 
 
@@ -289,13 +291,35 @@ namespace CarrotAssemblerLib.IO
         /// <param name="token">形成したトークンを設定する参照</param>
         private void ReadIdentifierOrKeywordToken(int firstChara, out Token token)
         {
-            // まずはバッファをクリアして最初に読み込んだ文字を入れる
+            // まずはバッファをクリアして
             tokenReadBuffer.Clear();
-            tokenReadBuffer.Append((char)firstChara);
 
 
-            // 次の文字を読み取る
-            throw new NotImplementedException();
+            // 次の文字を読み込んで識別子として有効な文字の間はループ（レター文字, 数字, アンダーバー）
+            var readChar = firstChara;
+            while (char.IsLetterOrDigit((char)readChar) || readChar == '_')
+            {
+                // 有効な文字をバッファに入れて次の文字を読み込む
+                tokenReadBuffer.Append((char)readChar);
+                readChar = ReadNextChara();
+            }
+
+
+            // 読み込みバッファから文字列化する
+            var text = tokenReadBuffer.ToString();
+
+
+            // もしキーワードテーブルに存在するトークンなら
+            if (KeywordTable.TryGetValue(text, out var kind))
+            {
+                // キーワードトークンであることを設定する
+                token = new Token(kind, text, 0, currentLineNumber, currentColumnNumber);
+                return;
+            }
+
+
+            // キーワードではないのなら識別子としてトークンを初期化する
+            token = new Token(TokenKind.Identifier, text, 0, currentLineNumber, currentColumnNumber);
         }
 
 
