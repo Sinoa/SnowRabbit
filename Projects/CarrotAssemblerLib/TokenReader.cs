@@ -289,6 +289,12 @@ namespace CarrotAssemblerLib.IO
         /// <param name="token">形成したトークンを設定する参照</param>
         private void ReadIdentifierOrKeywordToken(int firstChara, out Token token)
         {
+            // まずはバッファをクリアして最初に読み込んだ文字を入れる
+            tokenReadBuffer.Clear();
+            tokenReadBuffer.Append((char)firstChara);
+
+
+            // 次の文字を読み取る
             throw new NotImplementedException();
         }
 
