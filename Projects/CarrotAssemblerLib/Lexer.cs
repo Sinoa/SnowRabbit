@@ -62,9 +62,15 @@ namespace CarrotAssemblerLib
         #region Keyword
         /// <summary>
         /// 定数キーワード
-        /// <const>
+        /// [const]
         /// </summary>
         Const,
+
+        /// <summary>
+        /// グローバル変数キーワード
+        /// [global]
+        /// </summary>
+        Global,
         #endregion
 
         #region Symbol
@@ -210,6 +216,7 @@ namespace CarrotAssemblerLib
             {
                 // キーワード
                 { "const", TokenKind.Const },
+                { "global", TokenKind.Global },
 
                 // 記号
                 { ":", TokenKind.Coron },
