@@ -37,6 +37,11 @@ namespace CarrotAssemblerLib
         /// これ以上のトークンは存在しないトークン
         /// </summary>
         EndOfToken,
+
+        /// <summary>
+        /// 行末を示すトークン
+        /// </summary>
+        EndOfLine,
         #endregion
 
         #region Typical
@@ -214,6 +219,9 @@ namespace CarrotAssemblerLib
             // キーワードテーブルを構築する
             KeywordTable = new Dictionary<string, TokenKind>()
             {
+                // 特殊
+                { "\n", TokenKind.EndOfLine },
+
                 // キーワード
                 { "const", TokenKind.Const },
                 { "global", TokenKind.Global },
@@ -290,12 +298,9 @@ namespace CarrotAssemblerLib
             ThrowIfDisposed();
 
 
-            // 最後に読み込んだ文字を取得する
+            // 最後に読み込んだ文字を取得して'\n'を除く空白文字なら、有効な文字がくるまで読み飛ばす
             var readChara = lastReadChara;
-
-
-            // もし空白文字または改行コードなら、有効な文字がくるまで読み飛ばす
-            while (char.IsWhiteSpace((char)readChara) || readChara == '\n')
+            while (readChara != '\n' && char.IsWhiteSpace((char)readChara))
             {
                 // 次の文字を読み込む
                 readChara = ReadNextChara();
@@ -356,7 +361,8 @@ namespace CarrotAssemblerLib
             if (lastReadChara == EndOfStream || reader.EndOfStream)
             {
                 // これ以上の読み込みはないことを返す
-                return EndOfStream;
+                lastReadChara = EndOfStream;
+                return lastReadChara;
             }
 
 
@@ -379,15 +385,6 @@ namespace CarrotAssemblerLib
             {
                 // 最終読み込みであることを返す
                 lastReadChara = EndOfStream;
-                return lastReadChara;
-            }
-
-
-            // もしキャリッジリターンなら
-            if (readChara == '\r')
-            {
-                // キャリッジリターンは空白スペースとして認知させる
-                lastReadChara = ' ';
                 return lastReadChara;
             }
 
