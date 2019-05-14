@@ -17,10 +17,136 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using CarrotAssemblerLib.Common;
 
-namespace CarrotAssemblerLib.IO
+namespace CarrotAssemblerLib
 {
+    #region TokenKind
+    /// <summary>
+    /// トークンの種別を表現します
+    /// </summary>
+    public enum TokenKind
+    {
+        #region Special
+        /// <summary>
+        /// 不明なトークン(通常は無効値として扱われ無効な識別子としても扱います)
+        /// invalid token kind and invalid identifier.
+        /// </summary>
+        Unknown,
+
+        /// <summary>
+        /// これ以上のトークンは存在しないトークン
+        /// </summary>
+        EndOfToken,
+        #endregion
+
+        #region Typical
+        /// <summary>
+        /// 識別子
+        /// identifier or hogemoge
+        /// </summary>
+        Identifier,
+
+        /// <summary>
+        /// 整数
+        /// 1234
+        /// </summary>
+        Integer,
+
+        /// <summary>
+        /// 文字列
+        /// "a" or "abc" or 'a' or 'abc'
+        /// </summary>
+        String,
+        #endregion
+
+        #region Keyword
+        /// <summary>
+        /// 定数キーワード
+        /// <const>
+        /// </summary>
+        Const,
+        #endregion
+
+        #region Symbol
+        /// <summary>
+        /// コロン
+        /// :
+        /// </summary>
+        Coron,
+
+        /// <summary>
+        /// シャープ
+        /// #
+        /// </summary>
+        Sharp,
+
+        /// <summary>
+        /// カンマ
+        /// ,
+        /// </summary>
+        Comma,
+        #endregion
+    }
+    #endregion
+
+
+
+    #region Token struct
+    /// <summary>
+    /// トークンの表現を定義している構造体です
+    /// </summary>
+    public readonly struct Token
+    {
+        /// <summary>
+        /// トークンの種別
+        /// </summary>
+        public readonly TokenKind Kind;
+
+        /// <summary>
+        /// トークンの文字列本体
+        /// </summary>
+        public readonly string Text;
+
+        /// <summary>
+        /// トークンが整数で表現される時の整数値
+        /// </summary>
+        public readonly long Integer;
+
+        /// <summary>
+        /// トークンが現れた行番号
+        /// </summary>
+        public readonly int LineNumber;
+
+        /// <summary>
+        /// トークンが現れた最初の列番号
+        /// </summary>
+        public readonly int ColumnNumber;
+
+
+
+        /// <summary>
+        /// Token 構造体のインスタンスを初期化します
+        /// </summary>
+        /// <param name="kind">トークンの種別</param>
+        /// <param name="text">トークン文字列</param>
+        /// <param name="integer">トークン整数</param>
+        /// <param name="lineNumber">出現行番号</param>
+        /// <param name="columnNumber">出現列番号</param>
+        public Token(TokenKind kind, string text, long integer, int lineNumber, int columnNumber)
+        {
+            // 各種メンバ変数の初期化
+            Kind = kind;
+            Text = text;
+            Integer = integer;
+            LineNumber = lineNumber;
+            ColumnNumber = columnNumber;
+        }
+    }
+    #endregion
+
+
+
+    #region TokenReader
     /// <summary>
     /// ストリームからトークンを読み込むリーダークラスです
     /// </summary>
@@ -468,4 +594,5 @@ namespace CarrotAssemblerLib.IO
         }
         #endregion
     }
+    #endregion
 }

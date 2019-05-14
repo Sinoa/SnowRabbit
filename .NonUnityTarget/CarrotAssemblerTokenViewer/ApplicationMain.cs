@@ -15,7 +15,7 @@
 
 using System;
 using System.IO;
-using CarrotAssemblerLib.IO;
+using CarrotAssemblerLib;
 
 namespace CarrotAssemblerTokenViewer
 {
