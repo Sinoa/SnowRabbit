@@ -11,7 +11,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnowRabbitBenchmark", ".Non
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarrotAssemblerLib", "Projects\CarrotAssemblerLib\CarrotAssemblerLib.csproj", "{CB9BA38E-DCC9-42EC-8EF6-CCFE92A65426}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarrotAssemblerTokenViewer", ".NonUnityTarget\CarrotAssemblerTokenViewer\CarrotAssemblerTokenViewer.csproj", "{856FABAF-1871-4924-A6E3-7ADB3171B32C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarrotAssemblerTokenViewer", ".NonUnityTarget\CarrotAssemblerTokenViewer\CarrotAssemblerTokenViewer.csproj", "{856FABAF-1871-4924-A6E3-7ADB3171B32C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Carrot", "Carrot", "{3A8688D7-2ADA-44C5-BD2A-B87D7B838B51}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VirtualMachine", "VirtualMachine", "{B406F0BF-11B4-474A-9C09-24DDB81B3DDB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestAndBenchmark", "TestAndBenchmark", "{17CE21C2-A7CC-4582-B045-B20F61655CD2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +48,13 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F81DB04E-0142-4F9F-B3F1-1B0321DDC6DB} = {B406F0BF-11B4-474A-9C09-24DDB81B3DDB}
+		{09944433-6C96-4F27-9A05-61EF9E5FAADD} = {17CE21C2-A7CC-4582-B045-B20F61655CD2}
+		{BA557A58-5DC6-4A39-A13D-8658F0D41C11} = {17CE21C2-A7CC-4582-B045-B20F61655CD2}
+		{CB9BA38E-DCC9-42EC-8EF6-CCFE92A65426} = {3A8688D7-2ADA-44C5-BD2A-B87D7B838B51}
+		{856FABAF-1871-4924-A6E3-7ADB3171B32C} = {3A8688D7-2ADA-44C5-BD2A-B87D7B838B51}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08483274-EB20-4F7A-9BE7-94F03D3BB259}
