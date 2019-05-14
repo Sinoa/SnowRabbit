@@ -20,12 +20,20 @@ namespace CarrotAssemblerLib.Common
     /// </summary>
     public enum TokenKind
     {
+        #region Special
         /// <summary>
         /// 不明なトークン(通常は無効値として扱われ無効な識別子としても扱います)
         /// invalid token kind and invalid identifier.
         /// </summary>
         Unknown,
 
+        /// <summary>
+        /// これ以上のトークンは存在しないトークン
+        /// </summary>
+        EndOfToken,
+        #endregion
+
+        #region Typical
         /// <summary>
         /// 識別子
         /// identifier or hogemoge
@@ -43,7 +51,17 @@ namespace CarrotAssemblerLib.Common
         /// "a" or "abc" or 'a' or 'abc'
         /// </summary>
         String,
+        #endregion
 
+        #region Keyword
+        /// <summary>
+        /// 定数キーワード
+        /// <const>
+        /// </summary>
+        Const,
+        #endregion
+
+        #region Symbol
         /// <summary>
         /// コロン
         /// :
@@ -61,16 +79,6 @@ namespace CarrotAssemblerLib.Common
         /// ,
         /// </summary>
         Comma,
-
-        /// <summary>
-        /// 定数キーワード
-        /// <const>
-        /// </summary>
-        Const,
-
-        /// <summary>
-        /// これ以上のトークンは存在しないトークン
-        /// </summary>
-        EndOfToken,
+        #endregion
     }
 }

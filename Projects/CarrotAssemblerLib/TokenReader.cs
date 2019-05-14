@@ -43,6 +43,20 @@ namespace CarrotAssemblerLib.IO
 
 
 
+        #region Constructor
+        /// <summary>
+        /// TokenReader クラスのインスタンスを初期化します。
+        /// </summary>
+        /// <remarks>
+        /// 指定されたストリームは TokenReader インスタンスが破棄される時に閉じられます。
+        /// </remarks>
+        /// <param name="inputStream">トークンを読み出す為のストリーム</param>
+        /// <exception cref="ArgumentNullException">inputStream が null です</exception>
+        public TokenReader(Stream inputStream) : this(inputStream, false)
+        {
+        }
+
+
         /// <summary>
         /// TokenReader クラスのインスタンスを初期化します
         /// </summary>
@@ -68,9 +82,16 @@ namespace CarrotAssemblerLib.IO
             // キーワードテーブルを構築する
             KeywordTable = new Dictionary<string, TokenKind>()
             {
-                { "const", TokenKind.Const }
+                // キーワード
+                { "const", TokenKind.Const },
+
+                // 記号
+                { ":", TokenKind.Coron },
+                { "#", TokenKind.Sharp },
+                { ",", TokenKind.Comma },
             };
         }
+        #endregion
 
 
         #region Dispose pattern
@@ -128,7 +149,7 @@ namespace CarrotAssemblerLib.IO
         /// 次に読み取れるトークンを読み込みます
         /// </summary>
         /// <param name="token">読み出されたトークンを設定するトークンへの参照</param>
-        /// <returns>トークンが正しく読み出された場合は true を、読みだせなかった場合は false を返します</returns>
+        /// <returns>トークンを読み込んだ場合は true を、読み出すべきトークンがない（EndOfToken）場合は false を返します</returns>
         /// <exception cref="ObjectDisposedException">インスタンスが既に破棄されています</exception>
         public bool ReadNextToken(out Token token)
         {
@@ -151,66 +172,42 @@ namespace CarrotAssemblerLib.IO
             // もしストリームの最後なら
             if (readChara == EndOfStream)
             {
-                // 読み切ったトークンを設定してtrueを返す
+                // 読み切ったトークンを設定してfalseを返す
                 token = new Token(TokenKind.EndOfToken, string.Empty, 0, currentLineNumber, currentColumnNumber);
-                return true;
+                return false;
             }
 
 
             // 読み取った最初の文字によってトークン読み込み関数を呼び分ける
             switch ((char)readChara)
             {
-                // コロンなら
-                case char c when c == ':':
-                    // コロンのトークンとして設定してから一文字読み進める
-                    token = new Token(TokenKind.Coron, ":", 0, currentLineNumber, currentColumnNumber);
-                    ReadNextChara();
-                    return true;
-
-
-                // シャープなら
-                case char c when c == '#':
-                    // シャープのトークンとして設定してから一文字読み進める
-                    token = new Token(TokenKind.Sharp, "#", 0, currentLineNumber, currentColumnNumber);
-                    ReadNextChara();
-                    return true;
-
-
-                // カンマなら
-                case char c when c == ',':
-                    // カンマのトークンとして設定してから一文字読み進める
-                    token = new Token(TokenKind.Comma, ",", 0, currentLineNumber, currentColumnNumber);
-                    ReadNextChara();
-                    return true;
-
-
-                // ダブルクォートまたはシングルクォートなら
-                case char c when c == '"' || c == '\'':
-                    // 文字列トークンとして読み込む
-                    ReadStringToken(readChara, out token);
-                    return true;
-
-
-                // 数字なら
+                // 数字なら、数値トークンとして読み込む
                 case char n when char.IsDigit(n):
-                    // 数値トークンとして読み込む
                     ReadIntegerToken(readChara, out token);
-                    return true;
+                    break;
 
 
-                // アンダーバーまたはレター文字なら
+                // アンダーバーまたはレター文字なら、識別子またはキーワードトークンとして読み込む
                 case char c when char.IsLetter(c) || c == '_':
-                    // 識別子またはキーワードトークンとして読み込む
                     ReadIdentifierOrKeywordToken(readChara, out token);
-                    return true;
+                    break;
 
 
-                // 上記どれでもないなら
+                // ダブルクォートまたはシングルクォートなら、文字列トークンとして読み込む
+                case char c when c == '"' || c == '\'':
+                    ReadStringToken(readChara, out token);
+                    break;
+
+
+                // 上記どれでもないなら、記号トークンとして読み込む
                 default:
-                    // 無効なトークンとして設定して読み取りに失敗したことを返す
-                    token = new Token(TokenKind.Unknown, new string(new char[] { (char)readChara }), 0, currentLineNumber, currentColumnNumber);
-                    return false;
+                    ReadSymbolToken(readChara, out token);
+                    break;
             }
+
+
+            // トークンを読み込んだことを返す
+            return true;
         }
 
 
@@ -291,7 +288,30 @@ namespace CarrotAssemblerLib.IO
         #endregion
 
 
-        #region TokenRead functions
+        #region Token builder functions
+        /// <summary>
+        /// ストリームから整数数値トークンとして読み込みトークンを形成します
+        /// </summary>
+        /// <param name="firstChara">最初に読み取られた文字</param>
+        /// <param name="token">形成したトークンを設定する参照</param>
+        private void ReadIntegerToken(int firstChara, out Token token)
+        {
+            // 数字が読み込まれる間はループ
+            var readChara = firstChara;
+            long result = 0L;
+            while (char.IsDigit((char)readChara))
+            {
+                // 数字から数値へ変換して次の文字を読み取る
+                result = result * 10 + (firstChara - '0');
+                readChara = ReadNextChara();
+            }
+
+
+            // トークンを初期化する
+            token = new Token(TokenKind.Integer, result.ToString(), result, currentLineNumber, currentColumnNumber);
+        }
+
+
         /// <summary>
         /// ストリームから識別子またはキーワードトークンとして読み込みトークンを形成します
         /// </summary>
@@ -353,49 +373,27 @@ namespace CarrotAssemblerLib.IO
                 // もしバックスラッシュが読み込まれていたら
                 if (readChara == '\\')
                 {
-                    // 次の文字を読み込む
+                    // 次の文字を読み込んで文字によって判定する
                     readChara = ReadNextChara();
+                    switch ((char)readChara)
+                    {
+                        // 各文字に相当する文字をバッファに入れる
+                        case 'n': tokenReadBuffer.Append('\n'); break;
+                        case 't': tokenReadBuffer.Append('\t'); break;
+                        case '\\': tokenReadBuffer.Append('\\'); break;
+                        case '"': tokenReadBuffer.Append('"'); break;
+                        case '\'': tokenReadBuffer.Append('\''); break;
 
 
-                    // nなら
-                    if (readChara == 'n')
-                    {
-                        // 改行コードをバッファに入れる
-                        tokenReadBuffer.Append('\n');
-                    }
-                    // tなら
-                    else if (readChara == 't')
-                    {
-                        // タブをバッファに入れる
-                        tokenReadBuffer.Append('\t');
-                    }
-                    // 再びバックスラッシュなら
-                    else if (readChara == '\\')
-                    {
-                        // バックスラッシュをバッファに入れる
-                        tokenReadBuffer.Append('\\');
-                    }
-                    // ダブルクォートなら
-                    else if (readChara == '"')
-                    {
-                        // ダブルクォートをバッファに入れる
-                        tokenReadBuffer.Append('"');
-                    }
-                    // シングルクォートなら
-                    else if (readChara == '\'')
-                    {
-                        // シングルクォートをバッファに入れる
-                        tokenReadBuffer.Append('\'');
-                    }
-                    else
-                    {
-                        // それ以外の場合は無効なエスケープシーケンスとしてトークンを設定して終了
-                        token = new Token(TokenKind.Unknown, $"無効なエスケープ文字 '{(char)readChara}' です", 0, currentLineNumber, currentColumnNumber);
-                        return;
+                        // 上記以外の文字が来たら無効なエスケープ文字としてトークンを設定して終了
+                        default:
+                            token = new Token(TokenKind.Unknown, $"無効なエスケープ文字 '{(char)readChara}' です", 0, currentLineNumber, currentColumnNumber);
+                            return;
                     }
 
 
-                    // ループを継続する
+                    // 次の文字を読み込んでループを継続する
+                    readChara = ReadNextChara();
                     continue;
                 }
 
@@ -409,11 +407,8 @@ namespace CarrotAssemblerLib.IO
                 }
 
 
-                // 文字をそのままバッファに詰める
+                // 文字をそのままバッファに詰めて次の文字を読み込む
                 tokenReadBuffer.Append((char)readChara);
-
-
-                // 次の文字を読み込む
                 readChara = ReadNextChara();
             }
 
@@ -425,26 +420,34 @@ namespace CarrotAssemblerLib.IO
 
 
         /// <summary>
-        /// ストリームから整数数値トークンとして読み込みトークンを形成します
+        /// ストリームから記号トークンとして読み込みトークンを形成します
         /// </summary>
         /// <param name="firstChara">最初に読み取られた文字</param>
         /// <param name="token">形成したトークンを設定する参照</param>
-        private void ReadIntegerToken(int firstChara, out Token token)
+        private void ReadSymbolToken(int firstChara, out Token token)
         {
-            // 数字が読み込まれる間はループ
-            var readChara = firstChara;
-            long result = 0L;
-            while (char.IsDigit((char)readChara))
+            // バッファのクリアをして、行番号と列番号を覚える
+            tokenReadBuffer.Clear();
+            var startLineNumber = currentLineNumber;
+            var startColumnNumber = currentColumnNumber;
+
+
+            // まずは一文字バッファに入れて次の文字を読み込む
+            tokenReadBuffer.Append((char)firstChara);
+            var readChara = ReadNextChara();
+
+
+            // キーワードテーブルからトークンの種類を取得するが、できなかったら
+            var symbolText = tokenReadBuffer.ToString();
+            if (!KeywordTable.TryGetValue(symbolText, out var kind))
             {
-                // 数字から数値へ変換して次の文字を読み取る
-                result = result * 10 + (firstChara - 0x30);
-                readChara = ReadNextChara();
+                // 無効なトークン種別に設定する
+                kind = TokenKind.Unknown;
             }
 
 
-            // トークンを初期化する
-            token = new Token(TokenKind.Integer, result.ToString(), result, currentLineNumber, currentColumnNumber);
-
+            // 取得された種類と文字列でトークンを生成する
+            token = new Token(kind, symbolText, 0, startLineNumber, startColumnNumber);
         }
         #endregion
 
