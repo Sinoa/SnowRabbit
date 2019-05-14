@@ -17,4 +17,10 @@
     <ProjectReference Include="..\..\Projects\CarrotAssemblerLib\CarrotAssemblerLib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Assets\SampleScript.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

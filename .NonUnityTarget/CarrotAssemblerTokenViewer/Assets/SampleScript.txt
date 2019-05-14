@@ -1,0 +1,11 @@
+﻿#const 0 "ConstString"
+#const 1 "まるちらんげーじていすう"
+#const 2 "漢字文字列定数"
+#const 3 "記号入り文字列定数！！[]{}!!()"
+
+movl RAX, 2
+push RAX
+gpidl RAX, 0
+gpfidl RBX, RAX, 1
+cpfl RAX, RBX, 1
+halt

@@ -13,6 +13,10 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
+using System.IO;
+using CarrotAssemblerLib.IO;
+
 namespace CarrotAssemblerTokenViewer
 {
     /// <summary>
@@ -26,6 +30,38 @@ namespace CarrotAssemblerTokenViewer
         /// <param name="args">アプリケーション引数</param>
         private static void Main(string[] args)
         {
+            // コマンドライン引数に1つも渡されていないのなら
+            if (args.Length < 1)
+            {
+                // ちょっとした説明を出して終了
+                Console.WriteLine("トークンを読み取るためのスクリプトファイルを指定して下さい");
+                return;
+            }
+
+
+            // 渡された値がファイル名であることを前提としてファイルの存在を確認する
+            if (!File.Exists(args[0]))
+            {
+                // ファイルが見つからないことを表示して終了
+                Console.WriteLine($"ファイル '{args[0]}' が見つかりません");
+                return;
+            }
+
+
+            // ファイルを開いてトークンリーダーを生成する
+            using (var reader = new TokenReader(File.OpenRead(args[0])))
+            {
+                // 全てのトークンを読み切るまでループ
+                while (reader.ReadNextToken(out var token))
+                {
+                    // トークン内容を表示する
+                    var lineNumber = token.LineNumber.ToString().PadLeft(4);
+                    var columnNumber = token.ColumnNumber.ToString().PadLeft(4);
+                    var kind = token.Kind.ToString().PadRight(11);
+                    var text = token.Text;
+                    Console.WriteLine($"({lineNumber},{columnNumber}) [{kind}] {text}");
+                }
+            }
         }
     }
 }
