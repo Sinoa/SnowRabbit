@@ -180,6 +180,13 @@ namespace CarrotAssemblerLib
 
 
 
+        /// <summary>
+        /// ラインフィールド改行コードをトークンとして認めるかどうか
+        /// </summary>
+        public bool AllowEndOfLineToken { get; set; }
+
+
+
         #region Constructor
         /// <summary>
         /// TokenReader クラスのインスタンスを初期化します。
@@ -299,8 +306,9 @@ namespace CarrotAssemblerLib
 
 
             // 最後に読み込んだ文字を取得して'\n'を除く空白文字なら、有効な文字がくるまで読み飛ばす
+            // ただしAllowEndOfLineがfalseならラインフィールドはトークンとして認めない
             var readChara = lastReadChara;
-            while (readChara != '\n' && char.IsWhiteSpace((char)readChara))
+            while ((!AllowEndOfLineToken || readChara != '\n') && char.IsWhiteSpace((char)readChara))
             {
                 // 次の文字を読み込む
                 readChara = ReadNextChara();

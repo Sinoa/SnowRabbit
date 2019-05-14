@@ -51,6 +51,10 @@ namespace CarrotAssemblerTokenViewer
             // ファイルを開いてトークンリーダーを生成する
             using (var reader = new TokenReader(File.OpenRead(args[0])))
             {
+                // 改行コードをトークンとして認める
+                reader.AllowEndOfLineToken = true;
+
+
                 // 全てのトークンを読み切るまでループ
                 while (reader.ReadNextToken(out var token))
                 {
@@ -58,7 +62,7 @@ namespace CarrotAssemblerTokenViewer
                     var lineNumber = token.LineNumber.ToString().PadLeft(4);
                     var columnNumber = token.ColumnNumber.ToString().PadLeft(4);
                     var kind = token.Kind.ToString().PadRight(11);
-                    var text = token.Text;
+                    var text = token.Text == "\n" ? string.Empty : token.Text;
                     Console.WriteLine($"({lineNumber},{columnNumber}) [{kind}] {text}");
                 }
             }
