@@ -47,6 +47,7 @@ using System.Runtime.Serialization;
 
 namespace CarrotAssemblerLib
 {
+    #region Parser
     /// <summary>
     /// Carrot アセンブリの構文を解析するクラスです
     /// </summary>
@@ -190,6 +191,21 @@ namespace CarrotAssemblerLib
         /// </summary>
         private void ParseGlobalVarDefine()
         {
+            // トークンを取り出すが、識別子でなければ
+            lexer.ReadNextToken(out lastReadToken);
+            if (lastReadToken.Kind != TokenKind.Identifier)
+            {
+                // グローバル変数名が未指定である構文エラーを発生
+                OccurParseError(ParserLogCode.ErrorUnspecifiedGlobalVariableName, $"グローバル変数名が有効な識別子ではありません");
+            }
+
+
+            // ビルダーにグローバル変数名を登録するが重複エラーが発生した場合は
+            if (builder.RegisterGlobalVariable(lastReadToken.Text) == 0)
+            {
+                // 既に定義済みである構文エラーを発生
+                OccurParseError(ParserLogCode.ErrorDuplicatedGlobalVariableName, $"既に定義済みのグローバル変数名です '{lastReadToken.Text}'");
+            }
         }
         #endregion
 
@@ -208,6 +224,7 @@ namespace CarrotAssemblerLib
         }
         #endregion
     }
+    #endregion
 
 
 
@@ -219,6 +236,8 @@ namespace CarrotAssemblerLib
     {
         // メンバ変数定義
         private Dictionary<uint, string> constStringTable;
+        private Dictionary<string, int> globalVariableTable;
+        private int nextGlobalVariableIndex;
 
 
 
@@ -229,6 +248,8 @@ namespace CarrotAssemblerLib
         {
             // メンバ変数の初期化をする
             constStringTable = new Dictionary<uint, string>();
+            globalVariableTable = new Dictionary<string, int>();
+            nextGlobalVariableIndex = -1;
         }
 
 
@@ -251,6 +272,28 @@ namespace CarrotAssemblerLib
             // 登録して成功を返す
             constStringTable[index] = text;
             return true;
+        }
+
+
+        /// <summary>
+        /// 指定されたグローバル変数名を登録します
+        /// </summary>
+        /// <param name="name">登録する変数名</param>
+        /// <returns>正常に変数名が登録された場合は登録した変数インデックスを、既に登録済みの場合は 0 を返します</returns>
+        internal int RegisterGlobalVariable(string name)
+        {
+            // 既に同じ名前の変数が登録済みなら
+            if (globalVariableTable.ContainsKey(name))
+            {
+                // 登録済みであることを返す
+                return 0;
+            }
+
+
+            // グローバル変数名を登録して登録したインデックスを返す（次に登録するインデックスも更新する）
+            var registerdIndex = nextGlobalVariableIndex--;
+            globalVariableTable[name] = registerdIndex;
+            return registerdIndex;
         }
     }
     #endregion
@@ -292,6 +335,16 @@ namespace CarrotAssemblerLib
         /// 文字列定数の定義が可能な定数は文字列のみです
         /// </summary>
         ErrorUnsupportedConstStringOtherType = 0x8000_0005,
+
+        /// <summary>
+        /// グローバル変数名が未指定です
+        /// </summary>
+        ErrorUnspecifiedGlobalVariableName = 0x8000_0006,
+
+        /// <summary>
+        /// 既に定義済みのグローバル変数名です
+        /// </summary>
+        ErrorDuplicatedGlobalVariableName = 0x8000_0007,
     }
     #endregion
 
