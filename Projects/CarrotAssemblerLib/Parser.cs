@@ -20,29 +20,29 @@ asm-script-unit
 directive
     : 'const' const-string-define
     | 'global' global-var-define
-    <EndOfLine>
 
 const-string-define
-    : integer identifier
+    : <integer> <string>
 
 global-var-define
-    : identifier
+    : <identifier>
 
 operation
-    : op-code [argument-list] <EndOfLine>
+    : op-code [argument-list]
 
 op-code
-    : identifier
+    : <identifier>
 
 argument-list
     : argument {',' argument}
 
 argument
-    : identifier
-    | integer
+    : <identifier>
+    | <integer>
 */
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace CarrotAssemblerLib
@@ -56,6 +56,7 @@ namespace CarrotAssemblerLib
         private TokenReader lexer;
         private BinaryCodeBuilder builder;
         private ParserLogger logger;
+        private Token lastReadToken;
 
 
 
@@ -76,8 +77,8 @@ namespace CarrotAssemblerLib
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
 
-            // 改行コードをトークンとして認める
-            lexer.AllowEndOfLineToken = true;
+            // 改行コードをトークンとして認めない
+            lexer.AllowEndOfLineToken = false;
         }
 
 
@@ -87,12 +88,23 @@ namespace CarrotAssemblerLib
         /// <exception cref="CarrotParseException">構文解析中に問題が発生しました</exception>
         public void Assemble()
         {
+            // 構文解析を開始する
+            ParseAsmScriptUnit();
+        }
+
+
+        #region Parse functions
+        /// <summary>
+        /// アセンブリスクリプト単位の構文を解析します
+        /// </summary>
+        private void ParseAsmScriptUnit()
+        {
             // 最初のトークンを取り出す
-            lexer.ReadNextToken(out var token);
+            lexer.ReadNextToken(out lastReadToken);
 
 
             // シャープトークンが来る間はループ
-            while (token.Kind == TokenKind.Sharp)
+            while (lastReadToken.Kind == TokenKind.Sharp)
             {
                 // ディレクティブの構文を解析する
                 ParseDirective();
@@ -105,17 +117,143 @@ namespace CarrotAssemblerLib
         /// </summary>
         private void ParseDirective()
         {
+            // キーワードトークンを取り出す
+            lexer.ReadNextToken(out lastReadToken);
+
+
+            // 取り出したキーワードに応じて呼び出すべきディレクティブを切り替える
+            switch (lastReadToken.Kind)
+            {
+                // const なら文字列定数定義の構文解析を呼ぶ
+                case TokenKind.Const:
+                    ParseConstStringDefine();
+                    break;
+
+
+                // global ならグローバル変数定義構文解析を呼ぶ
+                case TokenKind.Global:
+                    ParseGlobalVarDefine();
+                    break;
+
+
+                // ここに来てしまったということは未定義の構文に出会ってしまった（不明なディレクティブキーワード）
+                default:
+                    OccurParseError(ParserLogCode.ErrorUnsupportedDirectiveKeyword, $"不明なディレクティブキーワード '{lastReadToken.Text}' です");
+                    return;
+            }
         }
+
+
+        /// <summary>
+        /// 文字列定数定義の構文を解析します
+        /// </summary>
+        private void ParseConstStringDefine()
+        {
+            // トークンを取り出すが、数値トークンでなければ
+            lexer.ReadNextToken(out lastReadToken);
+            if (lastReadToken.Kind != TokenKind.Integer)
+            {
+                // 数値以外のインデックス指定は禁止である構文エラーを発生
+                OccurParseError(ParserLogCode.ErrorUnspecifiedConstStringIndex, $"文字列定数のインデックスが未指定です");
+            }
+
+
+            // 指定された数値を覚えて、32bit整数に収まるか確認
+            var index = lastReadToken.Integer;
+            if (index > uint.MaxValue)
+            {
+                // 収まらないなら収まらない構文エラーを発生
+                OccurParseError(ParserLogCode.ErrorBiggerConstStringIndex, $"文字列定数のインデックス値が大きすぎます '{index}'");
+            }
+
+
+            // トークンを取り出して、文字列トークンでなければ
+            lexer.ReadNextToken(out lastReadToken);
+            if (lastReadToken.Kind != TokenKind.String)
+            {
+                // 文字列以外の定数は定義できない構文エラーを発生
+                OccurParseError(ParserLogCode.ErrorUnsupportedConstStringOtherType, $"文字列定数で定義が出来るのは文字列のみです");
+            }
+
+
+            // ビルダーに文字列定数を登録するが重複エラーが発生した場合は
+            if (!builder.RegisterConstString((uint)index, lastReadToken.Text))
+            {
+                // 文字列定数のインデックスが重複指定された構文エラーを発生
+                OccurParseError(ParserLogCode.ErrorDuplicatedConstStringIndex, $"指定された文字列定数のインデックスが既に定義済みです '{index}'");
+            }
+        }
+
+
+        /// <summary>
+        /// グローバル変数定義の構文を解析します
+        /// </summary>
+        private void ParseGlobalVarDefine()
+        {
+        }
+        #endregion
+
+
+        #region Utility function
+        /// <summary>
+        /// 構文エラーを発生させます
+        /// </summary>
+        /// <param name="code">構文エラーのコード</param>
+        /// <param name="message">構文エラーメッセージ</param>
+        private void OccurParseError(ParserLogCode code, string message)
+        {
+            // ロガーに構文エラーが発生したことを出力して例外を発生させる
+            logger.WriteError(lastReadToken.LineNumber, lastReadToken.ColumnNumber, code, message);
+            throw new CarrotParseException(message);
+        }
+        #endregion
     }
 
 
 
+    #region Builder
     /// <summary>
     /// SnowRabbit 仮想マシン用の実行コードを構築するクラスです
     /// </summary>
     public class BinaryCodeBuilder
     {
+        // メンバ変数定義
+        private Dictionary<uint, string> constStringTable;
+
+
+
+        /// <summary>
+        /// BinaryCodeBuilder クラスのインスタンスを初期化します
+        /// </summary>
+        public BinaryCodeBuilder()
+        {
+            // メンバ変数の初期化をする
+            constStringTable = new Dictionary<uint, string>();
+        }
+
+
+        /// <summary>
+        /// 文字列定数を登録します
+        /// </summary>
+        /// <param name="index">登録する文字列のインデックス値</param>
+        /// <param name="text">登録する文字列</param>
+        /// <returns>正常に登録された場合は true を、指定されたインデックスが既に登録されている場合は false を返します</returns>
+        internal bool RegisterConstString(uint index, string text)
+        {
+            // 既に指定されたインデックスが登録済みなら
+            if (constStringTable.ContainsKey(index))
+            {
+                // 登録済みであることを返す
+                return false;
+            }
+
+
+            // 登録して成功を返す
+            constStringTable[index] = text;
+            return true;
+        }
     }
+    #endregion
 
 
 
@@ -129,6 +267,31 @@ namespace CarrotAssemblerLib
         /// 通常のログ出力コード
         /// </summary>
         InfoLog = 0,
+
+        /// <summary>
+        /// サポートしていないディレクティブキーワードを指定されています
+        /// </summary>
+        ErrorUnsupportedDirectiveKeyword = 0x8000_0001,
+
+        /// <summary>
+        /// 文字列定数のインデックスが未指定です
+        /// </summary>
+        ErrorUnspecifiedConstStringIndex = 0x8000_0002,
+
+        /// <summary>
+        /// 文字列定数のインデックスが重複指定されています
+        /// </summary>
+        ErrorDuplicatedConstStringIndex = 0x8000_0003,
+
+        /// <summary>
+        /// 文字列定数のインデックスが大きすぎます
+        /// </summary>
+        ErrorBiggerConstStringIndex = 0x8000_0004,
+
+        /// <summary>
+        /// 文字列定数の定義が可能な定数は文字列のみです
+        /// </summary>
+        ErrorUnsupportedConstStringOtherType = 0x8000_0005,
     }
     #endregion
 
