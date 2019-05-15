@@ -43,6 +43,7 @@ argument
 */
 
 using System;
+using System.Runtime.Serialization;
 
 namespace CarrotAssemblerLib
 {
@@ -81,12 +82,29 @@ namespace CarrotAssemblerLib
 
 
         /// <summary>
-        /// このアセンブリパーサに設定されている情報を元にアセンブルして実行コードを生成します。
+        /// このアセンブリ構文解析に設定されている情報を元にアセンブルして実行コードを生成します。
         /// </summary>
-        /// <returns>アセンブルに成功した場合は true を、失敗した時は false を返します</returns>
-        public bool Assemble()
+        /// <exception cref="CarrotParseException">構文解析中に問題が発生しました</exception>
+        public void Assemble()
         {
-            throw new NotImplementedException();
+            // 最初のトークンを取り出す
+            lexer.ReadNextToken(out var token);
+
+
+            // シャープトークンが来る間はループ
+            while (token.Kind == TokenKind.Sharp)
+            {
+                // ディレクティブの構文を解析する
+                ParseDirective();
+            }
+        }
+
+
+        /// <summary>
+        /// ディレクティブの構文を解析します
+        /// </summary>
+        private void ParseDirective()
+        {
         }
     }
 
@@ -203,6 +221,53 @@ namespace CarrotAssemblerLib
             Console.BackgroundColor = ConsoleColor.Gray;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"({lineNumber}, {columnNumber}) warning C{(ulong)code}: {message}");
+        }
+    }
+    #endregion
+
+
+
+    #region Exception
+    /// <summary>
+    /// 構文解析例外が発生した時の例外クラスです
+    /// </summary>
+    [Serializable]
+    public class CarrotParseException : Exception
+    {
+        /// <summary>
+        /// CarrotParseException のインスタンスを初期化します
+        /// </summary>
+        public CarrotParseException() : base()
+        {
+        }
+
+
+        /// <summary>
+        /// CarrotParseException のインスタンスを初期化します
+        /// </summary>
+        /// <param name="message">発生した例外のメッセージ</param>
+        public CarrotParseException(string message) : base(message)
+        {
+        }
+
+
+        /// <summary>
+        /// CarrotParseException のインスタンスを初期化します
+        /// </summary>
+        /// <param name="message">発生した例外のメッセージ</param>
+        /// <param name="innerException">この例外を発生させた原因の例外</param>
+        public CarrotParseException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+
+        /// <summary>
+        /// シリアル化したデータから CarrotParseException のインスタンスを初期化します
+        /// </summary>
+        /// <param name="info">シリアル化されたオブジェクト情報</param>
+        /// <param name="context">シリアルデータの転送コンテキスト</param>
+        protected CarrotParseException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
         }
     }
     #endregion
