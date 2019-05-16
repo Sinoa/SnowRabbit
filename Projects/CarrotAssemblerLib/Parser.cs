@@ -44,6 +44,7 @@ argument
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using TextProcessorLib;
 
 namespace CarrotAssemblerLib
 {
@@ -126,13 +127,13 @@ namespace CarrotAssemblerLib
             switch (lastReadToken.Kind)
             {
                 // const なら文字列定数定義の構文解析を呼ぶ
-                case TokenKind.Const:
+                case CarrotAsmTokenKind.Const:
                     ParseConstStringDefine();
                     break;
 
 
                 // global ならグローバル変数定義構文解析を呼ぶ
-                case TokenKind.Global:
+                case CarrotAsmTokenKind.Global:
                     ParseGlobalVarDefine();
                     break;
 
