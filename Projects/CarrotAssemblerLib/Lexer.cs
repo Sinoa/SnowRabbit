@@ -232,9 +232,6 @@ namespace CarrotAssemblerLib
             // キーワードテーブルを構築する
             KeywordTable = new Dictionary<string, TokenKind>()
             {
-                // 特殊
-                { "\n", TokenKind.EndOfLine },
-
                 // キーワード
                 { "const", TokenKind.Const },
                 { "global", TokenKind.Global },
@@ -352,9 +349,9 @@ namespace CarrotAssemblerLib
                     break;
 
 
-                // 上記どれでもないなら、記号トークンとして読み込む
+                // 上記どれでもないなら、記号または他のトークンとして読み込む
                 default:
-                    ReadSymbolToken(readChara, out token);
+                    ReadSymbolOrOtherToken(readChara, out token);
                     break;
             }
 
@@ -569,15 +566,25 @@ namespace CarrotAssemblerLib
         /// </summary>
         /// <param name="firstChara">最初に読み取られた文字</param>
         /// <param name="token">形成したトークンを設定する参照</param>
-        private void ReadSymbolToken(int firstChara, out Token token)
+        private void ReadSymbolOrOtherToken(int firstChara, out Token token)
         {
+            // もしラインフィールド文字なら
+            if (firstChara == '\n')
+        {
+                // ラインフィールドは無条件で行末トークンとして生成して次の文字を読み込む
+                token = new Token(TokenKind.EndOfLine, string.Empty, 0, currentLineNumber, currentColumnNumber);
+                ReadNextChara();
+                return;
+            }
+
+
             // バッファのクリアをして、行番号と列番号を覚える
             tokenReadBuffer.Clear();
             var startLineNumber = currentLineNumber;
             var startColumnNumber = currentColumnNumber;
 
 
-            // まずは一文字バッファに入れて次の文字を読み込む
+            // まずは最初の一文字をバッファに入れて次の文字を読み込む
             tokenReadBuffer.Append((char)firstChara);
             var readChara = ReadNextChara();
 
