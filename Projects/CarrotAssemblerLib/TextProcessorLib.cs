@@ -755,6 +755,66 @@ namespace TextProcessorLib
             }
 
 
+            // もし結果が0かつ次に読み込まれた文字が'x | X'なら
+            if (result == 0 && (readChara == 'x' || readChara == 'X'))
+            {
+                // 次の文字を読み込む
+                tokenReadBuffer.Append((char)readChara);
+                readChara = ReadNextChara();
+
+
+                // 次の文字が16進数の範囲の文字でないなら
+                if (!(char.IsDigit((char)readChara) || ('A' <= readChara && readChara <= 'F') || ('a' <= readChara && readChara <= 'f')))
+                {
+                    // 何をしたいのか整数トークンとして解釈出来ない事を初期化する
+                    token = new Token(TokenKind.Unknown, $"16進数は最低でも1桁以上の入力が必要です '{tokenReadBuffer.ToString()}'", 0, 0.0, startLineNumber, startColumnNumber);
+                    return;
+                }
+
+
+                // 数字またはa-fA-Fの文字の間はループ
+                while (char.IsDigit((char)readChara) || ('A' <= readChara && readChara <= 'F') || ('a' <= readChara && readChara <= 'f'))
+                {
+                    // 文字バッファに文字を詰めて単体数字の数値を得る
+                    tokenReadBuffer.Append((char)readChara);
+                    int unitValue;
+
+
+                    // 小文字のa-fなら
+                    if (readChara >= 'a')
+                    {
+                        // 小文字から数値を作る
+                        unitValue = readChara - 'a' + 10;
+                    }
+
+
+                    // 大文字のA-Fなら
+                    else if (readChara >= 'A')
+                    {
+                        // 大文字から数値を作る
+                        unitValue = readChara - 'A' + 10;
+                    }
+
+
+                    // 数字なら
+                    else
+                    {
+                        // 数字から数値を作る
+                        unitValue = readChara - '0';
+                    }
+
+
+                    // 単体数値から結果変数へ詰めて次の文字へ
+                    result = result * 16 + unitValue;
+                    readChara = ReadNextChara();
+                }
+
+
+                // 整数トークンとして初期化をする（トークン文字列は16進数の文字列を入れる）
+                token = new Token(TokenKind.Integer, tokenReadBuffer.ToString(), result, 0.0, startLineNumber, startColumnNumber);
+                return;
+            }
+
             // もし次に読み取られた文字がピリオドでは無いのなら
             if (readChara != '.')
             {
