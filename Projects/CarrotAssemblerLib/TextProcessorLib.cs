@@ -734,19 +734,62 @@ namespace TextProcessorLib
         /// <param name="token">形成したトークンを設定する参照</param>
         private void ReadIntegerOrNumberToken(int firstChara, out Token token)
         {
+            // バッファのクリアをして、行番号と列番号を覚える
+            tokenReadBuffer.Clear();
+            var startLineNumber = currentLineNumber;
+            var startColumnNumber = currentColumnNumber;
+
+
             // 数字が読み込まれる間はループ
             var readChara = firstChara;
             long result = 0L;
             while (char.IsDigit((char)readChara))
             {
+                // 文字列バッファには詰めていく
+                tokenReadBuffer.Append((char)readChara);
+
+
                 // 数字から数値へ変換して次の文字を読み取る
                 result = result * 10 + (readChara - '0');
                 readChara = ReadNextChara();
             }
 
 
-            // トークンを初期化する
-            token = new Token(TokenKind.Integer, result.ToString(), result, 0.0, currentLineNumber, currentColumnNumber);
+            // もし次に読み取られた文字がピリオドでは無いのなら
+            if (readChara != '.')
+            {
+                // そのまま整数トークンとして初期化をする
+                token = new Token(TokenKind.Integer, result.ToString(), result, 0.0, startLineNumber, startColumnNumber);
+                return;
+            }
+
+
+            // ピリオドが付いているということは実数の可能性のため次の文字を読み込む
+            tokenReadBuffer.Append((char)readChara);
+            readChara = ReadNextChara();
+
+
+            // もし数字では無いのなら
+            if (!char.IsDigit((char)readChara))
+            {
+                // どういうトークンなのかが不明になった
+                token = new Token(TokenKind.Unknown, tokenReadBuffer.ToString(), 0, 0.0, startLineNumber, startColumnNumber);
+                return;
+            }
+
+
+            // 数字が続くまでループ
+            while (char.IsDigit((char)readChara))
+            {
+                // 文字列バッファには詰めていく
+                tokenReadBuffer.Append((char)readChara);
+                readChara = ReadNextChara();
+            }
+
+
+            // 浮動小数点は素直にパースして実数トークンとして初期化をする（整数部は整数値を入れておく）
+            var number = double.Parse(tokenReadBuffer.ToString());
+            token = new Token(TokenKind.Number, number.ToString(), result, number, startLineNumber, startColumnNumber);
         }
 
 
