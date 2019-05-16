@@ -83,7 +83,13 @@ namespace CarrotAssemblerLib
         /// コロン
         /// :
         /// </summary>
-        Coron,
+        Colon,
+
+        /// <summary>
+        /// セミコロン
+        /// ;
+        /// </summary>
+        Semicolon,
 
         /// <summary>
         /// シャープ
@@ -234,7 +240,8 @@ namespace CarrotAssemblerLib
                 { "global", TokenKind.Global },
 
                 // 記号
-                { ":", TokenKind.Coron },
+                { ":", TokenKind.Colon },
+                { ";", TokenKind.Semicolon },
                 { "#", TokenKind.Sharp },
                 { ",", TokenKind.Comma },
             };
