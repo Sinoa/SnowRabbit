@@ -773,7 +773,7 @@ namespace TextProcessorLib
             if (!char.IsDigit((char)readChara))
             {
                 // どういうトークンなのかが不明になった
-                token = new Token(TokenKind.Unknown, tokenReadBuffer.ToString(), 0, 0.0, startLineNumber, startColumnNumber);
+                token = new Token(TokenKind.Unknown, $"実数はピリオドのみで終了することは出来ません '{tokenReadBuffer.ToString()}'", 0, 0.0, startLineNumber, startColumnNumber);
                 return;
             }
 
