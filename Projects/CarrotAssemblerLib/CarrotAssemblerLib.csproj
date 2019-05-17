@@ -12,4 +12,7 @@
     <None Remove="**/*.meta" />
     <None Remove="**/*.asmdef" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SnowRabbit\SnowRabbit.csproj" />
+  </ItemGroup>
 </Project>
