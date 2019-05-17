@@ -14,8 +14,11 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 /*
+
+::::: Syntax :::::
+
 asm-script-unit
-    : {'#' directive} {program-body}
+    : {'#' directive} '{' {program-body} '}'
 
 directive
     : 'const' const-string-define
@@ -29,13 +32,10 @@ global-var-define
 
 program-body
     : ':' label-name
-    | op-code argument-list
+    | op-code [argument-list] ';'
 
 label-name
     : <identifier>
-
-operation
-    : op-code argument-list
 
 op-code
     : 'halt'
@@ -47,22 +47,23 @@ op-code
     | 'cpf' | 'gpid' | 'gpfid'
 
 argument-list
-    : [argument] {',' argument}
+    : argument {',' argument}
 
 argument
-    : <identifier>
-    | <integer>
+    : <integer>
+    | label-name
     | register-name
+    | global-var-define
 
 register-name
     : 'rax' | 'rbx' | 'rcx' | 'rdx' | 'rsi' | 'rdi' | 'rbp' | 'rsp'
     | 'r8' | 'r9' | 'r10' | 'r11' | 'r12' | 'r13' | 'r14' | 'r15'
+
 */
 
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using TextProcessorLib;
 
 namespace CarrotAssemblerLib
 {
@@ -76,7 +77,6 @@ namespace CarrotAssemblerLib
         private CarrotAsmLexer lexer;
         private CarrotBinaryCoder builder;
         private ParserLogger logger;
-        private Token lastReadToken;
 
 
 
@@ -120,14 +120,47 @@ namespace CarrotAssemblerLib
         private void ParseAsmScriptUnit()
         {
             // 最初のトークンを取り出す
-            lexer.ReadNextToken(out lastReadToken);
+            lexer.ReadNextToken(out var token);
 
 
             // シャープトークンが来る間はループ
-            while (lastReadToken.Kind == TokenKind.Sharp)
+            while (token.Kind == CarrotAsmTokenKind.Sharp)
             {
-                // ディレクティブの構文を解析する
+                // ディレクティブの構文を解析して次のトークンを読む
                 ParseDirective();
+                lexer.ReadNextToken(out token);
+            }
+
+
+            // 読み込んだトークンがオープンブレスでは無いのなら
+            if (token.Kind != CarrotAsmTokenKind.OpenBrace)
+            {
+                // プログラムコード開始キーワードが必要である構文エラーを発生
+                OccurParseError(ParserLogCode.ErrorNeedProgramBeginKeyword, $"プログラムコードの開始キーワード '{{' が必要です");
+            }
+
+
+            // クローズブレスが来るまでループ
+            while (token.Kind != CarrotAsmTokenKind.CloseBrace)
+            {
+                // プログラム本体の構文解析をする
+                ParseProgramBody();
+
+
+                // トークンを読むが最後まで読み切っていたら
+                if (!lexer.ReadNextToken(out token))
+                {
+                    // プログラムの終了キーワードが必要である構文エラーを発生
+                    OccurParseError(ParserLogCode.ErrorNeedProgramEndKeyword, $"プログラムコードの終了キーワード '}}' が必要です");
+                }
+
+
+                // もしシャープトークンが来ていたら
+                if (token.Kind == CarrotAsmTokenKind.Sharp)
+                {
+                    // プログラムコード内でディレクティブを定義出来ない構文エラーを発生
+                    OccurParseError(ParserLogCode.ErrorUnsupportedDefineDirectiveInProgramCode, $"プログラムコード内でディレクティブの定義は出来ません");
+                }
             }
         }
 
@@ -138,11 +171,11 @@ namespace CarrotAssemblerLib
         private void ParseDirective()
         {
             // キーワードトークンを取り出す
-            lexer.ReadNextToken(out lastReadToken);
+            lexer.ReadNextToken(out var token);
 
 
             // 取り出したキーワードに応じて呼び出すべきディレクティブを切り替える
-            switch (lastReadToken.Kind)
+            switch (token.Kind)
             {
                 // const なら文字列定数定義の構文解析を呼ぶ
                 case CarrotAsmTokenKind.Const:
@@ -158,7 +191,7 @@ namespace CarrotAssemblerLib
 
                 // ここに来てしまったということは未定義の構文に出会ってしまった（不明なディレクティブキーワード）
                 default:
-                    OccurParseError(ParserLogCode.ErrorUnsupportedDirectiveKeyword, $"不明なディレクティブキーワード '{lastReadToken.Text}' です");
+                    OccurParseError(ParserLogCode.ErrorUnsupportedDirectiveKeyword, $"不明なディレクティブキーワード '{token.Text}' です");
                     return;
             }
         }
@@ -170,8 +203,8 @@ namespace CarrotAssemblerLib
         private void ParseConstStringDefine()
         {
             // トークンを取り出すが、数値トークンでなければ
-            lexer.ReadNextToken(out lastReadToken);
-            if (lastReadToken.Kind != TokenKind.Integer)
+            lexer.ReadNextToken(out var token);
+            if (token.Kind != CarrotAsmTokenKind.Integer)
             {
                 // 数値以外のインデックス指定は禁止である構文エラーを発生
                 OccurParseError(ParserLogCode.ErrorUnspecifiedConstStringIndex, $"文字列定数のインデックスが未指定です");
@@ -179,7 +212,7 @@ namespace CarrotAssemblerLib
 
 
             // 指定された数値を覚えて、32bit整数に収まるか確認
-            var index = lastReadToken.Integer;
+            var index = token.Integer;
             if (index > uint.MaxValue)
             {
                 // 収まらないなら収まらない構文エラーを発生
@@ -188,8 +221,8 @@ namespace CarrotAssemblerLib
 
 
             // トークンを取り出して、文字列トークンでなければ
-            lexer.ReadNextToken(out lastReadToken);
-            if (lastReadToken.Kind != TokenKind.String)
+            lexer.ReadNextToken(out token);
+            if (token.Kind != CarrotAsmTokenKind.String)
             {
                 // 文字列以外の定数は定義できない構文エラーを発生
                 OccurParseError(ParserLogCode.ErrorUnsupportedConstStringOtherType, $"文字列定数で定義が出来るのは文字列のみです");
@@ -197,7 +230,7 @@ namespace CarrotAssemblerLib
 
 
             // ビルダーに文字列定数を登録するが重複エラーが発生した場合は
-            if (!builder.RegisterConstString((uint)index, lastReadToken.Text))
+            if (!builder.RegisterConstString((uint)index, token.Text))
             {
                 // 文字列定数のインデックスが重複指定された構文エラーを発生
                 OccurParseError(ParserLogCode.ErrorDuplicatedConstStringIndex, $"指定された文字列定数のインデックスが既に定義済みです '{index}'");
@@ -211,8 +244,8 @@ namespace CarrotAssemblerLib
         private void ParseGlobalVarDefine()
         {
             // トークンを取り出すが、識別子でなければ
-            lexer.ReadNextToken(out lastReadToken);
-            if (lastReadToken.Kind != TokenKind.Identifier)
+            lexer.ReadNextToken(out var token);
+            if (token.Kind != CarrotAsmTokenKind.Identifier)
             {
                 // グローバル変数名が未指定である構文エラーを発生
                 OccurParseError(ParserLogCode.ErrorUnspecifiedGlobalVariableName, $"グローバル変数名が有効な識別子ではありません");
@@ -220,11 +253,81 @@ namespace CarrotAssemblerLib
 
 
             // ビルダーにグローバル変数名を登録するが重複エラーが発生した場合は
-            if (builder.RegisterGlobalVariable(lastReadToken.Text) == 0)
+            if (builder.RegisterGlobalVariable(token.Text) == 0)
             {
                 // 既に定義済みである構文エラーを発生
-                OccurParseError(ParserLogCode.ErrorDuplicatedGlobalVariableName, $"既に定義済みのグローバル変数名です '{lastReadToken.Text}'");
+                OccurParseError(ParserLogCode.ErrorDuplicatedGlobalVariableName, $"既に定義済みのグローバル変数名です '{token.Text}'");
             }
+        }
+
+
+        /// <summary>
+        /// プログラムコードの構文を解析します
+        /// </summary>
+        private void ParseProgramBody()
+        {
+            // トークンを取り出す
+            lexer.ReadNextToken(out var token);
+
+
+            // もしコロントークンなら
+            if (token.Kind == CarrotAsmTokenKind.Colon)
+            {
+                // ラベル名の構文を解析する
+                ParseLabelName();
+                return;
+            }
+
+
+            // もしOpCodeトークンなら
+            if (CarrotAsmTokenKind.IsOpCodeKind(token.Kind))
+            {
+                // ビルダーにOpCodeトークンを設定する
+                builder.SetOpCodeTokenKind(token.Kind);
+
+
+                // 次のトークンを取り出してセミコロンでは無いのなら
+                lexer.ReadNextToken(out token);
+                if (token.Kind != CarrotAsmTokenKind.Semicolon)
+                {
+                    // 引数リストの構文を解析する
+                    ParseArgumentList();
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// ラベル名の構文を解析します
+        /// </summary>
+        private void ParseLabelName()
+        {
+            // トークンを取り出す
+            lexer.ReadNextToken(out var token);
+
+
+            // もし識別子以外のトークンが来たら
+            if (token.Kind != CarrotAsmTokenKind.Identifier)
+            {
+                // ラベル名は有効な識別子でなければならない構文エラーを発生
+                OccurParseError(ParserLogCode.ErrorInvalidLabelName, $"ラベル名は有効な識別子でなければなりません '{token.Text}'");
+            }
+
+
+            // ビルダーにラベル名を登録するが重複エラーが発生した場合は
+            if (builder.RegisterLable(token.Text) == -1)
+            {
+                // 既にラベル名が定義済みである構文エラーを発生
+                OccurParseError(ParserLogCode.ErrorDuplicatedLabelName, $"既にラベル名が定義済みです '{token.Text}'");
+            }
+        }
+
+
+        /// <summary>
+        /// 引数リストの構文を解析します
+        /// </summary>
+        private void ParseArgumentList()
+        {
         }
         #endregion
 
@@ -238,6 +341,7 @@ namespace CarrotAssemblerLib
         private void OccurParseError(ParserLogCode code, string message)
         {
             // ロガーに構文エラーが発生したことを出力して例外を発生させる
+            ref var lastReadToken = ref lexer.LastReadToken;
             logger.WriteError(lastReadToken.LineNumber, lastReadToken.ColumnNumber, code, message);
             throw new CarrotParseException(message);
         }
@@ -259,6 +363,7 @@ namespace CarrotAssemblerLib
         private Dictionary<string, int> labelTable;
         private int nextGlobalVariableIndex;
         private int currentInstructionAddress;
+        private int opCodeTokenKind;
 
 
 
@@ -339,6 +444,17 @@ namespace CarrotAssemblerLib
             labelTable[name] = currentInstructionAddress;
             return currentInstructionAddress;
         }
+
+
+        /// <summary>
+        /// 指定されたOpCodeトークン種別を設定します
+        /// </summary>
+        /// <param name="tokenKind">設定するとトークン種別</param>
+        internal void SetOpCodeTokenKind(int tokenKind)
+        {
+            // ここではそのまま受け入れる
+            opCodeTokenKind = tokenKind;
+        }
     }
     #endregion
 
@@ -389,6 +505,31 @@ namespace CarrotAssemblerLib
         /// 既に定義済みのグローバル変数名です
         /// </summary>
         ErrorDuplicatedGlobalVariableName = 0x8000_0007,
+
+        /// <summary>
+        /// プログラム開始キーワードが必要です
+        /// </summary>
+        ErrorNeedProgramBeginKeyword = 0x8000_0008,
+
+        /// <summary>
+        /// プログラム終了キーワードが必要です
+        /// </summary>
+        ErrorNeedProgramEndKeyword = 0x8000_0009,
+
+        /// <summary>
+        /// プログラムコード内にディレクティブの定義は出来ません
+        /// </summary>
+        ErrorUnsupportedDefineDirectiveInProgramCode = 0x8000_0010,
+
+        /// <summary>
+        /// ラベル名が有効な識別子ではありません
+        /// </summary>
+        ErrorInvalidLabelName = 0x8000_0011,
+
+        /// <summary>
+        /// ラベル名が重複定義されています
+        /// </summary>
+        ErrorDuplicatedLabelName = 0x8000_0012,
     }
     #endregion
 

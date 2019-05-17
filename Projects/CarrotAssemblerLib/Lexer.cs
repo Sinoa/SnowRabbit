@@ -50,6 +50,11 @@ namespace CarrotAssemblerLib
         public const int OpCodeKeywordOffset = UserDefineOffset + 100;
 
         /// <summary>
+        /// OpCodeのトークンである開始値
+        /// </summary>
+        public const int OpCodeTokenBegin = OpHalt;
+
+        /// <summary>
         /// halt命令
         /// 'halt'
         /// </summary>
@@ -240,6 +245,11 @@ namespace CarrotAssemblerLib
         /// 'gpfid'
         /// </summary>
         public const int OpGpfid = OpCodeKeywordOffset + 310;
+
+        /// <summary>
+        /// OpCodeのトークンである終了値
+        /// </summary>
+        public const int OpCodeTokenEnd = OpGpfid;
         #endregion
 
         #region Register keyword
@@ -247,6 +257,11 @@ namespace CarrotAssemblerLib
         /// レジスタ名トークンキーワードのオフセット値
         /// </summary>
         public const int RegisterKeywordOffset = UserDefineOffset + 800;
+
+        /// <summary>
+        /// レジスタ名トークンキーワードの開始値
+        /// </summary>
+        public const int RegisterNameTokenBegin = RegisterRax;
 
         /// <summary>
         /// アキュムレータレジスタ
@@ -343,6 +358,38 @@ namespace CarrotAssemblerLib
         /// 'r15'
         /// </summary>
         public const int RegisterR15 = RegisterKeywordOffset + 15;
+
+        /// <summary>
+        /// レジスタ名トークンキーワードの終了値
+        /// </summary>
+        public const int RegisterNameTokenEnd = RegisterR15;
+        #endregion
+
+
+
+        #region Utility function
+        /// <summary>
+        /// 指定されたトークン種別がOpCodeトークンの種別かどうかを判断します
+        /// </summary>
+        /// <param name="kind">判断するトークン種別</param>
+        /// <returns>OpCodeトークン種別の場合は true を、異なる場合は false を返します</returns>
+        public static bool IsOpCodeKind(int kind)
+        {
+            // OpCodeトークンIDの範囲内ならOpCodeトークンであることを返す
+            return OpCodeTokenBegin <= kind && kind <= OpCodeTokenEnd;
+        }
+
+
+        /// <summary>
+        /// 指定されたトークン種別がRegisterNameトークンの種別かどうかを判断します
+        /// </summary>
+        /// <param name="kind">判断するトークン種別</param>
+        /// <returns>RegisterNameトークン種別の場合は true を、異なる場合は false を返します</returns>
+        public static bool IsRegisterNameKind(int kind)
+        {
+            // RegisterNameトークンIDの範囲内ならRegisterNameトークンであることを返す
+            return RegisterNameTokenBegin <= kind && kind <= RegisterNameTokenEnd;
+        }
         #endregion
     }
 
