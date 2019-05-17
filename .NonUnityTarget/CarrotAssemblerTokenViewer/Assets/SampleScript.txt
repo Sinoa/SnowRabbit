@@ -5,13 +5,13 @@
 #const 3 "記号入り文字列定数！！[]{}!!()"
 
 // グローバル変数定義
-#global val1
+#global val1 // 末尾コメントテスト
 #global val2
 
 // プログラムコード
-movl RAX, 2
-push RAX
-gpidl RAX, 0
-gpfidl RBX, RAX, 1
-cpfl RAX, RBX, 1
+mov rax, 2
+push rax
+gpid rax, 0
+gpfid rbx, rax, 1
+cpf rax, rbx, 1
 halt
