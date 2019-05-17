@@ -110,8 +110,9 @@ namespace CarrotAssemblerLib
         /// <exception cref="CarrotParseException">構文解析中に問題が発生しました</exception>
         public void Assemble()
         {
-            // 構文解析を開始する
+            // 構文解析を開始して実行コードの出力をする
             ParseAsmScriptUnit();
+            builder.OutputExecuteCode();
         }
 
 
@@ -568,6 +569,11 @@ namespace CarrotAssemblerLib
 
 
         internal void GenerateCode()
+        {
+        }
+
+
+        internal void OutputExecuteCode()
         {
         }
     }
