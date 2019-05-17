@@ -256,7 +256,9 @@ namespace CarrotAssemblerLib
         // メンバ変数定義
         private Dictionary<uint, string> constStringTable;
         private Dictionary<string, int> globalVariableTable;
+        private Dictionary<string, int> labelTable;
         private int nextGlobalVariableIndex;
+        private int currentInstructionAddress;
 
 
 
@@ -268,7 +270,9 @@ namespace CarrotAssemblerLib
             // メンバ変数の初期化をする
             constStringTable = new Dictionary<uint, string>();
             globalVariableTable = new Dictionary<string, int>();
+            labelTable = new Dictionary<string, int>();
             nextGlobalVariableIndex = -1;
+            currentInstructionAddress = 0;
         }
 
 
@@ -313,6 +317,27 @@ namespace CarrotAssemblerLib
             var registerdIndex = nextGlobalVariableIndex--;
             globalVariableTable[name] = registerdIndex;
             return registerdIndex;
+        }
+
+
+        /// <summary>
+        /// 指定されたラベル名を登録します
+        /// </summary>
+        /// <param name="name">登録するラベル名</param>
+        /// <returns>正常にラベル名が登録された場合はラベルが位置する命令アドレスを返しますが、既に登録済みの場合は -1 を返します</returns>
+        internal int RegisterLable(string name)
+        {
+            // 既に同じ名前のラベルが登録済みなら
+            if (labelTable.ContainsKey(name))
+            {
+                // 登録済みであることを返す
+                return -1;
+            }
+
+
+            // 現在の命令アドレスをテーブルに登録して返す
+            labelTable[name] = currentInstructionAddress;
+            return currentInstructionAddress;
         }
     }
     #endregion
