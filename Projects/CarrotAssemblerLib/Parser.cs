@@ -28,17 +28,28 @@ global-var-define
     : <identifier>
 
 operation
-    : op-code [argument-list]
+    : op-code argument-list
 
 op-code
-    : <identifier>
+    : 'halt'
+    | 'mov' | 'ldr' | 'str' | 'push' | 'pop'
+    | 'add' | 'sub' | 'mul' | 'div' | 'mod' | 'pow'
+    | 'or' | 'xor' | 'and' | 'not' | 'shl' | 'shr'
+    | 'teq' | 'tne' | 'tg' | 'tge' | 'tl' | 'tle'
+    | 'br' | 'bnz' | 'call' | 'callnz' | 'ret'
+    | 'cpf' | 'gpid' | 'gpfid'
 
 argument-list
-    : argument {',' argument}
+    : [argument] {',' argument}
 
 argument
     : <identifier>
     | <integer>
+    | register-name
+
+register-name
+    : 'rax' | 'rbx' | 'rcx' | 'rdx' | 'rsi' | 'rdi' | 'rbp' | 'rsp'
+    | 'r8' | 'r9' | 'r10' | 'r11' | 'r12' | 'r13' | 'r14' | 'r15'
 */
 
 using System;
