@@ -314,8 +314,15 @@ namespace CarrotAssemblerLib
                 }
 
 
-                // ビルダーに命令コードの生成をしてもらう
-                coder.GenerateCode();
+                // ビルダーに命令コードの生成をしてもらうが失敗したのなら
+                if (!coder.GenerateCode(out var message))
+                {
+                    // エラー理由をそのまま構文エラーとして発生
+                    OccurParseError(ParserLogCode.ErrorInvalidOperationCode, message);
+                }
+
+
+                // 解析終了
                 return;
             }
 
@@ -581,8 +588,86 @@ namespace CarrotAssemblerLib
         }
 
 
-        internal void GenerateCode()
+        /// <summary>
+        /// 現在のコンテキストでマシン語を生成します
+        /// </summary>
+        /// <param name="message">マシン語の生成に失敗した場合のメッセージを格納する文字列への参照</param>
+        /// <returns>マシン語の生成に成功した場合は true を、失敗した場合は false を返します</returns>
+        internal bool GenerateCode(out string message)
         {
+            // マシン語の用意
+            var instructionCode = default(InstructionCode);
+
+
+            // 命令のトークン種別毎に実装を変える
+            switch (opCodeTokenKind)
+            {
+                // halt命令
+                case CarrotAsmTokenKind.OpHalt:
+                    // 引数の数が1つ以上あるなら
+                    if (argumentList.Count >= 1)
+                    {
+                        // 引数の数が一致しないエラーメッセージを設定して失敗を返す
+                        message = "halt 命令にはオペランドは必要ありません";
+                        return false;
+                    }
+                    // 命令だけ設定する
+                    instructionCode.OpCode = OpCode.Halt;
+                    break;
+
+
+                // mov命令
+                case CarrotAsmTokenKind.OpMov:
+                    // 引数の数が2つではないなら
+                    if (argumentList.Count != 2)
+                    {
+                        // 引数の数が一致しないエラーメッセージを設定して失敗を返す
+                        message = "mov 命令は 2つのオペランドが必要です";
+                    }
+                    // 命令を設定
+                    instructionCode.OpCode = OpCode.Mov;
+                    break;
+
+
+                case CarrotAsmTokenKind.OpLdr:
+                case CarrotAsmTokenKind.OpStr:
+                case CarrotAsmTokenKind.OpPush:
+                case CarrotAsmTokenKind.OpPop:
+                case CarrotAsmTokenKind.OpAdd:
+                case CarrotAsmTokenKind.OpSub:
+                case CarrotAsmTokenKind.OpMul:
+                case CarrotAsmTokenKind.OpDiv:
+                case CarrotAsmTokenKind.OpMod:
+                case CarrotAsmTokenKind.OpPow:
+                case CarrotAsmTokenKind.OpOr:
+                case CarrotAsmTokenKind.OpXor:
+                case CarrotAsmTokenKind.OpAnd:
+                case CarrotAsmTokenKind.OpNot:
+                case CarrotAsmTokenKind.OpShl:
+                case CarrotAsmTokenKind.OpShr:
+                case CarrotAsmTokenKind.OpTeq:
+                case CarrotAsmTokenKind.OpTne:
+                case CarrotAsmTokenKind.OpTg:
+                case CarrotAsmTokenKind.OpTge:
+                case CarrotAsmTokenKind.OpTl:
+                case CarrotAsmTokenKind.OpTle:
+                case CarrotAsmTokenKind.OpBr:
+                case CarrotAsmTokenKind.OpBnz:
+                case CarrotAsmTokenKind.OpCall:
+                case CarrotAsmTokenKind.OpCallnz:
+                case CarrotAsmTokenKind.OpRet:
+                case CarrotAsmTokenKind.OpCpf:
+                case CarrotAsmTokenKind.OpGpid:
+                case CarrotAsmTokenKind.OpGpfid:
+                    break;
+            }
+
+
+            // 命令コードを追加して引数リストをクリアする
+            instructionList.Add(instructionCode);
+            argumentList.Clear();
+            message = string.Empty;
+            return true;
         }
 
 
@@ -679,6 +764,11 @@ namespace CarrotAssemblerLib
         /// 無効なプログラムコードです
         /// </summary>
         ErrorInvalidProgramCode = 0x8000_0015,
+
+        /// <summary>
+        /// 無効なオペレーションコードです
+        /// </summary>
+        ErrorInvalidOperationCode = 0x8000_0016,
     }
     #endregion
 
