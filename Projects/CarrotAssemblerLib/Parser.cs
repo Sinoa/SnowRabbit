@@ -73,8 +73,8 @@ namespace CarrotAssemblerLib
     public class CarrotAssemblyParser
     {
         // メンバ変数定義
-        private TokenReader lexer;
-        private BinaryCodeBuilder builder;
+        private CarrotAsmLexer lexer;
+        private CarrotBinaryCoder builder;
         private ParserLogger logger;
         private Token lastReadToken;
 
@@ -89,7 +89,7 @@ namespace CarrotAssemblerLib
         /// <exception cref="ArgumentNullException">lexer が null です</exception>
         /// <exception cref="ArgumentNullException">builder が null です</exception>
         /// <exception cref="ArgumentNullException">logger が null です</exception>
-        public CarrotAssemblyParser(TokenReader lexer, BinaryCodeBuilder builder, ParserLogger logger)
+        public CarrotAssemblyParser(CarrotAsmLexer lexer, CarrotBinaryCoder builder, ParserLogger logger)
         {
             // 必要なサブシステムの参照を覚える
             this.lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
@@ -249,9 +249,9 @@ namespace CarrotAssemblerLib
 
     #region Builder
     /// <summary>
-    /// SnowRabbit 仮想マシン用の実行コードを構築するクラスです
+    /// SnowRabbit 仮想マシン用の実行コードを生成するクラスです
     /// </summary>
-    public class BinaryCodeBuilder
+    public class CarrotBinaryCoder
     {
         // メンバ変数定義
         private Dictionary<uint, string> constStringTable;
@@ -261,9 +261,9 @@ namespace CarrotAssemblerLib
 
 
         /// <summary>
-        /// BinaryCodeBuilder クラスのインスタンスを初期化します
+        /// CarrotBinaryCoder クラスのインスタンスを初期化します
         /// </summary>
-        public BinaryCodeBuilder()
+        public CarrotBinaryCoder()
         {
             // メンバ変数の初期化をする
             constStringTable = new Dictionary<uint, string>();
