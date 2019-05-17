@@ -77,7 +77,7 @@ namespace CarrotAssemblerLib
     {
         // メンバ変数定義
         private CarrotAsmLexer lexer;
-        private CarrotBinaryCoder builder;
+        private CarrotBinaryCoder coder;
         private ParserLogger logger;
 
 
@@ -86,16 +86,16 @@ namespace CarrotAssemblerLib
         /// CarrotAssemblyParser クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="lexer">トークンを取り出すためのレキサ</param>
-        /// <param name="builder">実行コードを構築するためのビルダ</param>
+        /// <param name="coder">実行コードを構築するためのビルダ</param>
         /// <param name="logger">構文解析中のログを出力するロガー</param>
         /// <exception cref="ArgumentNullException">lexer が null です</exception>
-        /// <exception cref="ArgumentNullException">builder が null です</exception>
+        /// <exception cref="ArgumentNullException">coder が null です</exception>
         /// <exception cref="ArgumentNullException">logger が null です</exception>
-        public CarrotAssemblyParser(CarrotAsmLexer lexer, CarrotBinaryCoder builder, ParserLogger logger)
+        public CarrotAssemblyParser(CarrotAsmLexer lexer, CarrotBinaryCoder coder, ParserLogger logger)
         {
             // 必要なサブシステムの参照を覚える
             this.lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
-            this.builder = builder ?? throw new ArgumentNullException(nameof(builder));
+            this.coder = coder ?? throw new ArgumentNullException(nameof(coder));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
 
@@ -112,7 +112,7 @@ namespace CarrotAssemblerLib
         {
             // 構文解析を開始して実行コードの出力をする
             ParseAsmScriptUnit();
-            builder.OutputExecuteCode();
+            coder.OutputExecuteCode();
         }
 
 
@@ -233,7 +233,7 @@ namespace CarrotAssemblerLib
 
 
             // ビルダーに文字列定数を登録するが重複エラーが発生した場合は
-            if (!builder.RegisterConstString((uint)index, token.Text))
+            if (!coder.RegisterConstString((uint)index, token.Text))
             {
                 // 文字列定数のインデックスが重複指定された構文エラーを発生
                 OccurParseError(ParserLogCode.ErrorDuplicatedConstStringIndex, $"指定された文字列定数のインデックスが既に定義済みです '{index}'");
@@ -256,7 +256,7 @@ namespace CarrotAssemblerLib
 
 
             // ビルダーにグローバル変数名を登録するが重複エラーが発生した場合は
-            if (builder.RegisterGlobalVariable(token.Text) == 0)
+            if (coder.RegisterGlobalVariable(token.Text) == 0)
             {
                 // 既に定義済みである構文エラーを発生
                 OccurParseError(ParserLogCode.ErrorDuplicatedGlobalVariableName, $"既に定義済みのグローバル変数名です '{token.Text}'");
@@ -286,7 +286,7 @@ namespace CarrotAssemblerLib
             if (CarrotAsmTokenKind.IsOpCodeKind(token.Kind))
             {
                 // ビルダーにOpCodeトークンを設定する
-                builder.SetOpCodeTokenKind(token.Kind);
+                coder.SetOpCodeTokenKind(token.Kind);
 
 
                 // 次のトークンを取り出してセミコロンでは無いのなら
@@ -307,7 +307,7 @@ namespace CarrotAssemblerLib
 
 
                 // ビルダーに命令コードの生成をしてもらう
-                builder.GenerateCode();
+                coder.GenerateCode();
             }
         }
 
@@ -330,7 +330,7 @@ namespace CarrotAssemblerLib
 
 
             // ビルダーにラベル名を登録するが重複エラーが発生した場合は
-            if (builder.RegisterLable(token.Text) == -1)
+            if (coder.RegisterLable(token.Text) == -1)
             {
                 // 既にラベル名が定義済みである構文エラーを発生
                 OccurParseError(ParserLogCode.ErrorDuplicatedLabelName, $"既にラベル名が定義済みです '{token.Text}'");
@@ -354,15 +354,15 @@ namespace CarrotAssemblerLib
                 if (token.Kind == CarrotAsmTokenKind.Integer)
                 {
                     // ビルダー引数の追加をする
-                    builder.AddArgumentToken(ref token);
+                    coder.AddArgumentToken(ref token);
                 }
 
 
                 // もし識別子かつラベル名として定義済み
-                else if (token.Kind == CarrotAsmTokenKind.Identifier && builder.ContainLable(token.Text))
+                else if (token.Kind == CarrotAsmTokenKind.Identifier && coder.ContainLable(token.Text))
                 {
                     // ビルダー引数の追加をする
-                    builder.AddArgumentToken(ref token);
+                    coder.AddArgumentToken(ref token);
                 }
 
 
@@ -370,15 +370,15 @@ namespace CarrotAssemblerLib
                 else if (CarrotAsmTokenKind.IsRegisterNameKind(token.Kind))
                 {
                     // ビルダー引数の追加をする
-                    builder.AddArgumentToken(ref token);
+                    coder.AddArgumentToken(ref token);
                 }
 
 
                 // もしグローバル変数名としてなら
-                else if (token.Kind == CarrotAsmTokenKind.Identifier && builder.ContainGlobalVariable(token.Text))
+                else if (token.Kind == CarrotAsmTokenKind.Identifier && coder.ContainGlobalVariable(token.Text))
                 {
                     // ビルダー引数の追加をする
-                    builder.AddArgumentToken(ref token);
+                    coder.AddArgumentToken(ref token);
                 }
 
 
@@ -752,7 +752,7 @@ namespace CarrotAssemblerLib
             // エラー色に設定してログ出力
             Console.BackgroundColor = ConsoleColor.Gray;
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"({lineNumber}, {columnNumber}) warning C{(ulong)code}: {message}");
+            Console.WriteLine($"({lineNumber}, {columnNumber}) error C{(ulong)code}: {message}");
         }
     }
     #endregion
