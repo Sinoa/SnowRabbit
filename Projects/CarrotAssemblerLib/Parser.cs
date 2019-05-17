@@ -15,7 +15,7 @@
 
 /*
 asm-script-unit
-    : {'#' directive} {operation}
+    : {'#' directive} {program-body}
 
 directive
     : 'const' const-string-define
@@ -25,6 +25,13 @@ const-string-define
     : <integer> <string>
 
 global-var-define
+    : <identifier>
+
+program-body
+    : ':' label-name
+    | op-code argument-list
+
+label-name
     : <identifier>
 
 operation
