@@ -733,10 +733,11 @@ namespace CarrotAssemblerLib
         /// <param name="message">構文解析が出力するメッセージ</param>
         public override void WriteWarning(int lineNumber, int columnNumber, ParserLogCode code, string message)
         {
-            // 警告色に設定してログ出力
+            // 警告色に設定してログ出力後カラーをリセット
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine($"({lineNumber}, {columnNumber}) warning C{(ulong)code}: {message}");
+            Console.ResetColor();
         }
 
 
@@ -749,10 +750,11 @@ namespace CarrotAssemblerLib
         /// <param name="message">構文解析が出力するメッセージ</param>
         public override void WriteError(int lineNumber, int columnNumber, ParserLogCode code, string message)
         {
-            // エラー色に設定してログ出力
+            // エラー色に設定してログ出力後カラーをリセット
             Console.BackgroundColor = ConsoleColor.Gray;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"({lineNumber}, {columnNumber}) error C{(ulong)code}: {message}");
+            Console.ResetColor();
         }
     }
     #endregion
