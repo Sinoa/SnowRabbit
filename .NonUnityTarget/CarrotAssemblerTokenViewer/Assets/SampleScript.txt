@@ -9,9 +9,12 @@
 #global val2
 
 // プログラムコード
-mov rax, 2
-push rax
-gpid rax, 0
-gpfid rbx, rax, 1
-cpf rax, rbx, 1
-halt
+{
+	// とりあえず雑に書く
+	mov rax, 2;
+	push rax;
+	gpid rax, 0;	// ここにもコメントを置ける
+	gpfid rbx, rax, 1;
+	cpf rax, rbx, 1;
+	halt;
+}
