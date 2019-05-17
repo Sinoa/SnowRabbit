@@ -143,13 +143,9 @@ namespace CarrotAssemblerLib
             }
 
 
-            // クローズブレスが来るまでループ
-            while (token.Kind != CarrotAsmTokenKind.CloseBrace)
+            // ひたすらループ
+            while (true)
             {
-                // プログラム本体の構文解析をする
-                ParseProgramBody();
-
-
                 // トークンを読むが最後まで読み切っていたら
                 if (!lexer.ReadNextToken(out token))
                 {
@@ -164,6 +160,18 @@ namespace CarrotAssemblerLib
                     // プログラムコード内でディレクティブを定義出来ない構文エラーを発生
                     OccurParseError(ParserLogCode.ErrorUnsupportedDefineDirectiveInProgramCode, $"プログラムコード内でディレクティブの定義は出来ません");
                 }
+
+
+                // クローズブレスが来ているのなら
+                if (token.Kind == CarrotAsmTokenKind.CloseBrace)
+                {
+                    // 抜ける
+                    break;
+                }
+
+
+                // プログラム本体の構文解析をする
+                ParseProgramBody();
             }
         }
 
@@ -269,8 +277,8 @@ namespace CarrotAssemblerLib
         /// </summary>
         private void ParseProgramBody()
         {
-            // トークンを取り出す
-            lexer.ReadNextToken(out var token);
+            // 最後に読み出したトークンを取り出す
+            var token = lexer.LastReadToken;
 
 
             // もしコロントークンなら
@@ -308,6 +316,7 @@ namespace CarrotAssemblerLib
 
                 // ビルダーに命令コードの生成をしてもらう
                 coder.GenerateCode();
+                return;
             }
 
 
