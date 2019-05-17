@@ -309,6 +309,10 @@ namespace CarrotAssemblerLib
                 // ビルダーに命令コードの生成をしてもらう
                 coder.GenerateCode();
             }
+
+
+            // コロンの開始でもなくOpCodeトークンでも無いなら、不明なプログラムコードである構文エラーを発生
+            OccurParseError(ParserLogCode.ErrorInvalidProgramCode, $"プログラムコードが不正です '{token.Text}'");
         }
 
 
@@ -661,6 +665,11 @@ namespace CarrotAssemblerLib
         /// 無効な引数識別子です
         /// </summary>
         ErrorInvalidArgumentIdentifier = 0x8000_0014,
+
+        /// <summary>
+        /// 無効なプログラムコードです
+        /// </summary>
+        ErrorInvalidProgramCode = 0x8000_0015,
     }
     #endregion
 
