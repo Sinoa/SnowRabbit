@@ -434,6 +434,12 @@ namespace TextProcessorLib
 
 
         /// <summary>
+        /// トークンを読み切った場合は true を、まだ続く可能性がある場合は false を返します
+        /// </summary>
+        public bool EndOfToken => lastReadToken.Kind == TokenKind.EndOfToken;
+
+
+        /// <summary>
         /// 最後に読み込んだトークンの参照を取得します
         /// </summary>
         public ref Token LastReadToken
