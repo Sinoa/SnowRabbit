@@ -64,6 +64,8 @@ register-name
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using SnowRabbit.VirtualMachine.Runtime;
+using TextProcessorLib;
 
 namespace CarrotAssemblerLib
 {
@@ -292,7 +294,19 @@ namespace CarrotAssemblerLib
                 {
                     // 引数リストの構文を解析する
                     ParseArgumentList();
+
+
+                    // 最後に読み取られたトークンがセミコロンでは無いのなら
+                    if (lexer.LastReadToken.Kind != CarrotAsmTokenKind.Semicolon)
+                    {
+                        // 命令コードは最後にセミコロンが必要である構文エラーを発生
+                        OccurParseError(ParserLogCode.ErrorOperationNotEndSemicolon, $"オペレーションコードは必ずセミコロンで終了している必要があります '{lexer.LastReadToken.Text}'");
+                    }
                 }
+
+
+                // ビルダーに命令コードの生成をしてもらう
+                builder.GenerateCode();
             }
         }
 
@@ -328,6 +342,65 @@ namespace CarrotAssemblerLib
         /// </summary>
         private void ParseArgumentList()
         {
+            // 最後に読み取ったトークンを知る
+            var token = lexer.LastReadToken;
+
+
+            // ひたすらループ
+            while (true)
+            {
+                // もし整数トークンなら
+                if (token.Kind == CarrotAsmTokenKind.Integer)
+                {
+                    // ビルダー引数の追加をする
+                    builder.AddArgumentToken(ref token);
+                }
+
+
+                // もし識別子かつラベル名として定義済み
+                else if (token.Kind == CarrotAsmTokenKind.Identifier && builder.ContainLable(token.Text))
+                {
+                    // ビルダー引数の追加をする
+                    builder.AddArgumentToken(ref token);
+                }
+
+
+                // もしレジスタ名としてなら
+                else if (CarrotAsmTokenKind.IsRegisterNameKind(token.Kind))
+                {
+                    // ビルダー引数の追加をする
+                    builder.AddArgumentToken(ref token);
+                }
+
+
+                // もしグローバル変数名としてなら
+                else if (token.Kind == CarrotAsmTokenKind.Identifier && builder.ContainGlobalVariable(token.Text))
+                {
+                    // ビルダー引数の追加をする
+                    builder.AddArgumentToken(ref token);
+                }
+
+
+                // どれでもないのなら
+                else
+                {
+                    // 引数として使えない構文エラーを発生
+                    OccurParseError(ParserLogCode.ErrorInvalidArgumentIdentifier, $"引数として利用できない識別子です '{token.Text}'");
+                }
+
+
+                // 次のトークンを取得してカンマでは無いのなら
+                lexer.ReadNextToken(out token);
+                if (token.Kind != CarrotAsmTokenKind.Comma)
+                {
+                    // ループから脱出する
+                    break;
+                }
+
+
+                // 次のトークンを読み込む
+                lexer.ReadNextToken(out token);
+            }
         }
         #endregion
 
@@ -361,8 +434,9 @@ namespace CarrotAssemblerLib
         private Dictionary<uint, string> constStringTable;
         private Dictionary<string, int> globalVariableTable;
         private Dictionary<string, int> labelTable;
+        private List<InstructionCode> instructionList;
+        private List<Token> argumentList;
         private int nextGlobalVariableIndex;
-        private int currentInstructionAddress;
         private int opCodeTokenKind;
 
 
@@ -376,8 +450,9 @@ namespace CarrotAssemblerLib
             constStringTable = new Dictionary<uint, string>();
             globalVariableTable = new Dictionary<string, int>();
             labelTable = new Dictionary<string, int>();
+            instructionList = new List<InstructionCode>();
+            argumentList = new List<Token>();
             nextGlobalVariableIndex = -1;
-            currentInstructionAddress = 0;
         }
 
 
@@ -410,8 +485,8 @@ namespace CarrotAssemblerLib
         /// <returns>正常に変数名が登録された場合は登録した変数インデックスを、既に登録済みの場合は 0 を返します</returns>
         internal int RegisterGlobalVariable(string name)
         {
-            // 既に同じ名前の変数が登録済みなら
-            if (globalVariableTable.ContainsKey(name))
+            // 既に同じ名前の変数またはラベルが登録済みなら
+            if (globalVariableTable.ContainsKey(name) || labelTable.ContainsKey(name))
             {
                 // 登録済みであることを返す
                 return 0;
@@ -432,8 +507,8 @@ namespace CarrotAssemblerLib
         /// <returns>正常にラベル名が登録された場合はラベルが位置する命令アドレスを返しますが、既に登録済みの場合は -1 を返します</returns>
         internal int RegisterLable(string name)
         {
-            // 既に同じ名前のラベルが登録済みなら
-            if (labelTable.ContainsKey(name))
+            // 既に同じ名前の変数またはラベルが登録済みなら
+            if (globalVariableTable.ContainsKey(name) || labelTable.ContainsKey(name))
             {
                 // 登録済みであることを返す
                 return -1;
@@ -441,8 +516,32 @@ namespace CarrotAssemblerLib
 
 
             // 現在の命令アドレスをテーブルに登録して返す
-            labelTable[name] = currentInstructionAddress;
-            return currentInstructionAddress;
+            labelTable[name] = instructionList.Count;
+            return instructionList.Count;
+        }
+
+
+        /// <summary>
+        /// 指定された名前が変数名として存在するかどうかを調べます
+        /// </summary>
+        /// <param name="name">確認する名前</param>
+        /// <returns>存在する場合は true を、存在しない場合は false を返します</returns>
+        internal bool ContainGlobalVariable(string name)
+        {
+            // グローバル変数テーブルに含まれているか確認した結果を返す
+            return globalVariableTable.ContainsKey(name);
+        }
+
+
+        /// <summary>
+        /// 指定された名前がラベル名として存在するかどうかを確認します
+        /// </summary>
+        /// <param name="name">確認する名前</param>
+        /// <returns>存在する場合は true を、存在しない場合は false を返します</returns>
+        internal bool ContainLable(string name)
+        {
+            // ラベルテーブルに含まれているか確認した結果を返す
+            return labelTable.ContainsKey(name);
         }
 
 
@@ -454,6 +553,22 @@ namespace CarrotAssemblerLib
         {
             // ここではそのまま受け入れる
             opCodeTokenKind = tokenKind;
+        }
+
+
+        /// <summary>
+        /// 指定されたトークンを引数として追加します
+        /// </summary>
+        /// <param name="token">追加するトークン</param>
+        internal void AddArgumentToken(ref Token token)
+        {
+            // 引数として使うトークンを追加する
+            argumentList.Add(token);
+        }
+
+
+        internal void GenerateCode()
+        {
         }
     }
     #endregion
@@ -530,6 +645,16 @@ namespace CarrotAssemblerLib
         /// ラベル名が重複定義されています
         /// </summary>
         ErrorDuplicatedLabelName = 0x8000_0012,
+
+        /// <summary>
+        /// 命令コードは最後にセミコロンで終了している必要があります
+        /// </summary>
+        ErrorOperationNotEndSemicolon = 0x8000_0013,
+
+        /// <summary>
+        /// 無効な引数識別子です
+        /// </summary>
+        ErrorInvalidArgumentIdentifier = 0x8000_0014,
     }
     #endregion
 
