@@ -456,7 +456,7 @@ namespace CarrotAssemblerLib
         protected bool TestOperandPattern(List<Token> operand, out string message, int arg1, int arg2, int arg3)
         {
             // もし引数が3で無いなら
-            if (operand.Count != 2)
+            if (operand.Count != 3)
             {
                 // 引数は3つでなければならないエラーメッセージを設定して失敗を返す
                 message = $"'{OpCodeName}'命令のオペランドは3つです";
