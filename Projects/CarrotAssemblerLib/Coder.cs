@@ -310,7 +310,7 @@ namespace CarrotAssemblerLib
         /// </summary>
         /// <param name="operand">確認するオペランドのリスト</param>
         /// <param name="message">パターンに一致しない場合のエラーメッセージを設定する文字列への参照</param>
-        /// <param name="arg1">第一オペランドの確認するべきトークン種別</param>
+        /// <param name="arg1">第一オペランドの確認するべきトークン種別。-1の場合は不特定のレジスタとして表現します</param>
         /// <returns>オペランドの引数パターンが一致した場合は true を、一致しない場合は false を返します</returns>
         protected bool TestOperandPattern(List<Token> operand, out string message, int arg1)
         {
@@ -324,7 +324,7 @@ namespace CarrotAssemblerLib
 
 
             // 引数の型チェックに引っかかる場合は
-            if (operand[0].Kind != arg1)
+            if (!TestOperandType(arg1, operand[0].Kind))
             {
                 // 引数の型が一致しないエラーメッセージを設定して失敗を返す
                 message = $"'{OpCodeName}'命令のいくつかのオペランドに指定出来ない型が含まれています";
@@ -343,8 +343,8 @@ namespace CarrotAssemblerLib
         /// </summary>
         /// <param name="operand">確認するオペランドのリスト</param>
         /// <param name="message">パターンに一致しない場合のエラーメッセージを設定する文字列への参照</param>
-        /// <param name="arg1">第一オペランドの確認するべきトークン種別</param>
-        /// <param name="arg2">第二オペランドの確認するべきトークン種別</param>
+        /// <param name="arg1">第一オペランドの確認するべきトークン種別。-1の場合は不特定のレジスタとして表現します</param>
+        /// <param name="arg2">第二オペランドの確認するべきトークン種別。-1の場合は不特定のレジスタとして表現します</param>
         /// <returns>オペランドの引数パターンが一致した場合は true を、一致しない場合は false を返します</returns>
         protected bool TestOperandPattern(List<Token> operand, out string message, int arg1, int arg2)
         {
@@ -358,7 +358,7 @@ namespace CarrotAssemblerLib
 
 
             // 引数の型チェックに引っかかる場合は
-            if (operand[0].Kind != arg1 || operand[1].Kind != arg2)
+            if (!TestOperandType(arg1, operand[0].Kind) || !TestOperandType(arg2, operand[1].Kind))
             {
                 // 引数の型が一致しないエラーメッセージを設定して失敗を返す
                 message = $"'{OpCodeName}'命令のいくつかのオペランドに指定出来ない型が含まれています";
@@ -377,9 +377,9 @@ namespace CarrotAssemblerLib
         /// </summary>
         /// <param name="operand">確認するオペランドのリスト</param>
         /// <param name="message">パターンに一致しない場合のエラーメッセージを設定する文字列への参照</param>
-        /// <param name="arg1">第一オペランドの確認するべきトークン種別</param>
-        /// <param name="arg2">第二オペランドの確認するべきトークン種別</param>
-        /// <param name="arg3">第三オペランドの確認するべきトークン種別</param>
+        /// <param name="arg1">第一オペランドの確認するべきトークン種別。-1の場合は不特定のレジスタとして表現します</param>
+        /// <param name="arg2">第二オペランドの確認するべきトークン種別。-1の場合は不特定のレジスタとして表現します</param>
+        /// <param name="arg3">第三オペランドの確認するべきトークン種別。-1の場合は不特定のレジスタとして表現します</param>
         /// <returns>オペランドの引数パターンが一致した場合は true を、一致しない場合は false を返します</returns>
         protected bool TestOperandPattern(List<Token> operand, out string message, int arg1, int arg2, int arg3)
         {
@@ -393,7 +393,7 @@ namespace CarrotAssemblerLib
 
 
             // 引数の型チェックに引っかかる場合は
-            if (operand[0].Kind != arg1 || operand[1].Kind != arg2 || operand[2].Kind != arg3)
+            if (!TestOperandType(arg1, operand[0].Kind) || !TestOperandType(arg2, operand[1].Kind) || !TestOperandType(arg3, operand[2].Kind))
             {
                 // 引数の型が一致しないエラーメッセージを設定して失敗を返す
                 message = $"'{OpCodeName}'命令のいくつかのオペランドに指定出来ない型が含まれています";
@@ -404,6 +404,39 @@ namespace CarrotAssemblerLib
             // 型チェックも引っかからない場合は成功を返す
             message = string.Empty;
             return true;
+        }
+
+
+        /// <summary>
+        /// 指定されたオペランドタイプが想定のタイプかどうかを判定します。
+        /// </summary>
+        /// <param name="expectedType">想定している型。-1の場合は不特定のレジスタとして扱われます</param>
+        /// <param name="actualType">実際の型</param>
+        /// <returns>想定通りの型の場合は true を、異なる場合は false を返します</returns>
+        private bool TestOperandType(int expectedType, int actualType)
+        {
+            // もし-1が想定の型なら不特定のレジスタであることを想定する
+            if (expectedType == -1)
+            {
+                // レジスタ名の指示かどうかを返す
+                return CarrotAsmTokenKind.IsRegisterNameKind(actualType);
+            }
+
+
+            // 特定の指示ならそのまま等価式の結果を返す
+            return expectedType == actualType;
+        }
+
+
+        /// <summary>
+        /// 指定されたトークン種別からレジスタ番号へ変換します
+        /// </summary>
+        /// <param name="tokenKind">変換元トークン種別</param>
+        /// <returns>変換されたレジスタ番号を返します</returns>
+        protected byte TokenKindToRegisterNumber(int tokenKind)
+        {
+            // トークン種別にレジスタトークンオフセット値を引くだけで完了
+            return (byte)(tokenKind - CarrotAsmTokenKind.RegisterKeywordOffset);
         }
     }
     #endregion
@@ -448,6 +481,65 @@ namespace CarrotAssemblerLib
                 // 命令を設定して成功を返す
                 instructionCode.OpCode = OpCode.Halt;
                 return true;
+            }
+
+
+            // ここまで来てしまったら失敗を返す
+            return false;
+        }
+    }
+
+
+
+    /// <summary>
+    /// mov命令符号器クラスです
+    /// </summary>
+    public class OpCoderMov : OpCoderBase
+    {
+        /// <summary>
+        /// 担当するOpCodeトークン種別
+        /// </summary>
+        public override int OpCodeTokenKind => CarrotAsmTokenKind.OpMov;
+
+
+        /// <summary>
+        /// 担当する符号器名
+        /// </summary>
+        public override string OpCodeName => "mov";
+
+
+
+        /// <summary>
+        /// 命令のエンコードを行います
+        /// </summary>
+        /// <param name="operand">エンコードする命令に渡すオペランド</param>
+        /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+        /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+        /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+        public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+        {
+            // 命令コードの初期化
+            instructionCode = default;
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, -1, -1))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Mov;
+                instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                instructionCode.Rb = TokenKindToRegisterNumber(operand[1].Kind);
+                return true;
+            }
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Integer))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Movl;
+                instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                instructionCode.Immediate.Int = (int)operand[0].Integer;
             }
 
 
