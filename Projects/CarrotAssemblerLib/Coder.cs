@@ -250,4 +250,210 @@ namespace CarrotAssemblerLib
         }
     }
     #endregion
+
+
+
+    #region OpCoder base class
+    /// <summary>
+    /// 特定のオペコードの符号化を行う抽象クラスです
+    /// </summary>
+    public abstract class OpCoderBase
+    {
+        /// <summary>
+        /// この符号器が担当するOpCodeトークン種別
+        /// </summary>
+        public abstract int OpCodeTokenKind { get; }
+
+
+        /// <summary>
+        /// この符号器が担当する命令の名前
+        /// </summary>
+        public abstract string OpCodeName { get; }
+
+
+
+        /// <summary>
+        /// 命令のエンコードを行います
+        /// </summary>
+        /// <param name="operand">エンコードする命令に渡すオペランド</param>
+        /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+        /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+        /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+        public abstract bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message);
+
+
+        /// <summary>
+        /// オペランドが0個のオペランドパターンをテストします
+        /// </summary>
+        /// <param name="operand">確認するオペランドのリスト</param>
+        /// <param name="message">パターンに一致しない場合のエラーメッセージを設定する文字列への参照</param>
+        /// <returns>オペランドの引数パターンが一致した場合は true を、一致しない場合は false を返します</returns>
+        protected bool TestOperandPattern(List<Token> operand, out string message)
+        {
+            // もし引数が0で無いなら
+            if (operand.Count != 0)
+            {
+                // 引数は不要であるエラーメッセージを設定して失敗を返す
+                message = $"'{OpCodeName}'命令にはオペランドは不要です";
+                return false;
+            }
+
+
+            // 引数がないなら空文字列を設定して成功を返す
+            message = string.Empty;
+            return true;
+        }
+
+
+        /// <summary>
+        /// オペランドが1個のオペランドパターンをテストします
+        /// </summary>
+        /// <param name="operand">確認するオペランドのリスト</param>
+        /// <param name="message">パターンに一致しない場合のエラーメッセージを設定する文字列への参照</param>
+        /// <param name="arg1">第一オペランドの確認するべきトークン種別</param>
+        /// <returns>オペランドの引数パターンが一致した場合は true を、一致しない場合は false を返します</returns>
+        protected bool TestOperandPattern(List<Token> operand, out string message, int arg1)
+        {
+            // もし引数が1で無いなら
+            if (operand.Count != 1)
+            {
+                // 引数は1つでなければならないエラーメッセージを設定して失敗を返す
+                message = $"'{OpCodeName}'命令のオペランドは1つです";
+                return false;
+            }
+
+
+            // 引数の型チェックに引っかかる場合は
+            if (operand[0].Kind != arg1)
+            {
+                // 引数の型が一致しないエラーメッセージを設定して失敗を返す
+                message = $"'{OpCodeName}'命令のいくつかのオペランドに指定出来ない型が含まれています";
+                return false;
+            }
+
+
+            // 型チェックも引っかからない場合は成功を返す
+            message = string.Empty;
+            return true;
+        }
+
+
+        /// <summary>
+        /// オペランドが2個のオペランドパターンをテストします
+        /// </summary>
+        /// <param name="operand">確認するオペランドのリスト</param>
+        /// <param name="message">パターンに一致しない場合のエラーメッセージを設定する文字列への参照</param>
+        /// <param name="arg1">第一オペランドの確認するべきトークン種別</param>
+        /// <param name="arg2">第二オペランドの確認するべきトークン種別</param>
+        /// <returns>オペランドの引数パターンが一致した場合は true を、一致しない場合は false を返します</returns>
+        protected bool TestOperandPattern(List<Token> operand, out string message, int arg1, int arg2)
+        {
+            // もし引数が2で無いなら
+            if (operand.Count != 2)
+            {
+                // 引数は2つでなければならないエラーメッセージを設定して失敗を返す
+                message = $"'{OpCodeName}'命令のオペランドは2つです";
+                return false;
+            }
+
+
+            // 引数の型チェックに引っかかる場合は
+            if (operand[0].Kind != arg1 || operand[1].Kind != arg2)
+            {
+                // 引数の型が一致しないエラーメッセージを設定して失敗を返す
+                message = $"'{OpCodeName}'命令のいくつかのオペランドに指定出来ない型が含まれています";
+                return false;
+            }
+
+
+            // 型チェックも引っかからない場合は成功を返す
+            message = string.Empty;
+            return true;
+        }
+
+
+        /// <summary>
+        /// オペランドが2個のオペランドパターンをテストします
+        /// </summary>
+        /// <param name="operand">確認するオペランドのリスト</param>
+        /// <param name="message">パターンに一致しない場合のエラーメッセージを設定する文字列への参照</param>
+        /// <param name="arg1">第一オペランドの確認するべきトークン種別</param>
+        /// <param name="arg2">第二オペランドの確認するべきトークン種別</param>
+        /// <param name="arg3">第三オペランドの確認するべきトークン種別</param>
+        /// <returns>オペランドの引数パターンが一致した場合は true を、一致しない場合は false を返します</returns>
+        protected bool TestOperandPattern(List<Token> operand, out string message, int arg1, int arg2, int arg3)
+        {
+            // もし引数が3で無いなら
+            if (operand.Count != 2)
+            {
+                // 引数は3つでなければならないエラーメッセージを設定して失敗を返す
+                message = $"'{OpCodeName}'命令のオペランドは3つです";
+                return false;
+            }
+
+
+            // 引数の型チェックに引っかかる場合は
+            if (operand[0].Kind != arg1 || operand[1].Kind != arg2 || operand[2].Kind != arg3)
+            {
+                // 引数の型が一致しないエラーメッセージを設定して失敗を返す
+                message = $"'{OpCodeName}'命令のいくつかのオペランドに指定出来ない型が含まれています";
+                return false;
+            }
+
+
+            // 型チェックも引っかからない場合は成功を返す
+            message = string.Empty;
+            return true;
+        }
+    }
+    #endregion
+
+
+
+    #region OpCoder class
+    /// <summary>
+    /// halt命令符号器クラスです
+    /// </summary>
+    public class OpCoderHalt : OpCoderBase
+    {
+        /// <summary>
+        /// 担当するOpCodeトークン種別
+        /// </summary>
+        public override int OpCodeTokenKind => CarrotAsmTokenKind.OpHalt;
+
+
+        /// <summary>
+        /// 担当する符号器名
+        /// </summary>
+        public override string OpCodeName => "halt";
+
+
+
+        /// <summary>
+        /// 命令のエンコードを行います
+        /// </summary>
+        /// <param name="operand">エンコードする命令に渡すオペランド</param>
+        /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+        /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+        /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+        public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+        {
+            // 命令コードの初期化
+            instructionCode = default;
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Halt;
+                return true;
+            }
+
+
+            // ここまで来てしまったら失敗を返す
+            return false;
+        }
+    }
+    #endregion
 }

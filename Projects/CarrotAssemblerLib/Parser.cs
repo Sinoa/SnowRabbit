@@ -62,10 +62,7 @@ register-name
 */
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
-using SnowRabbit.VirtualMachine.Runtime;
-using TextProcessorLib;
 
 namespace CarrotAssemblerLib
 {
@@ -449,7 +446,7 @@ namespace CarrotAssemblerLib
     /// <summary>
     /// 構文解析中に出力されるログコードを表します
     /// </summary>
-    public enum ParserLogCode : ulong
+    public enum ParserLogCode : uint
     {
         /// <summary>
         /// 通常のログ出力コード
