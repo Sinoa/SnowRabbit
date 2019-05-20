@@ -278,8 +278,9 @@ namespace CarrotAssemblerLib
         internal bool GenerateCode(out string message)
         {
             // マシン語の用意をして命令の符号器を取得する
-            var instructionCode = default(InstructionCode);
+            InstructionCode instructionCode;
             var opCoder = opCoderTable[opCodeTokenKind];
+            opCoder.SetCoder(this);
 
 
             // 符号器に命令の符号をしてもらい失敗したら
