@@ -10,11 +10,15 @@
 
 // プログラムコード
 {
+:main
 	// とりあえず雑に書く
+    ldr rcx, val2;
+    ldr rax, val1;
 	mov rax, 2;
 	push rax;
 	gpid rax, 0;	// ここにもコメントを置ける
 	gpfid rbx, rax, 1;
 	cpf rax, rbx, 1;
-	halt;
+	br main;
+    halt;
 }
