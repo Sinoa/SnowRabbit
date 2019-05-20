@@ -31,6 +31,8 @@ namespace CarrotAssemblerLib
         private Dictionary<string, int> labelTable;
         private List<InstructionCode> instructionList;
         private List<Token> argumentList;
+        private List<int> unresolveAddressInstructionList;
+        private Dictionary<int, string> unresolveLabelAddressTable;
         private int nextGlobalVariableIndex;
         private int opCodeTokenKind;
 
@@ -47,10 +49,13 @@ namespace CarrotAssemblerLib
             labelTable = new Dictionary<string, int>();
             instructionList = new List<InstructionCode>();
             argumentList = new List<Token>();
+            unresolveAddressInstructionList = new List<int>();
+            unresolveLabelAddressTable = new Dictionary<int, string>();
             nextGlobalVariableIndex = -1;
         }
 
 
+        #region Register function
         /// <summary>
         /// 文字列定数を登録します
         /// </summary>
@@ -100,7 +105,7 @@ namespace CarrotAssemblerLib
         /// </summary>
         /// <param name="name">登録するラベル名</param>
         /// <returns>正常にラベル名が登録された場合はラベルが位置する命令アドレスを返しますが、既に登録済みの場合は -1 を返します</returns>
-        internal int RegisterLable(string name)
+        internal int RegisterLabel(string name)
         {
             // 既に同じ名前の変数またはラベルが登録済みなら
             if (globalVariableTable.ContainsKey(name) || labelTable.ContainsKey(name))
@@ -116,6 +121,22 @@ namespace CarrotAssemblerLib
         }
 
 
+        /// <summary>
+        /// 指定された名前のラベルを未解決ラベルとして登録します
+        /// </summary>
+        /// <param name="name">未解決のラベル名</param>
+        /// <returns>未解決ラベル名の仮アドレスを返します</returns>
+        internal int RegisterUnresolveLabel(string name)
+        {
+            // 仮アドレスを作って登録してから返す
+            var tempAddress = -(unresolveLabelAddressTable.Count + 1);
+            unresolveLabelAddressTable[tempAddress] = name;
+            return tempAddress;
+        }
+        #endregion
+
+
+        #region Contain function
         /// <summary>
         /// 指定された名前が変数名として存在するかどうかを調べます
         /// </summary>
@@ -138,8 +159,52 @@ namespace CarrotAssemblerLib
             // ラベルテーブルに含まれているか確認した結果を返す
             return labelTable.ContainsKey(name);
         }
+        #endregion
 
 
+        #region Get function
+        /// <summary>
+        /// 指定されたグローバル変数名から仮アドレスを取得します
+        /// </summary>
+        /// <param name="name">仮アドレスを取得するグローバル変数名</param>
+        /// <returns>指定されたグローバル変数名に対応する仮アドレスを返しますが、存在しない場合は 0 を返します</returns>
+        internal int GetGlobalVariableTempAddress(string name)
+        {
+            // 指定したグローバル変数名がそもそも無いなら
+            if (!ContainGlobalVariable(name))
+            {
+                // 0を返してそもそも無いことを伝える
+                return 0;
+            }
+
+
+            // 仮アドレスを返す
+            return globalVariableTable[name];
+        }
+
+
+        /// <summary>
+        /// 指定されたラベルのアドレスを取得します
+        /// </summary>
+        /// <param name="name">アドレスを取得するラベル名</param>
+        /// <returns>指定されたラベル名に対応するアドレスを返しますが、存在しない場合は -1 を返します</returns>
+        internal int GetLabelAddress(string name)
+        {
+            // 指定されたラベル名がそもそも存在しないなら
+            if (!ContainLable(name))
+            {
+                // -1を返してそもそも無いことを伝える
+                return -1;
+            }
+
+
+            // ラベルのアドレスを返す
+            return labelTable[name];
+        }
+        #endregion
+
+
+        #region Setup function
         /// <summary>
         /// 指定されたOpCodeトークン種別を設定します
         /// </summary>
@@ -162,6 +227,18 @@ namespace CarrotAssemblerLib
         }
 
 
+        /// <summary>
+        /// 現在生成中の命令はアドレスの解決が必要であるマークを設定します
+        /// </summary>
+        internal void SetResolveAddressInstructionMark()
+        {
+            // 現在の命令の位置をアドレス解決が必要な命令アドレスであることを設定する
+            unresolveAddressInstructionList.Add(instructionList.Count);
+        }
+        #endregion
+
+
+        #region Build function
         /// <summary>
         /// 現在のコンテキストでマシン語を生成します
         /// </summary>
@@ -248,6 +325,7 @@ namespace CarrotAssemblerLib
         internal void OutputExecuteCode()
         {
         }
+        #endregion
     }
     #endregion
 
@@ -259,6 +337,11 @@ namespace CarrotAssemblerLib
     /// </summary>
     public abstract class OpCoderBase
     {
+        // メンバ変数定義
+        protected CarrotBinaryCoder currentCoder;
+
+
+
         /// <summary>
         /// この符号器が担当するOpCodeトークン種別
         /// </summary>
@@ -270,6 +353,17 @@ namespace CarrotAssemblerLib
         /// </summary>
         public abstract string OpCodeName { get; }
 
+
+
+        /// <summary>
+        /// このクラスのインスタンスを操作する符号器を設定します
+        /// </summary>
+        /// <param name="coder">操作する符号器</param>
+        public void SetCoder(CarrotBinaryCoder coder)
+        {
+            // 参照を覚える
+            currentCoder = coder;
+        }
 
 
         /// <summary>
@@ -582,6 +676,18 @@ namespace CarrotAssemblerLib
 
 
             // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, -1, -1))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Ldr;
+                instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                instructionCode.Rb = TokenKindToRegisterNumber(operand[1].Kind);
+                instructionCode.Immediate.Int = 0;
+                return true;
+            }
+
+
+            // 引数テストに成功したら
             if (TestOperandPattern(operand, out message, -1, -1, CarrotAsmTokenKind.Integer))
             {
                 // 命令を設定して成功を返す
@@ -589,6 +695,42 @@ namespace CarrotAssemblerLib
                 instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
                 instructionCode.Rb = TokenKindToRegisterNumber(operand[1].Kind);
                 instructionCode.Immediate.Int = (int)operand[2].Integer;
+                return true;
+            }
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Integer))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Ldrl;
+                instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                instructionCode.Immediate.Int = (int)operand[1].Integer;
+                return true;
+            }
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Identifier))
+            {
+                // グローバル変数名から仮アドレスを取得するがそもそも取得出来ないなら
+                var tempAdress = currentCoder.GetGlobalVariableTempAddress(operand[1].Text);
+                if (tempAdress == 0)
+                {
+                    // 未定義のグローバル変数名であるエラーを設定して終了
+                    message = $"指示された '{operand[1].Text}' はグローバル変数として定義されていません";
+                    return false;
+                }
+
+
+                // 現在の命令はドレス解決が必要であることを設定する
+                currentCoder.SetResolveAddressInstructionMark();
+
+
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Ldrl;
+                instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                instructionCode.Immediate.Int = tempAdress;
                 return true;
             }
 
@@ -632,6 +774,18 @@ namespace CarrotAssemblerLib
 
 
             // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, -1, -1))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Str;
+                instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                instructionCode.Rb = TokenKindToRegisterNumber(operand[1].Kind);
+                instructionCode.Immediate.Int = 0;
+                return true;
+            }
+
+
+            // 引数テストに成功したら
             if (TestOperandPattern(operand, out message, -1, -1, CarrotAsmTokenKind.Integer))
             {
                 // 命令を設定して成功を返す
@@ -639,6 +793,42 @@ namespace CarrotAssemblerLib
                 instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
                 instructionCode.Rb = TokenKindToRegisterNumber(operand[1].Kind);
                 instructionCode.Immediate.Int = (int)operand[2].Integer;
+                return true;
+            }
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Integer))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Strl;
+                instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                instructionCode.Immediate.Int = (int)operand[1].Integer;
+                return true;
+            }
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Identifier))
+            {
+                // グローバル変数名から仮アドレスを取得するがそもそも取得出来ないなら
+                var tempAdress = currentCoder.GetGlobalVariableTempAddress(operand[1].Text);
+                if (tempAdress == 0)
+                {
+                    // 未定義のグローバル変数名であるエラーを設定して終了
+                    message = $"指示された '{operand[1].Text}' はグローバル変数として定義されていません";
+                    return false;
+                }
+
+
+                // 現在の命令はドレス解決が必要であることを設定する
+                currentCoder.SetResolveAddressInstructionMark();
+
+
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Strl;
+                instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                instructionCode.Immediate.Int = tempAdress;
                 return true;
             }
 
@@ -1776,6 +1966,26 @@ namespace CarrotAssemblerLib
                 }
 
 
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, CarrotAsmTokenKind.Identifier))
+                {
+                    // ラベルアドレスを取得するが見つけられなかったら
+                    var address = currentCoder.GetLabelAddress(operand[0].Text);
+                    if (address == -1)
+                    {
+                        // ラベルの仮アドレスを発行して一時しのぎ後アドレスの未解決マークをする
+                        address = currentCoder.RegisterUnresolveLabel(operand[0].Text);
+                        currentCoder.SetResolveAddressInstructionMark();
+                    }
+
+
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Brl;
+                    instructionCode.Immediate.Int = address;
+                    return true;
+                }
+
+
                 // ここまで来てしまったら失敗を返す
                 return false;
             }
@@ -1836,6 +2046,27 @@ namespace CarrotAssemblerLib
                 }
 
 
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Identifier))
+                {
+                    // ラベルアドレスを取得するが見つけられなかったら
+                    var address = currentCoder.GetLabelAddress(operand[1].Text);
+                    if (address == -1)
+                    {
+                        // ラベルの仮アドレスを発行して一時しのぎ後アドレスの未解決マークをする
+                        address = currentCoder.RegisterUnresolveLabel(operand[1].Text);
+                        currentCoder.SetResolveAddressInstructionMark();
+                    }
+
+
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Bnzl;
+                    instructionCode.Rb = TokenKindToRegisterNumber(operand[0].Kind);
+                    instructionCode.Immediate.Int = address;
+                    return true;
+                }
+
+
                 // ここまで来てしまったら失敗を返す
                 return false;
             }
@@ -1885,11 +2116,31 @@ namespace CarrotAssemblerLib
 
 
                 // 引数テストに成功したら
-                if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Integer))
+                if (TestOperandPattern(operand, out message, CarrotAsmTokenKind.Integer))
                 {
                     // 命令を設定して成功を返す
                     instructionCode.OpCode = OpCode.Calll;
                     instructionCode.Immediate.Int = (int)operand[0].Integer;
+                    return true;
+                }
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, CarrotAsmTokenKind.Identifier))
+                {
+                    // ラベルアドレスを取得するが見つけられなかったら
+                    var address = currentCoder.GetLabelAddress(operand[0].Text);
+                    if (address == -1)
+                    {
+                        // ラベルの仮アドレスを発行して一時しのぎ後アドレスの未解決マークをする
+                        address = currentCoder.RegisterUnresolveLabel(operand[0].Text);
+                        currentCoder.SetResolveAddressInstructionMark();
+                    }
+
+
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Calll;
+                    instructionCode.Immediate.Int = address;
                     return true;
                 }
 
@@ -1950,6 +2201,27 @@ namespace CarrotAssemblerLib
                     instructionCode.OpCode = OpCode.Callnzl;
                     instructionCode.Rb = TokenKindToRegisterNumber(operand[0].Kind);
                     instructionCode.Immediate.Int = (int)operand[1].Integer;
+                    return true;
+                }
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Identifier))
+                {
+                    // ラベルアドレスを取得するが見つけられなかったら
+                    var address = currentCoder.GetLabelAddress(operand[1].Text);
+                    if (address == -1)
+                    {
+                        // ラベルの仮アドレスを発行して一時しのぎ後アドレスの未解決マークをする
+                        address = currentCoder.RegisterUnresolveLabel(operand[1].Text);
+                        currentCoder.SetResolveAddressInstructionMark();
+                    }
+
+
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Callnzl;
+                    instructionCode.Rb = TokenKindToRegisterNumber(operand[0].Kind);
+                    instructionCode.Immediate.Int = address;
                     return true;
                 }
 

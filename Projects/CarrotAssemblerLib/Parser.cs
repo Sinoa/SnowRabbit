@@ -347,7 +347,7 @@ namespace CarrotAssemblerLib
 
 
             // ビルダーにラベル名を登録するが重複エラーが発生した場合は
-            if (coder.RegisterLable(token.Text) == -1)
+            if (coder.RegisterLabel(token.Text) == -1)
             {
                 // 既にラベル名が定義済みである構文エラーを発生
                 OccurParseError(ParserLogCode.ErrorDuplicatedLabelName, $"既にラベル名が定義済みです '{token.Text}'");
