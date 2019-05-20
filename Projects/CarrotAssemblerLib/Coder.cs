@@ -13,7 +13,9 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using SnowRabbit.VirtualMachine.Runtime;
 using TextProcessorLib;
 
@@ -38,6 +40,7 @@ namespace CarrotAssemblerLib
         private Dictionary<int, string> unresolveLabelAddressTable;
         private int nextGlobalVariableIndex;
         private int opCodeTokenKind;
+        private Stream outputStream;
 
 
 
@@ -72,7 +75,8 @@ namespace CarrotAssemblerLib
         /// <summary>
         /// CarrotBinaryCoder クラスのインスタンスを初期化します
         /// </summary>
-        public CarrotBinaryCoder()
+        /// <param name="outputStream">生成された実行コードを出力する先のストリーム</param>
+        public CarrotBinaryCoder(Stream outputStream)
         {
             // メンバ変数の初期化をする
             constStringTable = new Dictionary<uint, string>();
@@ -83,6 +87,7 @@ namespace CarrotAssemblerLib
             unresolveAddressInstructionList = new List<int>();
             unresolveLabelAddressTable = new Dictionary<int, string>();
             nextGlobalVariableIndex = -1;
+            this.outputStream = outputStream;
         }
 
 
@@ -300,9 +305,93 @@ namespace CarrotAssemblerLib
         }
 
 
+        /// <summary>
+        /// 最終的な実行コードを出力します
+        /// </summary>
         internal void OutputExecuteCode()
         {
-            var opCoder = opCoderTable[0];
+            // 未解決のアドレスを解決する
+            ResolveAddress();
+        }
+
+
+        /// <summary>
+        /// 命令リストに含まれる未解決アドレスのオペランドを解決します
+        /// </summary>
+        private void ResolveAddress()
+        {
+            // 未解決アドレスを持つ命令の数分ループする
+            for (int i = 0; i < unresolveAddressInstructionList.Count; ++i)
+            {
+                // 未解決命令を取得
+                var unresolveIndex = unresolveAddressInstructionList[i];
+                var instruction = instructionList[unresolveIndex];
+
+
+                // 解決する命令によって解決関数を選択する
+                switch (instruction.OpCode)
+                {
+                    // グローバル変数アドレス解決系命令ならグローバル変数アドレス解決を行う
+                    case OpCode.Ldrl:
+                    case OpCode.Strl:
+                        ResolveGlobalVariableAddress(ref instruction);
+                        break;
+
+
+                    // ラベルアドレス解決系命令ならラベルアドレス解決を行う
+                    case OpCode.Brl:
+                    case OpCode.Bnzl:
+                    case OpCode.Calll:
+                    case OpCode.Callnzl:
+                        ResolveLabelAddress(ref instruction);
+                        break;
+
+
+                    // 解決関数が未定義の命令が指定されたら
+                    default:
+                        throw new InvalidOperationException($"アドレスの解決関数が未定義の命令が指示されました '{instruction.OpCode}'");
+                }
+
+
+                // 解決した命令を書き戻す
+                instructionList[unresolveIndex] = instruction;
+            }
+        }
+
+
+        /// <summary>
+        /// グローバル変数アドレスの解決を行います
+        /// </summary>
+        /// <param name="instructionCode">解決を行う命令への参照</param>
+        private void ResolveGlobalVariableAddress(ref InstructionCode instructionCode)
+        {
+            // グローバル変数は即値の値にグローバル変数定義開始オフセット-1が
+            // 負の値として入っているので反転してオフセットを加算して1を加算するだけで良い
+            // つまり（プログラムコードの長さ - immediate + 1）
+            instructionCode.Immediate.Int = instructionList.Count - instructionCode.Immediate.Int + 1;
+        }
+
+
+        /// <summary>
+        /// ラベルアドレスの解決を行います
+        /// </summary>
+        /// <param name="instructionCode">解決を行う命令への参照</param>
+        private void ResolveLabelAddress(ref InstructionCode instructionCode)
+        {
+            // ラベルは仮アドレスが即値に入っているので、仮アドレスから本来解決するべきラベル名を取得する
+            var labelName = unresolveLabelAddressTable[instructionCode.Immediate.Int];
+
+
+            // ラベル名から本当のラベルアドレスを取得するが、この時点でも取得出来ないなら
+            if (!ContainLable(labelName))
+            {
+                // 未定義のラベルであることがここで判明する
+                throw new InvalidOperationException($"未定義のラベルです '{labelName}'");
+            }
+
+
+            // ラベルアドレスを設定する
+            instructionCode.Immediate.Int = GetLabelAddress(labelName);
         }
         #endregion
     }
