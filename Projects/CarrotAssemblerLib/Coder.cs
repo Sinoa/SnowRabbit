@@ -1780,6 +1780,415 @@ namespace CarrotAssemblerLib
                 return false;
             }
         }
+
+
+
+        /// <summary>
+        /// bnz命令符号器クラスです
+        /// </summary>
+        public class OpCoderBnz : OpCoderBase
+        {
+            /// <summary>
+            /// 担当するOpCodeトークン種別
+            /// </summary>
+            public override int OpCodeTokenKind => CarrotAsmTokenKind.OpBnz;
+
+
+            /// <summary>
+            /// 担当する符号器名
+            /// </summary>
+            public override string OpCodeName => "bnz";
+
+
+
+            /// <summary>
+            /// 命令のエンコードを行います
+            /// </summary>
+            /// <param name="operand">エンコードする命令に渡すオペランド</param>
+            /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+            /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+            /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+            public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+            {
+                // 命令コードの初期化
+                instructionCode = default;
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, -1))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Bnz;
+                    instructionCode.Ra = TokenKindToRegisterNumber(operand[1].Kind);
+                    instructionCode.Rb = TokenKindToRegisterNumber(operand[0].Kind);
+                    return true;
+                }
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Integer))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Bnzl;
+                    instructionCode.Rb = TokenKindToRegisterNumber(operand[0].Kind);
+                    instructionCode.Immediate.Int = (int)operand[1].Integer;
+                    return true;
+                }
+
+
+                // ここまで来てしまったら失敗を返す
+                return false;
+            }
+        }
+
+
+
+        /// <summary>
+        /// call命令符号器クラスです
+        /// </summary>
+        public class OpCoderCall : OpCoderBase
+        {
+            /// <summary>
+            /// 担当するOpCodeトークン種別
+            /// </summary>
+            public override int OpCodeTokenKind => CarrotAsmTokenKind.OpCall;
+
+
+            /// <summary>
+            /// 担当する符号器名
+            /// </summary>
+            public override string OpCodeName => "call";
+
+
+
+            /// <summary>
+            /// 命令のエンコードを行います
+            /// </summary>
+            /// <param name="operand">エンコードする命令に渡すオペランド</param>
+            /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+            /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+            /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+            public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+            {
+                // 命令コードの初期化
+                instructionCode = default;
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Call;
+                    instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                    return true;
+                }
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Integer))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Calll;
+                    instructionCode.Immediate.Int = (int)operand[0].Integer;
+                    return true;
+                }
+
+
+                // ここまで来てしまったら失敗を返す
+                return false;
+            }
+        }
+
+
+
+        /// <summary>
+        /// callnz命令符号器クラスです
+        /// </summary>
+        public class OpCoderCallnz : OpCoderBase
+        {
+            /// <summary>
+            /// 担当するOpCodeトークン種別
+            /// </summary>
+            public override int OpCodeTokenKind => CarrotAsmTokenKind.OpCallnz;
+
+
+            /// <summary>
+            /// 担当する符号器名
+            /// </summary>
+            public override string OpCodeName => "callnz";
+
+
+
+            /// <summary>
+            /// 命令のエンコードを行います
+            /// </summary>
+            /// <param name="operand">エンコードする命令に渡すオペランド</param>
+            /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+            /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+            /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+            public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+            {
+                // 命令コードの初期化
+                instructionCode = default;
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, -1))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Callnz;
+                    instructionCode.Ra = TokenKindToRegisterNumber(operand[1].Kind);
+                    instructionCode.Rb = TokenKindToRegisterNumber(operand[0].Kind);
+                    return true;
+                }
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Integer))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Callnzl;
+                    instructionCode.Rb = TokenKindToRegisterNumber(operand[0].Kind);
+                    instructionCode.Immediate.Int = (int)operand[1].Integer;
+                    return true;
+                }
+
+
+                // ここまで来てしまったら失敗を返す
+                return false;
+            }
+        }
+
+
+
+        /// <summary>
+        /// ret命令符号器クラスです
+        /// </summary>
+        public class OpCoderRet : OpCoderBase
+        {
+            /// <summary>
+            /// 担当するOpCodeトークン種別
+            /// </summary>
+            public override int OpCodeTokenKind => CarrotAsmTokenKind.OpRet;
+
+
+            /// <summary>
+            /// 担当する符号器名
+            /// </summary>
+            public override string OpCodeName => "ret";
+
+
+
+            /// <summary>
+            /// 命令のエンコードを行います
+            /// </summary>
+            /// <param name="operand">エンコードする命令に渡すオペランド</param>
+            /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+            /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+            /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+            public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+            {
+                // 命令コードの初期化
+                instructionCode = default;
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Ret;
+                    return true;
+                }
+
+
+                // ここまで来てしまったら失敗を返す
+                return false;
+            }
+        }
+
+
+
+        /// <summary>
+        /// cpf命令符号器クラスです
+        /// </summary>
+        public class OpCoderCpf : OpCoderBase
+        {
+            /// <summary>
+            /// 担当するOpCodeトークン種別
+            /// </summary>
+            public override int OpCodeTokenKind => CarrotAsmTokenKind.OpCpf;
+
+
+            /// <summary>
+            /// 担当する符号器名
+            /// </summary>
+            public override string OpCodeName => "cpf";
+
+
+
+            /// <summary>
+            /// 命令のエンコードを行います
+            /// </summary>
+            /// <param name="operand">エンコードする命令に渡すオペランド</param>
+            /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+            /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+            /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+            public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+            {
+                // 命令コードの初期化
+                instructionCode = default;
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, -1, -1))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Cpf;
+                    instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                    instructionCode.Rb = TokenKindToRegisterNumber(operand[1].Kind);
+                    instructionCode.Rc = TokenKindToRegisterNumber(operand[2].Kind);
+                    return true;
+                }
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, -1, CarrotAsmTokenKind.Integer))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Cpfl;
+                    instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                    instructionCode.Rb = TokenKindToRegisterNumber(operand[1].Kind);
+                    instructionCode.Immediate.Int = (int)operand[2].Integer;
+                    return true;
+                }
+
+
+                // ここまで来てしまったら失敗を返す
+                return false;
+            }
+        }
+
+
+
+        /// <summary>
+        /// gpid命令符号器クラスです
+        /// </summary>
+        public class OpCoderGpid : OpCoderBase
+        {
+            /// <summary>
+            /// 担当するOpCodeトークン種別
+            /// </summary>
+            public override int OpCodeTokenKind => CarrotAsmTokenKind.OpGpid;
+
+
+            /// <summary>
+            /// 担当する符号器名
+            /// </summary>
+            public override string OpCodeName => "gpid";
+
+
+
+            /// <summary>
+            /// 命令のエンコードを行います
+            /// </summary>
+            /// <param name="operand">エンコードする命令に渡すオペランド</param>
+            /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+            /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+            /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+            public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+            {
+                // 命令コードの初期化
+                instructionCode = default;
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, -1))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Gpid;
+                    instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                    instructionCode.Rb = TokenKindToRegisterNumber(operand[1].Kind);
+                    return true;
+                }
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Integer))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Gpidl;
+                    instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                    instructionCode.Immediate.Int = (int)operand[1].Integer;
+                    return true;
+                }
+
+
+                // ここまで来てしまったら失敗を返す
+                return false;
+            }
+        }
+
+
+
+        /// <summary>
+        /// gpfid命令符号器クラスです
+        /// </summary>
+        public class OpCoderGpfid : OpCoderBase
+        {
+            /// <summary>
+            /// 担当するOpCodeトークン種別
+            /// </summary>
+            public override int OpCodeTokenKind => CarrotAsmTokenKind.OpGpfid;
+
+
+            /// <summary>
+            /// 担当する符号器名
+            /// </summary>
+            public override string OpCodeName => "gpfid";
+
+
+
+            /// <summary>
+            /// 命令のエンコードを行います
+            /// </summary>
+            /// <param name="operand">エンコードする命令に渡すオペランド</param>
+            /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+            /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+            /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+            public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+            {
+                // 命令コードの初期化
+                instructionCode = default;
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, -1, -1))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Gpfid;
+                    instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                    instructionCode.Rb = TokenKindToRegisterNumber(operand[1].Kind);
+                    instructionCode.Rc = TokenKindToRegisterNumber(operand[2].Kind);
+                    return true;
+                }
+
+
+                // 引数テストに成功したら
+                if (TestOperandPattern(operand, out message, -1, -1, CarrotAsmTokenKind.Integer))
+                {
+                    // 命令を設定して成功を返す
+                    instructionCode.OpCode = OpCode.Gpfidl;
+                    instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                    instructionCode.Rb = TokenKindToRegisterNumber(operand[1].Kind);
+                    instructionCode.Immediate.Int = (int)operand[2].Integer;
+                    return true;
+                }
+
+
+                // ここまで来てしまったら失敗を返す
+                return false;
+            }
+        }
     }
     #endregion
 }
