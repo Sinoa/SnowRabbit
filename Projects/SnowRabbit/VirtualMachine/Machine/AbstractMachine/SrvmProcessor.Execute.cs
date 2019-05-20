@@ -68,9 +68,19 @@ namespace SnowRabbit.VirtualMachine.Machine
                         break;
 
 
+                    case OpCode.Ldrl:
+                        context[regANumber].Value.Long[0] = memory[immediate].Value.Long[0];
+                        break;
+
+
                     case OpCode.Str:
                         offsetAddress = (int)context[regBNumber].Value.Long[0];
                         memory[offsetAddress + immediate].Value.Long[0] = context[regANumber].Value.Long[0];
+                        break;
+
+
+                    case OpCode.Strl:
+                        memory[immediate].Value.Long[0] = context[regANumber].Value.Long[0];
                         break;
 
 

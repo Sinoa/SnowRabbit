@@ -44,24 +44,34 @@ namespace SnowRabbit.VirtualMachine.Runtime
         Ldr = 0x12,
 
         /// <summary>
+        /// メモリからレジスタへロードします：Ra = [Imm]
+        /// </summary>
+        Ldrl = 0x13,
+
+        /// <summary>
         /// レジスタからメモリへストアします：[Rb+Imm] = Ra
         /// </summary>
-        Str = 0x13,
+        Str = 0x14,
+
+        /// <summary>
+        /// レジスタからメモリへストアします：[Imm] = Ra
+        /// </summary>
+        Strl = 0x15,
 
         /// <summary>
         /// スタックポインタをデクリメントしてから、レジスタ内容をスタックへプッシュします：--SP; [SP] = Ra
         /// </summary>
-        Push = 0x14,
+        Push = 0x16,
 
         /// <summary>
         /// スタックポインタをデクリメントしてから、即値をスタックへプッシュします：--SP; [SP] = Imm
         /// </summary>
-        Pushl = 0x15,
+        Pushl = 0x17,
 
         /// <summary>
         /// スタックからレジスタ内容へポップし、スタックポインタをインクリメントします：Ra = [SP]; ++SP;
         /// </summary>
-        Pop = 0x16,
+        Pop = 0x18,
         #endregion
 
         #region Arithmetic
