@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using SnowRabbit.VirtualMachine.Runtime;
 using TextProcessorLib;
 
@@ -28,7 +29,8 @@ namespace CarrotAssemblerLib
     public class CarrotBinaryCoder
     {
         // クラス変数宣言
-        private static readonly Dictionary<int, OpCoderBase> opCoderTable;
+        private static readonly Dictionary<int, OpCoderBase> OpCoderTable;
+        private static readonly byte[] Signature;
 
         // メンバ変数定義
         private Dictionary<uint, string> constStringTable;
@@ -63,12 +65,16 @@ namespace CarrotAssemblerLib
 
 
             // OpCoderのテーブルを構築する
-            opCoderTable = new Dictionary<int, OpCoderBase>();
+            OpCoderTable = new Dictionary<int, OpCoderBase>();
             foreach (var coder in opCoders)
             {
                 // テーブルにコーダーを追加する
-                opCoderTable[coder.OpCodeTokenKind] = coder;
+                OpCoderTable[coder.OpCodeTokenKind] = coder;
             }
+
+
+            // シグネチャを設定する
+            Signature = new byte[] { 0xCC, 0x00, 0xBB, 0xFF };
         }
 
 
@@ -284,7 +290,7 @@ namespace CarrotAssemblerLib
         {
             // マシン語の用意をして命令の符号器を取得する
             InstructionCode instructionCode;
-            var opCoder = opCoderTable[opCodeTokenKind];
+            var opCoder = OpCoderTable[opCodeTokenKind];
             opCoder.SetCoder(this);
 
 
@@ -312,6 +318,66 @@ namespace CarrotAssemblerLib
         {
             // 未解決のアドレスを解決する
             ResolveAddress();
+
+
+            // 規定の順番でストリームに流し込む
+            WriteHeader();
+            WriteProgramCode();
+            WriteConstStringTable();
+        }
+
+
+        /// <summary>
+        /// ヘッダを書き込みます
+        /// </summary>
+        private void WriteHeader()
+        {
+            // ストリームにシグネチャを出力する
+            outputStream.Write(Signature, 0, 4);
+
+
+            // プログラムコードの命令数、グローバル変数のサイズ(変数の数分 * 8)、オブジェクトメモリ数、文字列定数の数を書き込む
+            outputStream.Write(BitConverter.GetBytes(instructionList.Count), 0, 4);
+            outputStream.Write(BitConverter.GetBytes(globalVariableTable.Count * 8), 0, 4);
+            outputStream.Write(BitConverter.GetBytes(0), 0, 4);
+            outputStream.Write(BitConverter.GetBytes(constStringTable.Count), 0, 4);
+        }
+
+
+        /// <summary>
+        /// プログラムコードを書き込みます
+        /// </summary>
+        private unsafe void WriteProgramCode()
+        {
+            // 命令リストの数分ループする
+            for (int i = 0; i < instructionList.Count; ++i)
+            {
+                // 命令コードを一度値型として設定してから流し込む
+                SrValue value;
+                value.Instruction = instructionList[i];
+                outputStream.Write(BitConverter.GetBytes(value.Value.Ulong[0]), 0, 8);
+            }
+        }
+
+
+        /// <summary>
+        /// 文字列定数を書き込みます
+        /// </summary>
+        private void WriteConstStringTable()
+        {
+            // BOMなしUTF8符号の生成をする
+            var encode = new UTF8Encoding(false);
+
+
+            // 文字列テーブルの数分ループする
+            foreach (var recode in constStringTable)
+            {
+                // UTF8エンコードをしてから書き込む
+                var buffer = encode.GetBytes(recode.Value);
+                outputStream.Write(BitConverter.GetBytes(buffer.Length), 0, 4);
+                outputStream.Write(BitConverter.GetBytes((int)recode.Key), 0, 4);
+                outputStream.Write(buffer, 0, buffer.Length);
+            }
         }
 
 
@@ -365,10 +431,10 @@ namespace CarrotAssemblerLib
         /// <param name="instructionCode">解決を行う命令への参照</param>
         private void ResolveGlobalVariableAddress(ref InstructionCode instructionCode)
         {
-            // グローバル変数は即値の値にグローバル変数定義開始オフセット-1が
-            // 負の値として入っているので反転してオフセットを加算して1を加算するだけで良い
-            // つまり（プログラムコードの長さ - immediate + 1）
-            instructionCode.Immediate.Int = instructionList.Count - instructionCode.Immediate.Int + 1;
+            // グローバル変数は即値の値にグローバル変数定義開始オフセット+1が
+            // 負の値として入っているので反転してオフセットを加算して1を減算するだけで良い
+            // つまり（プログラムコードの長さ - immediate - 1）
+            instructionCode.Immediate.Int = instructionList.Count - instructionCode.Immediate.Int - 1;
         }
 
 
