@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.IO;
 using SnowRabbit.VirtualMachine.Runtime;
 
 namespace SnowRabbit.VirtualMachine.Machine
@@ -160,6 +161,36 @@ namespace SnowRabbit.VirtualMachine.Machine
             // プロセスの既定初期化をしてからファームウェアにプログラムのロードをしてもらう
             process = default;
             Firmware.LoadProgram(programPath ?? throw new ArgumentNullException(nameof(programPath)), ref process);
+            Processor.InitializeContext(ref process);
+        }
+
+
+        /// <summary>
+        /// 仮想マシンに実行してもらうプログラムを指定してプロセスを生成します。
+        /// </summary>
+        /// <param name="programData">実行するプログラムバイト配列</param>
+        /// <param name="process">プログラムを実行するプロセスを出力します</param>
+        /// <exception cref="ArgumentNullException">programData が null です</exception>
+        public void CreateProcess(byte[] programData, out SrProcess process)
+        {
+            // プロセスの既定初期化をしてからファームウェアにプログラムのロードをしてもらう
+            process = default;
+            Firmware.LoadProgram(programData ?? throw new ArgumentNullException(nameof(programData)), ref process);
+            Processor.InitializeContext(ref process);
+        }
+
+
+        /// <summary>
+        /// 仮想マシンに実行してもらうプログラムを指定してプロセスを生成します。
+        /// </summary>
+        /// <param name="programStream">実行するプログラムストリーム</param>
+        /// <param name="process">プログラムを実行するプロセスを出力します</param>
+        /// <exception cref="ArgumentNullException">programStream が null です</exception>
+        public void CreateProcess(Stream programStream, out SrProcess process)
+        {
+            // プロセスの既定初期化をしてからファームウェアにプログラムのロードをしてもらう
+            process = default;
+            Firmware.LoadProgram(programStream ?? throw new ArgumentNullException(nameof(programStream)), ref process);
             Processor.InitializeContext(ref process);
         }
 
