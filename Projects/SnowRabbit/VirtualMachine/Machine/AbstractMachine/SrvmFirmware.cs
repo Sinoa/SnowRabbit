@@ -79,11 +79,53 @@ namespace SnowRabbit.VirtualMachine.Machine
             }
 
 
-            // シグネチャをチェックして不一致なら
-            if (!CheckMagicSignature(programStream))
+            try
             {
-                // ストリームを閉じて例外を吐く
+                // ストリームによるプログラムロードを行う
+                LoadProgram(programStream, ref process);
+            }
+            catch
+            {
+                // 例外が起きたら再スロー
+                throw;
+            }
+            finally
+            {
+                // ストリームを閉じる
                 Machine.Storage.Close(programStream);
+            }
+        }
+
+
+        /// <summary>
+        /// 指定されたプロセスにプログラムをロードします
+        /// </summary>
+        /// <param name="programData">ロードするプログラムのバイト配列</param>
+        /// <param name="process">ロードする先のプロセス</param>
+        /// <exception cref="ArgumentNullException">programData が null です</exception>
+        internal void LoadProgram(byte[] programData, ref SrProcess process)
+        {
+            // バイト配列からメモリストリームを生成する
+            using (var programStream = new MemoryStream(programData ?? throw new ArgumentNullException(nameof(programData))))
+            {
+                // ストリームによるプログラムロードを行う
+                LoadProgram(programStream, ref process);
+            }
+        }
+
+
+        /// <summary>
+        /// 指定されたプロセスにプログラムをロードします
+        /// </summary>
+        /// <param name="programStream">ロードするプログラムのストリーム</param>
+        /// <param name="process">ロードする先のプロセス</param>
+        /// <exception cref="ArgumentNullException">programStream が null です</exception>
+        internal void LoadProgram(Stream programStream, ref SrProcess process)
+        {
+            // シグネチャをチェックして不一致なら
+            if (!CheckMagicSignature(programStream ?? throw new ArgumentNullException(nameof(programStream))))
+            {
+                // 例外を吐く
                 throw new InvalidOperationException("プログラムのシグネチャが不正です");
             }
 
@@ -108,10 +150,6 @@ namespace SnowRabbit.VirtualMachine.Machine
             // プログラムコードを読み込む
             ReadProgramCode(programStream, ref process.ProcessMemory, instructionNumber);
             ReadConstStringData(programStream, ref process.ObjectMemory, constStringNumber);
-
-
-            // ストリームを閉じる
-            Machine.Storage.Close(programStream);
         }
 
 
