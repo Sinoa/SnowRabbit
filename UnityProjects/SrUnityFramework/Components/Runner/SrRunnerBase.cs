@@ -48,7 +48,7 @@ namespace SrUnityFramework.Components
         private void Start()
         {
             // 仮想マシンの参照を取得してプロセスの生成をする
-            machine = instance?.Instance;
+            machine = GetVirtualMachine();
             CreateNewProcess();
         }
 
@@ -129,7 +129,18 @@ namespace SrUnityFramework.Components
 
 
             // プロセスを実行する
-            instance.Instance.ExecuteProcess(ref process);
+            machine.ExecuteProcess(ref process);
+        }
+
+
+        /// <summary>
+        /// 仮想マシンの取得をします
+        /// </summary>
+        /// <returns>取得した仮想マシンがあればその参照を返しますが、取得出来なかった場合は null を返します</returns>
+        protected virtual SrvmMachine GetVirtualMachine()
+        {
+            // 既定動作はインスペクタから取得する
+            return instance?.Instance;
         }
 
 
