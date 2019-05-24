@@ -75,7 +75,7 @@ namespace CarrotAssemblerLib
         // メンバ変数定義
         private CarrotAsmLexer lexer;
         private CarrotBinaryCoder coder;
-        private ParserLogger logger;
+        private IParserLogger logger;
 
 
 
@@ -88,7 +88,7 @@ namespace CarrotAssemblerLib
         /// <exception cref="ArgumentNullException">lexer が null です</exception>
         /// <exception cref="ArgumentNullException">coder が null です</exception>
         /// <exception cref="ArgumentNullException">logger が null です</exception>
-        public CarrotAssemblyParser(CarrotAsmLexer lexer, CarrotBinaryCoder coder, ParserLogger logger)
+        public CarrotAssemblyParser(CarrotAsmLexer lexer, CarrotBinaryCoder coder, IParserLogger logger)
         {
             // 必要なサブシステムの参照を覚える
             this.lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
@@ -539,9 +539,9 @@ namespace CarrotAssemblerLib
 
     #region ParserLogger
     /// <summary>
-    /// 構文解析ロガー抽象クラスです
+    /// 構文解析時に出力するべきログを操作するためのロガーインターフェイスです
     /// </summary>
-    public abstract class ParserLogger
+    public interface IParserLogger
     {
         /// <summary>
         /// 通常のログを書き込みます
@@ -550,7 +550,7 @@ namespace CarrotAssemblerLib
         /// <param name="columnNumber">ログを出すタイミングになった列番号。ただし、必ず正確な位置を示すことはありません。</param>
         /// <param name="code">構文解析がログを出力する要因となったコード</param>
         /// <param name="message">構文解析が出力するメッセージ</param>
-        public abstract void WriteLog(int lineNumber, int columnNumber, ParserLogCode code, string message);
+        void WriteLog(int lineNumber, int columnNumber, ParserLogCode code, string message);
 
 
         /// <summary>
@@ -560,7 +560,7 @@ namespace CarrotAssemblerLib
         /// <param name="columnNumber">ログを出すタイミングになった列番号。ただし、必ず正確な位置を示すことはありません。</param>
         /// <param name="code">構文解析がログを出力する要因となったコード</param>
         /// <param name="message">構文解析が出力するメッセージ</param>
-        public abstract void WriteWarning(int lineNumber, int columnNumber, ParserLogCode code, string message);
+        void WriteWarning(int lineNumber, int columnNumber, ParserLogCode code, string message);
 
 
         /// <summary>
@@ -570,7 +570,7 @@ namespace CarrotAssemblerLib
         /// <param name="columnNumber">ログを出すタイミングになった列番号。ただし、必ず正確な位置を示すことはありません。</param>
         /// <param name="code">構文解析がログを出力する要因となったコード</param>
         /// <param name="message">構文解析が出力するメッセージ</param>
-        public abstract void WriteError(int lineNumber, int columnNumber, ParserLogCode code, string message);
+        void WriteError(int lineNumber, int columnNumber, ParserLogCode code, string message);
     }
 
 
@@ -578,7 +578,7 @@ namespace CarrotAssemblerLib
     /// <summary>
     /// コンソール向け構文解析ロガー抽象クラスです
     /// </summary>
-    public class ConsoleParserLogger : ParserLogger
+    public class ConsoleParserLogger : IParserLogger
     {
         /// <summary>
         /// 通常のログを書き込みます
@@ -587,7 +587,7 @@ namespace CarrotAssemblerLib
         /// <param name="columnNumber">ログを出すタイミングになった列番号。ただし、必ず正確な位置を示すことはありません。</param>
         /// <param name="code">構文解析がログを出力する要因となったコード</param>
         /// <param name="message">構文解析が出力するメッセージ</param>
-        public override void WriteLog(int lineNumber, int columnNumber, ParserLogCode code, string message)
+        public void WriteLog(int lineNumber, int columnNumber, ParserLogCode code, string message)
         {
             // カラーをリセットしてログ出力
             Console.ResetColor();
@@ -602,7 +602,7 @@ namespace CarrotAssemblerLib
         /// <param name="columnNumber">ログを出すタイミングになった列番号。ただし、必ず正確な位置を示すことはありません。</param>
         /// <param name="code">構文解析がログを出力する要因となったコード</param>
         /// <param name="message">構文解析が出力するメッセージ</param>
-        public override void WriteWarning(int lineNumber, int columnNumber, ParserLogCode code, string message)
+        public void WriteWarning(int lineNumber, int columnNumber, ParserLogCode code, string message)
         {
             // 警告色に設定してログ出力後カラーをリセット
             Console.BackgroundColor = ConsoleColor.Black;
@@ -619,7 +619,7 @@ namespace CarrotAssemblerLib
         /// <param name="columnNumber">ログを出すタイミングになった列番号。ただし、必ず正確な位置を示すことはありません。</param>
         /// <param name="code">構文解析がログを出力する要因となったコード</param>
         /// <param name="message">構文解析が出力するメッセージ</param>
-        public override void WriteError(int lineNumber, int columnNumber, ParserLogCode code, string message)
+        public void WriteError(int lineNumber, int columnNumber, ParserLogCode code, string message)
         {
             // エラー色に設定してログ出力後カラーをリセット
             Console.BackgroundColor = ConsoleColor.Gray;
