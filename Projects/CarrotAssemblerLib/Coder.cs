@@ -1201,6 +1201,104 @@ namespace CarrotAssemblerLib
 
 
     /// <summary>
+    /// Movfti命令符号器クラスです
+    /// </summary>
+    public class OpCoderMovfti : OpCoderBase
+    {
+        /// <summary>
+        /// 担当するOpCodeトークン種別
+        /// </summary>
+        public override int OpCodeTokenKind => CarrotAsmTokenKind.OpMovfti;
+
+
+        /// <summary>
+        /// 担当する符号器名
+        /// </summary>
+        public override string OpCodeName => "movfti";
+
+
+
+        /// <summary>
+        /// 命令のエンコードを行います
+        /// </summary>
+        /// <param name="operand">エンコードする命令に渡すオペランド</param>
+        /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+        /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+        /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+        public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+        {
+            // 命令コードの初期化
+            instructionCode = default;
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, -1, -1))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Movfti;
+                instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                instructionCode.Rb = TokenKindToRegisterNumber(operand[1].Kind);
+                return true;
+            }
+
+
+            // ここまで来てしまったら失敗を返す
+            return false;
+        }
+    }
+
+
+
+    /// <summary>
+    /// Movitf命令符号器クラスです
+    /// </summary>
+    public class OpCoderMovitf : OpCoderBase
+    {
+        /// <summary>
+        /// 担当するOpCodeトークン種別
+        /// </summary>
+        public override int OpCodeTokenKind => CarrotAsmTokenKind.OpMovitf;
+
+
+        /// <summary>
+        /// 担当する符号器名
+        /// </summary>
+        public override string OpCodeName => "movitf";
+
+
+
+        /// <summary>
+        /// 命令のエンコードを行います
+        /// </summary>
+        /// <param name="operand">エンコードする命令に渡すオペランド</param>
+        /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+        /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+        /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+        public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+        {
+            // 命令コードの初期化
+            instructionCode = default;
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, -1, -1))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Movitf;
+                instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                instructionCode.Rb = TokenKindToRegisterNumber(operand[1].Kind);
+                return true;
+            }
+
+
+            // ここまで来てしまったら失敗を返す
+            return false;
+        }
+    }
+
+
+
+    /// <summary>
     /// add命令符号器クラスです
     /// </summary>
     public class OpCoderAdd : OpCoderBase
