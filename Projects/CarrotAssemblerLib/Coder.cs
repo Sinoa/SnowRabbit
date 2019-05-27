@@ -1150,7 +1150,7 @@ namespace CarrotAssemblerLib
         /// <summary>
         /// 担当するOpCodeトークン種別
         /// </summary>
-        public override int OpCodeTokenKind => CarrotAsmTokenKind.OpPush;
+        public override int OpCodeTokenKind => CarrotAsmTokenKind.OpFpush;
 
 
         /// <summary>

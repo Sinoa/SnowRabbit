@@ -375,6 +375,14 @@ namespace CarrotAssemblerLib
                     coder.AddArgumentToken(ref token);
                 }
 
+                
+                // もし実数トークンなら
+                else if (token.Kind == CarrotAsmTokenKind.Number)
+                {
+                    // ビルダー引数の追加をする
+                    coder.AddArgumentToken(ref token);
+                }
+
 
                 // もし識別子かつラベル名として定義済み
                 else if (token.Kind == CarrotAsmTokenKind.Identifier && coder.ContainLable(token.Text))
