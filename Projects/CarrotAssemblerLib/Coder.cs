@@ -55,8 +55,9 @@ namespace CarrotAssemblerLib
             var opCoders = new OpCoderBase[]
             {
                 new OpCoderHalt(),
-                new OpCoderMov(), new OpCoderLdr(), new OpCoderStr(), new OpCoderPush(), new OpCoderPop(),
+                new OpCoderMov(), new OpCoderLdr(), new OpCoderStr(), new OpCoderPush(), new OpCoderPop(), new OpCoderFmov(), new OpCoderFpush(),
                 new OpCoderAdd(), new OpCoderSub(), new OpCoderMul(), new OpCoderDiv(), new OpCoderMod(), new OpCoderPow(),
+                new OpCoderFadd(), new OpCoderFsub(), new OpCoderFmul(), new OpCoderFdiv(), new OpCoderFmod(), new OpCoderFpow(),
                 new OpCoderOr(), new OpCoderXor(), new OpCoderAnd(), new OpCoderNot(), new OpCoderShl(), new OpCoderShr(),
                 new OpCoderTeq(), new OpCoderTne(), new OpCoderTg(), new OpCoderTge(), new OpCoderTl(), new OpCoderTle(),
                 new OpCoderBr(), new OpCoderBnz(), new OpCoderCall(), new OpCoderCallnz(), new OpCoderRet(),
