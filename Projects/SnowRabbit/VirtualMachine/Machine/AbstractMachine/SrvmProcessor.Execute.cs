@@ -178,6 +178,66 @@ namespace SnowRabbit.VirtualMachine.Machine
                     case OpCode.Powl:
                         context[regANumber].Value.Long[0] = (long)Math.Pow(context[regBNumber].Value.Long[0], immediate);
                         break;
+
+
+                    case OpCode.Fadd:
+                        context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] + context[regCNumber].Value.Float[0];
+                        break;
+
+
+                    case OpCode.Faddl:
+                        context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] + immediateF;
+                        break;
+
+
+                    case OpCode.Fsub:
+                        context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] - context[regCNumber].Value.Float[0];
+                        break;
+
+
+                    case OpCode.Fsubl:
+                        context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] - immediateF;
+                        break;
+
+
+                    case OpCode.Fmul:
+                        context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] * context[regCNumber].Value.Float[0];
+                        break;
+
+
+                    case OpCode.Fmull:
+                        context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] * immediateF;
+                        break;
+
+
+                    case OpCode.Fdiv:
+                        context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] / context[regCNumber].Value.Float[0];
+                        break;
+
+
+                    case OpCode.Fdivl:
+                        context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] / immediateF;
+                        break;
+
+
+                    case OpCode.Fmod:
+                        context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] % context[regCNumber].Value.Float[0];
+                        break;
+
+
+                    case OpCode.Fmodl:
+                        context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] % immediateF;
+                        break;
+
+
+                    case OpCode.Fpow:
+                        context[regANumber].Value.Float[0] = (float)Math.Pow(context[regBNumber].Value.Float[0], context[regCNumber].Value.Float[0]);
+                        break;
+
+
+                    case OpCode.Fpowl:
+                        context[regANumber].Value.Float[0] = (float)Math.Pow(context[regBNumber].Value.Float[0], immediateF);
+                        break;
                     #endregion
 
 
