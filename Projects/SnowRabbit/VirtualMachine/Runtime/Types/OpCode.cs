@@ -43,8 +43,8 @@
 0x18  :  Pop
 0x19  :  Fmovl
 0x1A  :  Fpushl
-0x1B  :  
-0x1C  :  
+0x1B  :  Movfti
+0x1C  :  Movitf
 0x1D  :  
 0x1E  :  
 0x1F  :  
@@ -344,6 +344,16 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// スタックポインタをデクリメントしてから、浮動小数点即値をスタックへプッシュします：--SP; [SP] = Imm
         /// </summary>
         Fpushl = 0x1A,
+
+        /// <summary>
+        /// 指定された浮動小数点レジスタから整数レジスタへ変換して転送します：Ra = (long)Rb
+        /// </summary>
+        Movfti = 0x1B,
+
+        /// <summary>
+        /// 指定された整数レジスタから浮動小数点レジスタへ変換して転送します：Ra = (float)Rb
+        /// </summary>
+        Movitf = 0x1C,
         #endregion
 
         #region Arithmetic
