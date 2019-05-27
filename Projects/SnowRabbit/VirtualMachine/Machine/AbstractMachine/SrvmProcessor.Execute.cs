@@ -116,6 +116,16 @@ namespace SnowRabbit.VirtualMachine.Machine
                         memory[(int)sp].Value.Float[0] = immediateF;
                         context[RegisterSPIndex].Value.Long[0] = sp;
                         break;
+
+
+                    case OpCode.Movfti:
+                        context[regANumber].Value.Long[0] = (long)context[regBNumber].Value.Float[0];
+                        break;
+
+
+                    case OpCode.Movitf:
+                        context[regANumber].Value.Float[0] = context[regBNumber].Value.Long[0];
+                        break;
                     #endregion
 
 
