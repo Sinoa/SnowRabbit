@@ -396,6 +396,66 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// レジスタと即値の累乗を求めます：Ra = Pow(Rb, Imm)
         /// </summary>
         Powl = 0x2B,
+
+        /// <summary>
+        /// レジスタ間の浮動小数点加算をします：Ra = Rb + Rc
+        /// </summary>
+        Fadd = 0x40,
+
+        /// <summary>
+        /// レジスタと即値の浮動小数点加算をします：Ra = Rb + Imm
+        /// </summary>
+        Faddl = 0x41,
+
+        /// <summary>
+        /// レジスタ間の浮動小数点減算をします：Ra = Rb - Rc
+        /// </summary>
+        Fsub = 0x42,
+
+        /// <summary>
+        /// レジスタと即値の浮動小数点減算をします：Ra = Rb - Imm
+        /// </summary>
+        Fsubl = 0x43,
+
+        /// <summary>
+        /// レジスタ間の浮動小数点乗算をします：Ra = Rb * Rc
+        /// </summary>
+        Fmul = 0x44,
+
+        /// <summary>
+        /// レジスタと即値の浮動小数点乗算をします：Ra = Rb * Imm
+        /// </summary>
+        Fmull = 0x45,
+
+        /// <summary>
+        /// レジスタ間の浮動小数点除算をします：Ra = Rb / Rc
+        /// </summary>
+        Fdiv = 0x46,
+
+        /// <summary>
+        /// レジスタと即値の浮動小数点除算をします：Ra = Rb / Imm
+        /// </summary>
+        Fdivl = 0x47,
+
+        /// <summary>
+        /// レジスタ間の浮動小数点剰余を求めます：Ra = Rb % Rc
+        /// </summary>
+        Fmod = 0x48,
+
+        /// <summary>
+        /// レジスタと即値の浮動小数点剰余を求めます：Ra = Rb % Imm
+        /// </summary>
+        Fmodl = 0x49,
+
+        /// <summary>
+        /// レジスタ間の累乗を求めます：Ra = Pow(Rb, Rc)
+        /// </summary>
+        Fpow = 0x4A,
+
+        /// <summary>
+        /// レジスタと即値の累乗を求めます：Ra = Pow(Rb, Imm)
+        /// </summary>
+        Fpowl = 0x4B,
         #endregion
 
         #region Logic
