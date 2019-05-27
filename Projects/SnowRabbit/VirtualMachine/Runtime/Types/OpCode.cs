@@ -41,8 +41,8 @@
 0x16  :  Push
 0x17  :  Pushl
 0x18  :  Pop
-0x19  :  
-0x1A  :  
+0x19  :  Fmovl
+0x1A  :  Fpushl
 0x1B  :  
 0x1C  :  
 0x1D  :  
@@ -334,6 +334,16 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// スタックからレジスタ内容へポップし、スタックポインタをインクリメントします：Ra = [SP]; ++SP;
         /// </summary>
         Pop = 0x18,
+
+        /// <summary>
+        /// レジスタへ浮動小数点即値をコピーします：Ra = Imm
+        /// </summary>
+        Fmovl = 0x19,
+
+        /// <summary>
+        /// スタックポインタをデクリメントしてから、浮動小数点即値をスタックへプッシュします：--SP; [SP] = Imm
+        /// </summary>
+        Fpushl = 0x1A,
         #endregion
 
         #region Arithmetic
