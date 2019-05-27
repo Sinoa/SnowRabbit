@@ -39,8 +39,9 @@ label-name
 
 op-code
     : 'halt'
-    | 'mov' | 'ldr' | 'str' | 'push' | 'pop'
+    | 'mov' | 'ldr' | 'str' | 'push' | 'pop' | 'fmov' | 'fpush'
     | 'add' | 'sub' | 'mul' | 'div' | 'mod' | 'pow'
+    | 'fadd' | 'fsub' | 'fmul' | 'fdiv' | 'fmod' | 'fpow'
     | 'or' | 'xor' | 'and' | 'not' | 'shl' | 'shr'
     | 'teq' | 'tne' | 'tg' | 'tge' | 'tl' | 'tle'
     | 'br' | 'bnz' | 'call' | 'callnz' | 'ret'

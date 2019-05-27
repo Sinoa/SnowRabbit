@@ -1082,6 +1082,124 @@ namespace CarrotAssemblerLib
 
 
     /// <summary>
+    /// fmov命令符号器クラスです
+    /// </summary>
+    public class OpCoderFmov : OpCoderBase
+    {
+        /// <summary>
+        /// 担当するOpCodeトークン種別
+        /// </summary>
+        public override int OpCodeTokenKind => CarrotAsmTokenKind.OpFmov;
+
+
+        /// <summary>
+        /// 担当する符号器名
+        /// </summary>
+        public override string OpCodeName => "fmov";
+
+
+
+        /// <summary>
+        /// 命令のエンコードを行います
+        /// </summary>
+        /// <param name="operand">エンコードする命令に渡すオペランド</param>
+        /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+        /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+        /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+        public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+        {
+            // 命令コードの初期化
+            instructionCode = default;
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Integer))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Fmovl;
+                instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                instructionCode.Immediate.Float = operand[1].Integer;
+                return true;
+            }
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, -1, CarrotAsmTokenKind.Number))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Fmovl;
+                instructionCode.Ra = TokenKindToRegisterNumber(operand[0].Kind);
+                instructionCode.Immediate.Float = (float)operand[1].Number;
+                return true;
+            }
+
+
+            // ここまで来てしまったら失敗を返す
+            return false;
+        }
+    }
+
+
+
+    /// <summary>
+    /// fpush命令符号器クラスです
+    /// </summary>
+    public class OpCoderFpush : OpCoderBase
+    {
+        /// <summary>
+        /// 担当するOpCodeトークン種別
+        /// </summary>
+        public override int OpCodeTokenKind => CarrotAsmTokenKind.OpPush;
+
+
+        /// <summary>
+        /// 担当する符号器名
+        /// </summary>
+        public override string OpCodeName => "fpush";
+
+
+
+        /// <summary>
+        /// 命令のエンコードを行います
+        /// </summary>
+        /// <param name="operand">エンコードする命令に渡すオペランド</param>
+        /// <param name="instructionCode">エンコードした命令を設定する命令コード構造体への参照</param>
+        /// <param name="message">エンコードに何かしらの問題が発生したときに設定するメッセージへの参照</param>
+        /// <returns>正しくエンコードが出来た場合は true を、失敗した場合は false を返します</returns>
+        public override bool Encode(List<Token> operand, out InstructionCode instructionCode, out string message)
+        {
+            // 命令コードの初期化
+            instructionCode = default;
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, CarrotAsmTokenKind.Integer))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Pushl;
+                instructionCode.Immediate.Float = operand[0].Integer;
+                return true;
+            }
+
+
+            // 引数テストに成功したら
+            if (TestOperandPattern(operand, out message, CarrotAsmTokenKind.Number))
+            {
+                // 命令を設定して成功を返す
+                instructionCode.OpCode = OpCode.Pushl;
+                instructionCode.Immediate.Float = (float)operand[0].Number;
+                return true;
+            }
+
+
+            // ここまで来てしまったら失敗を返す
+            return false;
+        }
+    }
+
+
+
+    /// <summary>
     /// add命令符号器クラスです
     /// </summary>
     public class OpCoderAdd : OpCoderBase

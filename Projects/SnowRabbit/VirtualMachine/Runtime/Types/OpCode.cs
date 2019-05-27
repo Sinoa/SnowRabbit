@@ -16,7 +16,7 @@
 /*
 
 ===== OpCode Assigned Table =====
-0x00  :  
+0x00  :  Don't used. Zero op code is cpu execute exception.
 0x01  :  Halt
 0x02  :  
 0x03  :  
