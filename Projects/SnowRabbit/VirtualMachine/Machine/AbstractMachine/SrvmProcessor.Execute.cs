@@ -40,6 +40,7 @@ namespace SnowRabbit.VirtualMachine.Machine
                 FetchRegisterInfo(ref instruction, out var regANumber, out var regBNumber, out var regCNumber, out var regAType, out var regBType, out var regCType);
                 var nextInstructionPointer = instructionPointer + 1;
                 var immediate = instruction.Immediate.Int;
+                var immediateF = instruction.Immediate.Float;
 
 
                 switch (instruction.OpCode)
@@ -102,6 +103,18 @@ namespace SnowRabbit.VirtualMachine.Machine
                         sp = context[RegisterSPIndex].Value.Long[0];
                         context[regANumber].Value.Long[0] = memory[(int)sp].Value.Long[0];
                         context[RegisterSPIndex].Value.Long[0] = sp - 1;
+                        break;
+
+
+                    case OpCode.Fmovl:
+                        context[regANumber].Value.Float[0] = immediateF;
+                        break;
+
+
+                    case OpCode.Fpushl:
+                        sp = context[RegisterSPIndex].Value.Long[0] - 1;
+                        memory[(int)sp].Value.Float[0] = immediateF;
+                        context[RegisterSPIndex].Value.Long[0] = sp;
                         break;
                     #endregion
 
