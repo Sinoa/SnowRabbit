@@ -103,6 +103,18 @@ namespace CarrotAssemblerLib
         public const int OpFpush = OpCodeKeywordOffset + 56;
 
         /// <summary>
+        /// movfti命令
+        /// 'movfti'
+        /// </summary>
+        public const int OpMovfti = OpCodeKeywordOffset + 57;
+
+        /// <summary>
+        /// movitf命令
+        /// 'movitf'
+        /// </summary>
+        public const int OpMovitf = OpCodeKeywordOffset + 58;
+
+        /// <summary>
         /// add命令
         /// 'add'
         /// </summary>
@@ -488,6 +500,8 @@ namespace CarrotAssemblerLib
             tokenTable["pop"] = CarrotAsmTokenKind.OpPop;
             tokenTable["fmov"] = CarrotAsmTokenKind.OpFmov;
             tokenTable["fpush"] = CarrotAsmTokenKind.OpFpush;
+            tokenTable["movfti"] = CarrotAsmTokenKind.OpMovfti;
+            tokenTable["movitf"] = CarrotAsmTokenKind.OpMovitf;
             tokenTable["add"] = CarrotAsmTokenKind.OpAdd;
             tokenTable["sub"] = CarrotAsmTokenKind.OpSub;
             tokenTable["mul"] = CarrotAsmTokenKind.OpMul;
