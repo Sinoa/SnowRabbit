@@ -91,6 +91,18 @@ namespace CarrotAssemblerLib
         public const int OpPop = OpCodeKeywordOffset + 50;
 
         /// <summary>
+        /// fmov命令
+        /// 'fmov'
+        /// </summary>
+        public const int OpFmov = OpCodeKeywordOffset + 55;
+
+        /// <summary>
+        /// fpush命令
+        /// 'fpush'
+        /// </summary>
+        public const int OpFpush = OpCodeKeywordOffset + 56;
+
+        /// <summary>
         /// add命令
         /// 'add'
         /// </summary>
@@ -197,6 +209,42 @@ namespace CarrotAssemblerLib
         /// 'tle'
         /// </summary>
         public const int OpTle = OpCodeKeywordOffset + 230;
+
+        /// <summary>
+        /// fadd命令
+        /// 'fadd'
+        /// </summary>
+        public const int OpFadd = OpCodeKeywordOffset + 231;
+
+        /// <summary>
+        /// fsub命令
+        /// 'fsub'
+        /// </summary>
+        public const int OpFsub = OpCodeKeywordOffset + 232;
+
+        /// <summary>
+        /// fmul命令
+        /// 'fmul'
+        /// </summary>
+        public const int OpFmul = OpCodeKeywordOffset + 233;
+
+        /// <summary>
+        /// fdiv命令
+        /// 'fdiv'
+        /// </summary>
+        public const int OpFdiv = OpCodeKeywordOffset + 234;
+
+        /// <summary>
+        /// fmod命令
+        /// 'fmod'
+        /// </summary>
+        public const int OpFmod = OpCodeKeywordOffset + 235;
+
+        /// <summary>
+        /// fpow命令
+        /// 'fpow'
+        /// </summary>
+        public const int OpFpow = OpCodeKeywordOffset + 236;
 
         /// <summary>
         /// br命令
@@ -438,12 +486,20 @@ namespace CarrotAssemblerLib
             tokenTable["str"] = CarrotAsmTokenKind.OpStr;
             tokenTable["push"] = CarrotAsmTokenKind.OpPush;
             tokenTable["pop"] = CarrotAsmTokenKind.OpPop;
+            tokenTable["fmov"] = CarrotAsmTokenKind.OpFmov;
+            tokenTable["fpush"] = CarrotAsmTokenKind.OpFpush;
             tokenTable["add"] = CarrotAsmTokenKind.OpAdd;
             tokenTable["sub"] = CarrotAsmTokenKind.OpSub;
             tokenTable["mul"] = CarrotAsmTokenKind.OpMul;
             tokenTable["div"] = CarrotAsmTokenKind.OpDiv;
             tokenTable["mod"] = CarrotAsmTokenKind.OpMod;
             tokenTable["pow"] = CarrotAsmTokenKind.OpPow;
+            tokenTable["fadd"] = CarrotAsmTokenKind.OpFadd;
+            tokenTable["fsub"] = CarrotAsmTokenKind.OpFsub;
+            tokenTable["fmul"] = CarrotAsmTokenKind.OpFmul;
+            tokenTable["fdiv"] = CarrotAsmTokenKind.OpFdiv;
+            tokenTable["fmod"] = CarrotAsmTokenKind.OpFmod;
+            tokenTable["fpow"] = CarrotAsmTokenKind.OpFpow;
             tokenTable["or"] = CarrotAsmTokenKind.OpOr;
             tokenTable["xor"] = CarrotAsmTokenKind.OpXor;
             tokenTable["and"] = CarrotAsmTokenKind.OpAnd;
