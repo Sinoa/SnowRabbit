@@ -58,9 +58,15 @@ namespace SnowRabbit.VirtualMachine.Runtime
         }
 
 
-        public unsafe long GetValue(int index)
+        public unsafe long GetInteger(int index)
         {
             return stack[index].Value.Long[0];
+        }
+
+
+        public unsafe float GetNumber(int index)
+        {
+            return stack[index].Value.Float[0];
         }
 
 
@@ -70,9 +76,15 @@ namespace SnowRabbit.VirtualMachine.Runtime
         }
 
 
-        public unsafe long GetResultValue()
+        public unsafe long GetResultInteger()
         {
             return resultValue.Value.Long[0];
+        }
+
+
+        public unsafe float GetResultNumber()
+        {
+            return resultValue.Value.Float[0];
         }
 
 
@@ -82,9 +94,15 @@ namespace SnowRabbit.VirtualMachine.Runtime
         }
 
 
-        public unsafe void SetResultValue(long value)
+        public unsafe void SetResultInteger(long value)
         {
             resultValue.Value.Long[0] = value;
+        }
+
+
+        public unsafe void SetResultNumber(float value)
+        {
+            resultValue.Value.Float[0] = value;
         }
 
 
