@@ -21,6 +21,11 @@ namespace SnowRabbit.VirtualMachine.Runtime
     public struct SrProcess
     {
         /// <summary>
+        /// このプロセスのID。負の値の場合は無効なプロセスIDとなる。
+        /// </summary>
+        internal int ProcessID;
+
+        /// <summary>
         /// このプロセスを実行するプロセッサコンテキストのメモリブロック
         /// </summary>
         internal MemoryBlock<SrValue> ProcessorContext;

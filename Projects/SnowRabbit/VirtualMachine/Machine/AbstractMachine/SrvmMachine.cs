@@ -26,6 +26,7 @@ namespace SnowRabbit.VirtualMachine.Machine
     {
         // メンバ変数定義
         private MachinePartsInfo machineParts;
+        private int nextProcessID;
 
 
 
@@ -162,6 +163,10 @@ namespace SnowRabbit.VirtualMachine.Machine
             process = default;
             Firmware.LoadProgram(programPath ?? throw new ArgumentNullException(nameof(programPath)), ref process);
             Processor.InitializeContext(ref process);
+
+
+            // プロセスIDをインクリメントして振る
+            process.ProcessID = ++nextProcessID;
         }
 
 
@@ -177,6 +182,10 @@ namespace SnowRabbit.VirtualMachine.Machine
             process = default;
             Firmware.LoadProgram(programData ?? throw new ArgumentNullException(nameof(programData)), ref process);
             Processor.InitializeContext(ref process);
+
+
+            // プロセスIDをインクリメントして振る
+            process.ProcessID = ++nextProcessID;
         }
 
 
@@ -192,6 +201,10 @@ namespace SnowRabbit.VirtualMachine.Machine
             process = default;
             Firmware.LoadProgram(programStream ?? throw new ArgumentNullException(nameof(programStream)), ref process);
             Processor.InitializeContext(ref process);
+
+
+            // プロセスIDをインクリメントして振る
+            process.ProcessID = ++nextProcessID;
         }
 
 

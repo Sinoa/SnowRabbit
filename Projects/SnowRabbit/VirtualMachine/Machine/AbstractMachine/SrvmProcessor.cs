@@ -40,36 +40,6 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
 
-        #region Register Control
-        /// <summary>
-        /// 指定されたプロセスのプロセッサコンテキストのレジスタに値を設定します
-        /// </summary>
-        /// <param name="process">設定する対象のコンテキストを持っているプロセス</param>
-        /// <param name="registerIndex">設定するレジスタインデックス</param>
-        /// <param name="value">設定する値</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe static void SetRegisterValue(ref SrProcess process, int registerIndex, long value)
-        {
-            // 指定されたインデックスに無条件で値を設定する
-            process.ProcessorContext[registerIndex].Value.Long[0] = value;
-        }
-
-
-        /// <summary>
-        /// 指定されたプロセスのプロセッサコンテキストのレジスタの値を取得します
-        /// </summary>
-        /// <param name="process">取得する対象のコンテキストを持っているプロセス</param>
-        /// <param name="registerIndex">取得するレジスタインデックス</param>
-        /// <returns>取得された値を返します</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe static long GetRegisterValue(ref SrProcess process, int registerIndex)
-        {
-            // 指定されたインデックスの値を無条件で返す
-            return process.ProcessorContext[registerIndex].Value.Long[0];
-        }
-        #endregion
-
-
         #region Context Control
         /// <summary>
         /// 指定されたプロセスのプロセッサコンテキストを初期化します
@@ -84,14 +54,14 @@ namespace SnowRabbit.VirtualMachine.Machine
             process.ProcessorContext = Machine.Memory.AllocateValue(ProcessorContextSize, AllocationType.VMContext);
             for (int i = 0; i < RegisterTotalCount; ++i)
             {
-                // 値を0クリア
-                SetRegisterValue(ref process, i, 0);
+                // 無条件で0を設定する
+                process.ProcessorContext[i].Value.Long[0] = 0;
             }
 
 
             // スタックおよびベースポインタはプロセスメモリの末尾へ（インデックス境界外なのは、デクリメントしてからのプッシュ、ポップしてからのインクリメント、の方式のため）
-            SetRegisterValue(ref process, RegisterBPIndex, process.ProcessMemory.Length);
-            SetRegisterValue(ref process, RegisterSPIndex, process.ProcessMemory.Length);
+            process.ProcessorContext[RegisterSPIndex].Value.Long[0] = process.ProcessMemory.Length;
+            process.ProcessorContext[RegisterBPIndex].Value.Long[0] = process.ProcessMemory.Length;
         }
 
 
