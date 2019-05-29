@@ -26,12 +26,12 @@ namespace SnowRabbit.VirtualMachine.Runtime
         internal MemoryBlock<SrValue> ProcessorContext;
 
         /// <summary>
-        /// このプロセスが持つ従来のメモリブロック
+        /// このプロセスが持つプロセス空間のメモリブロック
         /// </summary>
         internal MemoryBlock<SrValue> ProcessMemory;
 
         /// <summary>
-        /// このプロセスが持つオブジェクトメモリブロック
+        /// このプロセスが持つプロセス空間のオブジェクトメモリブロック
         /// </summary>
         internal MemoryBlock<SrObject> ObjectMemory;
     }
