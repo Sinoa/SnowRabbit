@@ -49,8 +49,14 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
 
+        /// <summary>
+        /// SrStackFrame 構造体のインスタンスを初期化します
+        /// </summary>
+        /// <param name="stack">スタックフレームとして切り出されたメモリブロック</param>
+        /// <param name="objectMemory">仮想マシンのオブジェクトメモリ本体</param>
         public SrStackFrame(MemoryBlock<SrValue> stack, MemoryBlock<SrObject> objectMemory)
         {
+            // メンバ変数の初期化をする
             this.stack = stack;
             this.objectMemory = objectMemory;
             resultValue = default;
@@ -58,57 +64,111 @@ namespace SnowRabbit.VirtualMachine.Runtime
         }
 
 
+        #region スタックフレームのデータ取得関数群
+        /// <summary>
+        /// スタックフレームから整数型として取得します
+        /// </summary>
+        /// <param name="index">スタックフレームから取得するスタックのインデックス。インデックス 0 がスタックフレームトップを指します。</param>
+        /// <returns>指定されたインデックスの整数データを返します</returns>
         public unsafe long GetInteger(int index)
         {
+            // 指定されたインデックスのデータを返す（実際のインデックス境界チェックはデバッグビルド時のみ保証しています）
             return stack[index].Value.Long[0];
         }
 
 
+        /// <summary>
+        /// スタックフレームから浮動小数点型として取得します
+        /// </summary>
+        /// <param name="index">スタックフレームから取得するスタックのインデックス。インデックス 0 がスタックフレームトップを指します。</param>
+        /// <returns>指定されたインデックスの浮動小数点データを返します</returns>
         public unsafe float GetNumber(int index)
         {
+            // 指定されたインデックスのデータを返す（実際のインデックス境界チェックはデバッグビルド時のみ保証しています）
             return stack[index].Value.Float[0];
         }
 
 
+        /// <summary>
+        /// スタックフレームからオブジェクト型として取得します
+        /// </summary>
+        /// <param name="index">スタックフレームから取得するスタックのインデックス。インデックス 0 がスタックフレームトップを指します。</param>
+        /// <returns>指定されたインデックスのオブジェクトデータを返します</returns>
         public unsafe object GetObject(int index)
         {
+            // 指定されたインデックスのデータを返す（実際のインデックス境界チェックはデバッグビルド時のみ保証しています）
             return objectMemory[(int)stack[index].Value.Long[0]].Value;
         }
+        #endregion
 
 
-        public unsafe long GetResultInteger()
-        {
-            return resultValue.Value.Long[0];
-        }
-
-
-        public unsafe float GetResultNumber()
-        {
-            return resultValue.Value.Float[0];
-        }
-
-
-        public unsafe object GetResultObject()
-        {
-            return resultObject.Value;
-        }
-
-
+        #region スタックフレームに関数の戻り値を設定する関数群
+        /// <summary>
+        /// 仮想マシンに対して返すための関数の戻り値を、スタックフレームに設定します
+        /// </summary>
+        /// <param name="value">スタックフレームに設定する値</param>
         public unsafe void SetResultInteger(long value)
         {
+            // 受け取った値をそのまま設定
             resultValue.Value.Long[0] = value;
         }
 
 
+        /// <summary>
+        /// 仮想マシンに対して返すための関数の戻り値を、スタックフレームに設定します
+        /// </summary>
+        /// <param name="value">スタックフレームに設定する値</param>
         public unsafe void SetResultNumber(float value)
         {
+            // 受け取った値をそのまま設定
             resultValue.Value.Float[0] = value;
         }
 
 
+        /// <summary>
+        /// 仮想マシンに対して返すための関数の戻り値を、スタックフレームに設定します
+        /// </summary>
+        /// <param name="value">スタックフレームに設定する値</param>
         public unsafe void SetResultObject(object value)
         {
+            // 受け取った値をそのまま設定
             resultObject.Value = value;
         }
+        #endregion
+
+
+        #region スタックフレームから関数の戻り値を取得する関数群
+        /// <summary>
+        /// スタックフレームに設定した関数の戻り値を取得します
+        /// </summary>
+        /// <returns>設定された関数の戻り値を返します</returns>
+        public unsafe long GetResultInteger()
+        {
+            // どんな値が入っていようとそのまま返す
+            return resultValue.Value.Long[0];
+        }
+
+
+        /// <summary>
+        /// スタックフレームに設定した関数の戻り値を取得します
+        /// </summary>
+        /// <returns>設定された関数の戻り値を返します</returns>
+        public unsafe float GetResultNumber()
+        {
+            // どんな値が入っていようとそのまま返す
+            return resultValue.Value.Float[0];
+        }
+
+
+        /// <summary>
+        /// スタックフレームに設定した関数の戻り値を取得します
+        /// </summary>
+        /// <returns>設定された関数の戻り値を返します</returns>
+        public unsafe object GetResultObject()
+        {
+            // どんな値が入っていようとそのまま返す
+            return resultObject.Value;
+        }
+        #endregion
     }
 }
