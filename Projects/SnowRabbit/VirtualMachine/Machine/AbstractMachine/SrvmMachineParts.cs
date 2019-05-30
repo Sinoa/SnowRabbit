@@ -13,13 +13,20 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
+
 namespace SnowRabbit.VirtualMachine.Machine
 {
     /// <summary>
     /// 仮想マシンが実装する仮想マシンパーツ抽象クラスです
     /// </summary>
-    public abstract class SrvmMachineParts
+    public abstract class SrvmMachineParts : IDisposable
     {
+        // メンバ変数定義
+        private bool disposed;
+
+
+
         /// <summary>
         /// このメモリを搭載している仮想マシン
         /// </summary>
@@ -28,18 +35,42 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
         /// <summary>
-        /// 仮想マシンパーツの起動を行います
+        /// SrvmMachineParts クラスのリソース解放を行います
         /// </summary>
-        protected internal virtual void Startup()
+        ~SrvmMachineParts()
         {
+            // ファイナライザからのDispose呼び出し
+            Dispose(false);
         }
 
 
         /// <summary>
-        /// 仮想マシンパーツの停止を行います
+        /// SrvmMachineParts クラスのリソース解放を行います
         /// </summary>
-        protected internal virtual void Shutdown()
+        public void Dispose()
         {
+            // DisposeからのDispose呼び出しをしてGCにファイナライザを呼ばないようにしてもらう
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+
+        /// <summary>
+        /// 実際のリソース解放を行います
+        /// </summary>
+        /// <param name="disposing">マネージドを含む解放の場合は true を、アンマネージドのみの場合は false を指定</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            // 既に解放済みなら
+            if (disposed)
+            {
+                // 何もせず終了
+                return;
+            }
+
+
+            // 解放済みマーク
+            disposed = true;
         }
     }
 }
