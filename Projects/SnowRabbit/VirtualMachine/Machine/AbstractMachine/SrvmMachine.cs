@@ -14,7 +14,6 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
-using System.IO;
 using SnowRabbit.VirtualMachine.Runtime;
 
 namespace SnowRabbit.VirtualMachine.Machine
@@ -22,9 +21,10 @@ namespace SnowRabbit.VirtualMachine.Machine
     /// <summary>
     /// 仮想マシン本体を表す仮想マシン抽象クラスです
     /// </summary>
-    public abstract class SrvmMachine
+    public abstract class SrvmMachine : IDisposable
     {
         // メンバ変数定義
+        private bool disposed;
         private int nextProcessID;
 
 
@@ -54,8 +54,10 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
 
+        #region Constructor and dispose
         /// <summary>
         /// SrvmMachine のインスタンスを初期化します。
+        /// 引数として渡された各インスタンスは、このインスタンスが破棄される時に同時にDisposeを呼び出します。
         /// </summary>
         /// <param name="processor">仮想マシンが使用するプロセッサ</param>
         /// <param name="firmware">仮想マシンが使用するファームウェア</param>
@@ -76,7 +78,85 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
         /// <summary>
-        /// 仮想マシンに実行してもらうプログラムを指定してプロセスを生成します。
+        /// インスタンスのリソースを解放します
+        /// </summary>
+        ~SrvmMachine()
+        {
+            // ファイナライザからのDispose呼び出し
+            Dispose(false);
+        }
+
+
+        /// <summary>
+        /// インスタンスのリソースを解放します
+        /// </summary>
+        public void Dispose()
+        {
+            // DisposeからのDispose呼び出しをしてGCに自身のファイナライザを止めてもらう
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+
+        /// <summary>
+        /// インスタンスの実際のリソースを解放します
+        /// </summary>
+        /// <param name="disposing">マネージドを含む解放の場合は true を、アンマネージドのみの場合は false を指定</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            // 既に解放済みなら
+            if (disposed)
+            {
+                // 何もしない
+                return;
+            }
+
+
+            // マネージの解放なら
+            if (disposing)
+            {
+                // 各種パーツの解放を行う
+                Firmware.Dispose();
+                Memory.Dispose();
+                Storage.Dispose();
+                Processor.Dispose();
+            }
+
+
+            // 解放済みマーク
+            disposed = true;
+        }
+        #endregion
+
+
+        #region Peripheral functions
+        /// <summary>
+        /// 仮想マシンに周辺機器装置を接続します。
+        /// 周辺機器装置を接続したままこのインスタンスが破棄された時に、渡されたインスタンスもDisposeを呼び出します。
+        /// </summary>
+        /// <param name="peripheral">接続する周辺機器装置</param>
+        /// <exception cref="ArgumentException">指定された周辺機器は同名の周辺機器が接続済みです</exception>
+        public void AttachPeripheral(SrvmPeripheral peripheral)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        /// <summary>
+        /// 仮想マシンから周辺機器装置を外します。
+        /// 外した場合は渡されたインスタンスのDisposeは呼び出しません。
+        /// </summary>
+        /// <param name="peripheral">外す周辺機器装置</param>
+        public void DetachPeripheral(SrvmPeripheral peripheral)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+
+        #region Process functions
+        /// <summary>
+        /// 仮想マシンに実行してもらうプログラムを指定してプロセスを生成します
         /// </summary>
         /// <param name="programPath">実行するプログラムパス</param>
         /// <param name="process">プログラムを実行するプロセスを出力します</param>
@@ -96,40 +176,12 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
         /// <summary>
-        /// 仮想マシンに実行してもらうプログラムを指定してプロセスを生成します。
+        /// 仮想マシンに指定されたプロセスを終了させます
         /// </summary>
-        /// <param name="programData">実行するプログラムバイト配列</param>
-        /// <param name="process">プログラムを実行するプロセスを出力します</param>
-        /// <exception cref="ArgumentNullException">programData が null です</exception>
-        public void CreateProcess(byte[] programData, out SrProcess process)
+        /// <param name="process">終了させるプロセス</param>
+        public void TerminateProcess(ref SrProcess process)
         {
-            // プロセスの既定初期化をしてからファームウェアにプログラムのロードをしてもらう
-            process = default;
-            Firmware.LoadProgram(programData ?? throw new ArgumentNullException(nameof(programData)), ref process);
-            Processor.InitializeContext(ref process);
-
-
-            // プロセスIDをインクリメントして振る
-            process.ProcessID = ++nextProcessID;
-        }
-
-
-        /// <summary>
-        /// 仮想マシンに実行してもらうプログラムを指定してプロセスを生成します。
-        /// </summary>
-        /// <param name="programStream">実行するプログラムストリーム</param>
-        /// <param name="process">プログラムを実行するプロセスを出力します</param>
-        /// <exception cref="ArgumentNullException">programStream が null です</exception>
-        public void CreateProcess(Stream programStream, out SrProcess process)
-        {
-            // プロセスの既定初期化をしてからファームウェアにプログラムのロードをしてもらう
-            process = default;
-            Firmware.LoadProgram(programStream ?? throw new ArgumentNullException(nameof(programStream)), ref process);
-            Processor.InitializeContext(ref process);
-
-
-            // プロセスIDをインクリメントして振る
-            process.ProcessID = ++nextProcessID;
+            throw new NotImplementedException();
         }
 
 
@@ -142,5 +194,6 @@ namespace SnowRabbit.VirtualMachine.Machine
             // プロセッサにそのまま実行してもらう
             Processor.Execute(ref process);
         }
+        #endregion
     }
 }

@@ -35,7 +35,7 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
         /// <summary>
-        /// SrvmMachineParts クラスのリソース解放を行います
+        /// インスタンスのリソースを解放します
         /// </summary>
         ~SrvmMachineParts()
         {
@@ -45,7 +45,7 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
         /// <summary>
-        /// SrvmMachineParts クラスのリソース解放を行います
+        /// インスタンスのリソースを解放します
         /// </summary>
         public void Dispose()
         {
@@ -56,7 +56,7 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
         /// <summary>
-        /// 実際のリソース解放を行います
+        /// インスタンスの実際のリソースを解放します
         /// </summary>
         /// <param name="disposing">マネージドを含む解放の場合は true を、アンマネージドのみの場合は false を指定</param>
         protected virtual void Dispose(bool disposing)
