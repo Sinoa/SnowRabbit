@@ -151,6 +151,12 @@ namespace SnowRabbit.VirtualMachine.Machine
         {
             throw new NotImplementedException();
         }
+
+
+        public SrvmPeripheral GetPeripheral()
+        {
+            throw new NotImplementedException();
+        }
         #endregion
 
 

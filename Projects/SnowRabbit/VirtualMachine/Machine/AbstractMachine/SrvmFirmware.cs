@@ -34,14 +34,17 @@ namespace SnowRabbit.VirtualMachine.Machine
         private const byte CarrotObjectFormatSignature3 = 0xFF;
 
         // メンバ変数定義
-        private byte[] readBuffer; // Span<byte> readBuffer = stackalloc byte[n];が目標（UnityがSpan<T>対応してくれれば考える）
-        private Encoding encoding;
+        private bool disposed;
+        private int nextProcessID;
         private int nextPeripheralID;
         private Dictionary<string, int> peripheralIDTable;
         private Dictionary<int, SrvmPeripheral> peripheralTable;
+        private byte[] readBuffer; // Span<byte> readBuffer = stackalloc byte[n];が目標（UnityがSpan<T>対応してくれれば考える）
+        private Encoding encoding;
 
 
 
+        #region Constructor and Dispose
         /// <summary>
         /// SrvmFirmware のインスタンスを初期化します
         /// </summary>
@@ -51,7 +54,7 @@ namespace SnowRabbit.VirtualMachine.Machine
             readBuffer = new byte[ReadBufferSize];
 
 
-            // UTF-8エンコーディングを生成しておく
+            // BOM無しUTF-8エンコーディングを生成しておく
             encoding = new UTF8Encoding(false);
 
 
@@ -59,9 +62,46 @@ namespace SnowRabbit.VirtualMachine.Machine
             peripheralIDTable = new Dictionary<string, int>();
             peripheralTable = new Dictionary<int, SrvmPeripheral>();
             nextPeripheralID = 0;
+
+
+            // 次に生成するべきプロセスIDは1から
+            nextProcessID = 1;
         }
 
 
+        /// <summary>
+        /// インスタンスのリソースを解放します
+        /// </summary>
+        /// <param name="disposing">マネージドを含む解放の場合は true を、アンマネージドのみの場合は false を指定</param>
+        protected override void Dispose(bool disposing)
+        {
+            // 既に解放済みなら
+            if (disposed)
+            {
+                // 終了
+                return;
+            }
+
+
+            // 周辺機器の数だけ回る
+            foreach (var peripheralRecord in peripheralTable)
+            {
+                // 周辺機器の解放も呼び出す
+                peripheralRecord.Value.Dispose();
+            }
+
+
+            // 解放済みマーク
+            disposed = true;
+
+
+            // 基本クラスのDisposeも呼ぶ
+            base.Dispose(disposing);
+        }
+        #endregion
+
+
+        #region Program load functions
         /// <summary>
         /// 指定されたプロセスにプログラムをロードします
         /// </summary>
@@ -245,9 +285,11 @@ namespace SnowRabbit.VirtualMachine.Machine
                 objectMemory[index].Value = encoding.GetString(stringReadBuffer, 0, dataSize);
             }
         }
+        #endregion
 
 
-        internal void AddPeripheral(string name, SrvmPeripheral peripheral)
+        #region Peripheral control functions
+        internal void AddPeripheral(SrvmPeripheral peripheral)
         {
             var peripheralId = nextPeripheralID++;
             peripheralIDTable[name] = peripheralId;
@@ -272,5 +314,6 @@ namespace SnowRabbit.VirtualMachine.Machine
             peripheralTable.Clear();
             peripheralIDTable.Clear();
         }
+        #endregion
     }
 }
