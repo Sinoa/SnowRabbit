@@ -25,6 +25,7 @@ namespace SnowRabbit.VirtualMachine.Machine
     public abstract class SrvmPeripheral : SrvmMachineParts
     {
         // メンバ変数定義
+        private bool disposed;
         private int nextFunctionID;
         private Dictionary<string, int> functionIDTable;
         private Dictionary<int, Action<SrStackFrame>> functionTable;
@@ -51,6 +52,44 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
         /// <summary>
+        /// リソースの解放を行います
+        /// </summary>
+        /// <param name="disposing">マネージ解放の時はtrueを、アンマネージのみの解放の時はfalse</param>
+        protected override void Dispose(bool disposing)
+        {
+            // 既に解放済みなら
+            if (disposed)
+            {
+                // 何もせず終了
+                return;
+            }
+
+
+            // マネージ解放なら
+            if (disposing)
+            {
+                // 関数テーブルの情報をクリア
+                UnregisterFunctionAll();
+            }
+
+
+            // 解放済みをマーク
+            disposed = true;
+
+
+            // ベースクラスのDisposeも呼ぶ
+            base.Dispose(disposing);
+        }
+
+
+        /// <summary>
+        /// 周辺機器装置が提供する関数をセットアップします
+        /// </summary>
+        /// <param name="registryHandler">関数を登録する関数が渡されます</param>
+        protected abstract void SetupFunction(Action<string, Action<SrStackFrame>> registryHandler);
+
+
+        /// <summary>
         /// 関数テーブルを初期化します
         /// </summary>
         internal void InitializeFunctionTable()
@@ -65,31 +104,56 @@ namespace SnowRabbit.VirtualMachine.Machine
         /// </summary>
         internal void UnregisterFunctionAll()
         {
+            // 関数IDテーブルと関数テーブルのクリア
             functionTable.Clear();
             functionIDTable.Clear();
         }
 
 
+        /// <summary>
+        /// 指定された名前の関数IDを取得します
+        /// </summary>
+        /// <param name="name">取得するIDの関数名</param>
+        /// <returns>関数IDが正しく取得された場合はIDを返しますが、取得できなかった場合は -1 を返します</returns>
         internal int GetFunctionID(string name)
         {
+            // 指定された名前でID取得を試みて、成功したら返して、駄目だったら-1を返す
             return functionIDTable.TryGetValue(name, out var id) ? id : -1;
         }
 
 
+        /// <summary>
+        /// 指定されたIDの関数を取得します
+        /// </summary>
+        /// <param name="id">取得したい関数のID</param>
+        /// <returns>指定されたIDに該当する関数が取得された場合その関数を返しますが、取得できなかった場合は null を返します</returns>
         internal Action<SrStackFrame> GetFunction(int id)
         {
+            // 指定されたIDで関数取得を試みて、成功したら返して、駄目だったら null を返す
             return functionTable.TryGetValue(id, out var function) ? function : null;
         }
 
 
+        /// <summary>
+        /// 関数テーブルに関数を登録します。また、この関数は同じ名前が指定された場合は上書きすることに注意して下さい。
+        /// </summary>
+        /// <param name="name">登録する関数の名前</param>
+        /// <param name="hostFunction">登録する関数の実体</param>
+        /// <exception cref="ArgumentException">name が null か 空白のみ です。必ず有効な名前である必要があります</exception>
         private void AddFunction(string name, Action<SrStackFrame> hostFunction)
         {
+            // もし取り扱えない名前なら
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                // 取り扱えない名前は拒否
+                throw new ArgumentException("name が null か 空白のみ です。必ず有効な名前である必要があります", nameof(name));
+            }
+
+
+            // 関数IDを用意して関数テーブルに関数を登録する
             var functionID = nextFunctionID++;
             functionIDTable[name] = functionID;
             functionTable[functionID] = hostFunction;
         }
-
-
-        protected abstract void SetupFunction(Action<string, Action<SrStackFrame>> registryHandler);
     }
 }
