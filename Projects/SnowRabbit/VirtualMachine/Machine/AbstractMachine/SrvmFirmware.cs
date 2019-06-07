@@ -112,6 +112,22 @@ namespace SnowRabbit.VirtualMachine.Machine
 
         #region Program load functions
         /// <summary>
+        /// 指定されたプログラムパスからプロセスを生成します
+        /// </summary>
+        /// <param name="programPath">プロセスを生成する元になるプログラムのパス</param>
+        /// <param name="process">生成されたプロセスを設定する</param>
+        internal void CreateProcess(string programPath, out SrProcess process)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        internal void TerminateProcess(ref SrProcess process)
+        {
+        }
+
+
+        /// <summary>
         /// 指定されたプロセスにプログラムをロードします
         /// </summary>
         /// <param name="programPath">ロードするプログラム</param>
