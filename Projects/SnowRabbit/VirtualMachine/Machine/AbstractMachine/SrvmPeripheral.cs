@@ -68,8 +68,9 @@ namespace SnowRabbit.VirtualMachine.Machine
             // マネージ解放なら
             if (disposing)
             {
-                // 関数テーブルの情報をクリア
-                UnregisterFunctionAll();
+                // 関数IDテーブルと関数テーブルのクリア
+                functionTable.Clear();
+                functionIDTable.Clear();
             }
 
 
@@ -96,17 +97,6 @@ namespace SnowRabbit.VirtualMachine.Machine
         {
             // 関数テーブルに登録するための関数を関数セットアップ関数に渡す
             SetupFunction(AddFunction);
-        }
-
-
-        /// <summary>
-        /// 関数テーブルに登録されているすべての関数を解除します
-        /// </summary>
-        internal void UnregisterFunctionAll()
-        {
-            // 関数IDテーブルと関数テーブルのクリア
-            functionTable.Clear();
-            functionIDTable.Clear();
         }
 
 

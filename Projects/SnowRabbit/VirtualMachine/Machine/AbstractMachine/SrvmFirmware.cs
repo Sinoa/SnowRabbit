@@ -83,11 +83,20 @@ namespace SnowRabbit.VirtualMachine.Machine
             }
 
 
-            // 周辺機器の数だけ回る
-            foreach (var peripheralRecord in peripheralTable)
+            // マネージ解放なら
+            if (disposing)
             {
-                // 周辺機器の解放も呼び出す
-                peripheralRecord.Value.Dispose();
+                // 周辺機器の数だけ回る
+                foreach (var peripheralRecord in peripheralTable)
+                {
+                    // 周辺機器の解放も呼び出す
+                    peripheralRecord.Value.Dispose();
+                }
+
+
+                // 周辺機器テーブルをクリアする
+                peripheralTable.Clear();
+                peripheralIDTable.Clear();
             }
 
 
@@ -289,30 +298,59 @@ namespace SnowRabbit.VirtualMachine.Machine
 
 
         #region Peripheral control functions
+        /// <summary>
+        /// 周辺機器をファームウェアに追加します。追加された周辺機器はこのインスタンスが解放される時、一緒に解放されます。
+        /// </summary>
+        /// <param name="peripheral">追加する周辺機器のインスタンス</param>
+        /// <exception cref="ArgumentNullException">peripheral が null です</exception>
+        /// <exception cref="ArgumentException">追加しようとした周辺機器の名前が null または 空白 です</exception>
         internal void AddPeripheral(SrvmPeripheral peripheral)
         {
+            // null を渡されたら
+            if (peripheral == null)
+            {
+                // 追加することは出来ないので例外を吐く
+                throw new ArgumentNullException(nameof(peripheral));
+            }
+
+
+            // 追加する周辺機器名がnullだったり空白のみである場合は
+            if (string.IsNullOrWhiteSpace(peripheral.PeripheralName))
+            {
+                // 周辺機器名が正しくない
+                throw new ArgumentException("追加しようとした周辺機器の名前が null または 空白 です", nameof(peripheral));
+            }
+
+
+            // 周辺機器IDを作って周辺機器テーブルに追加
+            var peripheralName = peripheral.PeripheralName;
             var peripheralId = nextPeripheralID++;
-            peripheralIDTable[name] = peripheralId;
+            peripheralIDTable[peripheralName] = peripheralId;
             peripheralTable[peripheralId] = peripheral;
         }
 
 
-        internal SrvmPeripheral GetPeripheral(int id)
-        {
-            return peripheralTable.TryGetValue(id, out var peripheral) ? peripheral : null;
-        }
-
-
+        /// <summary>
+        /// 周辺機器名から周辺機器IDを取得します
+        /// </summary>
+        /// <param name="name">IDを取得する周辺機器名</param>
+        /// <returns>周辺機器IDが取得できた場合はその値を返しますが、取得が出来なかった場合は -1 を返します</returns>
         internal int GetPeripheralID(string name)
         {
+            // 名前から取得を試みて成功したら返して、駄目だったら -1 を返す
             return peripheralIDTable.TryGetValue(name, out var id) ? id : -1;
         }
 
 
-        internal void DisassemblyPeripheralAll()
+        /// <summary>
+        /// 周辺機器IDから周辺機器を取得します
+        /// </summary>
+        /// <param name="id">取得したい周辺機器</param>
+        /// <returns>正常に周辺機器の取得ができた場合は参照を返しますが、取得ができなかった場合は null を返します</returns>
+        internal SrvmPeripheral GetPeripheral(int id)
         {
-            peripheralTable.Clear();
-            peripheralIDTable.Clear();
+            // IDから取得を試みて成功したら返して、駄目だったら null を返す
+            return peripheralTable.TryGetValue(id, out var peripheral) ? peripheral : null;
         }
         #endregion
     }
