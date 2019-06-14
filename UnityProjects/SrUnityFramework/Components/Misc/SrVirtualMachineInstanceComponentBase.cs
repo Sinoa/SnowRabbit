@@ -28,5 +28,16 @@ namespace SrUnityFramework.Components
         /// 仮想マシンのインスタンスを取得します
         /// </summary>
         public SrvmMachine Instance { get; protected set; }
+
+
+
+        /// <summary>
+        /// コンポーネントの解放をします
+        /// </summary>
+        protected virtual void OnDestroy()
+        {
+            // インスタンスが存在しているならDisposeする
+            Instance?.Dispose();
+        }
     }
 }

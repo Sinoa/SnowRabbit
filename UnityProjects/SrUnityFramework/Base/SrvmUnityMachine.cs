@@ -25,41 +25,14 @@ namespace SrUnityFramework.Base
     /// </summary>
     public class SrvmUnityMachine : SrvmMachine
     {
-        // メンバ変数定義
-        private int objectMemorySize;
-        private int valueMemorySize;
-
-
-
         /// <summary>
         /// SrvmUnityMachine クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="objectMemorySize">オブジェクトメモリに割り当てるメモリのバイトサイズ</param>
         /// <param name="valueMemorySize">メインメモリに割り当てるメモリのバイトサイズ</param>
         public SrvmUnityMachine(int objectMemorySize, int valueMemorySize)
+            : base(new SrvmUnityProcessor(), new SrvmUnityFirmware(), new SrvmUnityMemory(objectMemorySize, valueMemorySize), new SrvmUnityStorage())
         {
-            // メモリ確保サイズの値を覚える
-            this.objectMemorySize = objectMemorySize;
-            this.valueMemorySize = valueMemorySize;
-        }
-
-
-
-        /// <summary>
-        /// Unity向けマシンパーツを構築します
-        /// </summary>
-        /// <param name="machinePartsInfo">仮想マシンパーツ情報を設定する参照</param>
-        protected override void BuildMachine(out MachinePartsInfo machinePartsInfo)
-        {
-            // Unity向けマシンパーツを載せる
-            machinePartsInfo = new MachinePartsInfo()
-            {
-                Processor = new SrvmUnityProcessor(),
-                Firmware = new SrvmUnityFirmware(),
-                Memory = new SrvmUnityMemory(objectMemorySize, valueMemorySize),
-                Storage = new SrvmUnityStorage(),
-                Peripherals = null,
-            };
         }
     }
 

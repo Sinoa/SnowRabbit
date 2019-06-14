@@ -41,7 +41,6 @@ namespace SrUnityFramework.Components
         {
             // 仮想マシンのインスタンスを生成して起動する
             Instance = new SrvmUnityMachine(objectMemorySize, valueMemorySize);
-            Instance.PowerOn();
 
 
             // もし破棄禁止設定をされていたら
@@ -50,16 +49,6 @@ namespace SrUnityFramework.Components
                 // 破棄されないように設定をする
                 DontDestroyOnLoad(this);
             }
-        }
-
-
-        /// <summary>
-        /// コンポーネントの破棄をします
-        /// </summary>
-        private void OnDestroy()
-        {
-            // 仮想マシンの電源を切る
-            Instance.PowerOff();
         }
     }
 }

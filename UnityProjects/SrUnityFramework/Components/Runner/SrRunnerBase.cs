@@ -89,26 +89,6 @@ namespace SrUnityFramework.Components
             }
 
 
-            // プログラムコードの取得を試みる
-            if (GetProgramCode(out var code))
-            {
-                // プログラムコードからプロセスのインスタンスを生成して成功を返す
-                machine.CreateProcess(code, out process);
-                IsReady = true;
-                return IsReady;
-            }
-
-
-            // ストリームの取得を試みる
-            if (GetProgramStream(out var stream))
-            {
-                // プログラムストリームからインスタンスを生成して成功を返す
-                machine.CreateProcess(stream, out process);
-                IsReady = true;
-                return IsReady;
-            }
-
-
             // どの方法でも生成出来なかった場合はプロセスの生成に失敗したということを返す
             IsReady = false;
             return IsReady;
