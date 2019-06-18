@@ -35,10 +35,10 @@ namespace SnowRabbit.VirtualMachine.Machine
 
         // メンバ変数定義
         private bool disposed;
-        private int nextProcessID;
         private int nextPeripheralID;
         private Dictionary<string, int> peripheralIDTable;
         private Dictionary<int, SrvmPeripheral> peripheralTable;
+        private int nextProcessID;
         private byte[] readBuffer; // Span<byte> readBuffer = stackalloc byte[n];が目標（UnityがSpan<T>対応してくれれば考える）
         private Encoding encoding;
 
