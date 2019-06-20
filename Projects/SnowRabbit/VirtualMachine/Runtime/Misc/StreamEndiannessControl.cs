@@ -198,9 +198,15 @@ namespace SnowRabbit.VirtualMachine.Runtime
         private static readonly Encoding encoding = new UTF8Encoding(false);
 
         // メンバ変数定義
-        private Stream baseStream;
         protected byte[] streamBuffer;
         protected char[] charBuffer;
+
+
+
+        /// <summary>
+        /// このコントロールクラスが取り扱っているストリーム
+        /// </summary>
+        public Stream BaseStream { get; private set; }
 
 
 
@@ -212,7 +218,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
         public StreamEndiannessControl(Stream stream)
         {
             // 初期化をする
-            baseStream = stream ?? throw new ArgumentNullException(nameof(stream));
+            BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
             streamBuffer = new byte[IOBufferSize];
             charBuffer = new char[CharBufferSize];
         }
@@ -240,7 +246,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
             // データを読み取る
-            baseStream.Read(streamBuffer, 0, dataSize);
+            BaseStream.Read(streamBuffer, 0, dataSize);
 
 
             // 読み取られたデータからデコードされる文字数を知って、文字バッファに収まらない場合は
@@ -275,7 +281,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
             // 指定された長さをストリームから読み込んで反転指示が出ているなら
-            baseStream.Read(streamBuffer, 0, size);
+            BaseStream.Read(streamBuffer, 0, size);
             if (reverse)
             {
                 // 読み取ったデータを反転する
@@ -300,7 +306,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
             // 指定されたサイズのバッファを書き込む
-            baseStream.Write(streamBuffer, 0, size);
+            BaseStream.Write(streamBuffer, 0, size);
         }
         #endregion
 
@@ -478,7 +484,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
             // エンコード後、データサイズを書き込んでエンコードデータを書き込む
             encoding.GetBytes(value, 0, value.Length, streamBuffer, 0);
             Write(encodeSize);
-            baseStream.Write(streamBuffer, 0, encodeSize);
+            BaseStream.Write(streamBuffer, 0, encodeSize);
         }
         #endregion
     }
