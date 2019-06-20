@@ -188,7 +188,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
     /// <summary>
     /// 特定エンディアンの読み書きをするコントロール抽象クラスです
     /// </summary>
-    public abstract class StreamEndiannessControl : IStreamEndiannessControl
+    public abstract class StreamEndiannessControl : IStreamEndiannessControl, IDisposable
     {
         // 定数定義
         private const int IOBufferSize = 4 << 10;
@@ -198,6 +198,8 @@ namespace SnowRabbit.VirtualMachine.Runtime
         private static readonly Encoding encoding = new UTF8Encoding(false);
 
         // メンバ変数定義
+        private bool disposed;
+        private bool leaveOpen;
         protected byte[] streamBuffer;
         protected char[] charBuffer;
 
@@ -210,18 +212,84 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
 
+        #region Constructor and Dispose
         /// <summary>
         /// StreamEndiannessControl クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="stream">ストリーム制御を行う対象のストリーム</param>
         /// <exception cref="ArgumentNullException">stream が null です</exception>
-        public StreamEndiannessControl(Stream stream)
+        public StreamEndiannessControl(Stream stream) : this(stream, false)
+        {
+        }
+
+
+        /// <summary>
+        /// StreamEndiannessControl クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="stream">ストリーム制御を行う対象のストリーム</param>
+        /// <param name="leaveOpen">このインスタンスが破棄される時にストリームを開いたままにする場合は true を、閉じる場合は false</param>
+        /// <exception cref="ArgumentNullException">stream が null です</exception>
+        public StreamEndiannessControl(Stream stream, bool leaveOpen)
         {
             // 初期化をする
             BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
             streamBuffer = new byte[IOBufferSize];
             charBuffer = new char[CharBufferSize];
+            this.leaveOpen = leaveOpen;
         }
+
+
+        /// <summary>
+        /// インスタンスのリソースを解放します
+        /// </summary>
+        ~StreamEndiannessControl()
+        {
+            // ファイナライザからのDispose呼び出し
+            Dispose(false);
+        }
+
+
+        /// <summary>
+        /// インスタンスのリソースを解放します
+        /// </summary>
+        public void Dispose()
+        {
+            // DisposeからのDispose呼び出しをしてGCに自身のファイナライザを止めてもらう
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+
+        /// <summary>
+        /// インスタンスの実際のリソースを解放します
+        /// </summary>
+        /// <param name="disposing">マネージドを含む解放の場合は true を、アンマネージドのみの場合は false を指定</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            // 既に解放済みなら
+            if (disposed)
+            {
+                // 何もしない
+                return;
+            }
+
+
+            // マネージの解放なら
+            if (disposing)
+            {
+                // もし解放時にストリームを閉じる場合は
+                if (!leaveOpen)
+                {
+                    // ストリームを閉じる
+                    BaseStream.Dispose();
+                }
+            }
+
+
+            // 解放済みマーク
+            disposed = true;
+        }
+        #endregion
 
 
         #region Utility function
@@ -233,8 +301,13 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// 同時に 'streamBuffer' が読み取るべきバッファサイズが不足する場合は、バッファサイズの拡張を試みます
         /// </remarks>
         /// <returns>読み込んだ文字バッファのサイズを返します</returns>
+        /// <exception cref="ObjectDisposedException">オブジェクトリソースが解放済みです</exception>
         protected int ReadChars()
         {
+            // 事前例外処理を行っておく
+            ThrowExceptionIfObjectDisposed();
+
+
             // 符号付き32bit整数を読み込んで読み取るべきデータサイズを知って、バッファに収まらない場合は
             var dataSize = ReadInt();
             if (streamBuffer.Length < dataSize)
@@ -270,8 +343,13 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// </summary>
         /// <param name="size">読み取る長さ</param>
         /// <param name="reverse">読み取ったデータを反転するかどうか</param>
+        /// <exception cref="ObjectDisposedException">オブジェクトリソースが解放済みです</exception>
         protected void Read(int size, bool reverse)
         {
+            // 事前例外処理を行っておく
+            ThrowExceptionIfObjectDisposed();
+
+
             // 読み込もうとしているサイズがバッファサイズを超えるのであれば
             if (streamBuffer.Length < size)
             {
@@ -295,8 +373,13 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// </summary>
         /// <param name="size">書き込むサイズ</param>
         /// <param name="reverse">バッファの内容を反転するかどうか</param>
+        /// <exception cref="ObjectDisposedException">オブジェクトリソースが解放済みです</exception>
         protected void Write(int size, bool reverse)
         {
+            // 事前例外処理を行っておく
+            ThrowExceptionIfObjectDisposed();
+
+
             // もし反転指示が出ているのなら
             if (reverse)
             {
@@ -487,6 +570,23 @@ namespace SnowRabbit.VirtualMachine.Runtime
             BaseStream.Write(streamBuffer, 0, encodeSize);
         }
         #endregion
+
+
+        #region Exception thrower
+        /// <summary>
+        /// オブジェクトが解放済みの場合に例外を送出します
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">オブジェクトリソースが解放済みです</exception>
+        protected void ThrowExceptionIfObjectDisposed()
+        {
+            // 解放済みなら
+            if (disposed)
+            {
+                // 例外を投げる
+                throw new ObjectDisposedException(null);
+            }
+        }
+        #endregion
     }
     #endregion
 
@@ -497,13 +597,26 @@ namespace SnowRabbit.VirtualMachine.Runtime
     /// </summary>
     public class LittleEndianControl : StreamEndiannessControl
     {
+        #region Constructor
         /// <summary>
         /// StreamEndiannessControl クラスのインスタンスを初期化します
         /// </summary>
         /// <exception cref="ArgumentNullException">stream が null です</exception>
-        public LittleEndianControl(Stream stream) : base(stream)
+        public LittleEndianControl(Stream stream) : base(stream, false)
         {
         }
+
+
+        /// <summary>
+        /// LittleEndianControl クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="stream">ストリーム制御を行う対象のストリーム</param>
+        /// <param name="leaveOpen">このインスタンスが破棄される時にストリームを開いたままにする場合は true を、閉じる場合は false</param>
+        /// <exception cref="ArgumentNullException">stream が null です</exception>
+        public LittleEndianControl(Stream stream, bool leaveOpen) : base(stream, leaveOpen)
+        {
+        }
+        #endregion
 
 
         #region Read function
@@ -809,13 +922,26 @@ namespace SnowRabbit.VirtualMachine.Runtime
     /// </summary>
     public class BigEndianControl : StreamEndiannessControl
     {
+        #region Constructor
         /// <summary>
         /// BigEndianControl クラスのインスタンスを初期化します
         /// </summary>
         /// <exception cref="ArgumentNullException">stream が null です</exception>
-        public BigEndianControl(Stream stream) : base(stream)
+        public BigEndianControl(Stream stream) : base(stream, false)
         {
         }
+
+
+        /// <summary>
+        /// BigEndianControl クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="stream">ストリーム制御を行う対象のストリーム</param>
+        /// <param name="leaveOpen">このインスタンスが破棄される時にストリームを開いたままにする場合は true を、閉じる場合は false</param>
+        /// <exception cref="ArgumentNullException">stream が null です</exception>
+        public BigEndianControl(Stream stream, bool leaveOpen) : base(stream, leaveOpen)
+        {
+        }
+        #endregion
 
 
         #region Read function
