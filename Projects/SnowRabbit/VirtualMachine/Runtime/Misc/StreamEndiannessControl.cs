@@ -391,6 +391,19 @@ namespace SnowRabbit.VirtualMachine.Runtime
             // 指定されたサイズのバッファを書き込む
             BaseStream.Write(streamBuffer, 0, size);
         }
+
+
+#if UNITY_2018_3_OR_NEWER
+        /// <summary>
+        /// 32bit浮動小数点を32bit整数にビット変換をします
+        /// </summary>
+        /// <param name="value">変換する32bit浮動小数点</param>
+        /// <returns>変換された32bit整数を返します</returns>
+        unsafe protected int FloatToInt32(float value)
+        {
+            return *(int*)&value;
+        }
+#endif
         #endregion
 
 
@@ -399,28 +412,44 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// 符号付き8bit整数を読み込みます
         /// </summary>
         /// <returns>読み込まれた値を返します</returns>
-        public abstract sbyte ReadSbyte();
+        public sbyte ReadSbyte()
+        {
+            // 符号なし8bit整数を符号付きとして返す
+            return (sbyte)ReadByte();
+        }
 
 
         /// <summary>
         /// 符号付き16bit整数を読み込みます
         /// </summary>
         /// <returns>読み込まれた値を返します</returns>
-        public abstract short ReadShort();
+        public short ReadShort()
+        {
+            // 符号なし16bit整数を符号付きとして返す
+            return (short)ReadUshort();
+        }
 
 
         /// <summary>
         /// 符号付き32bit整数を読み込みます
         /// </summary>
         /// <returns>読み込まれた値を返します</returns>
-        public abstract int ReadInt();
+        public int ReadInt()
+        {
+            // 符号なし32bit整数を符号付きとして返す
+            return (int)ReadUint();
+        }
 
 
         /// <summary>
         /// 符号付き64bit整数を読み込みます
         /// </summary>
         /// <returns>読み込まれた値を返します</returns>
-        public abstract long ReadLong();
+        public long ReadLong()
+        {
+            // 符号なし64bit整数を符号付きとして返す
+            return (long)ReadUlong();
+        }
 
 
         /// <summary>
@@ -483,28 +512,44 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// 符号付き8bit整数を書き込みます
         /// </summary>
         /// <param name="value">書き込む値</param>
-        public abstract void Write(sbyte value);
+        public void Write(sbyte value)
+        {
+            // 符号なし8bitの書き込みをする
+            Write((byte)value);
+        }
 
 
         /// <summary>
         /// 符号付き16bit整数を書き込みます
         /// </summary>
         /// <param name="value">書き込む値</param>
-        public abstract void Write(short value);
+        public void Write(short value)
+        {
+            // 符号なし16bitの書き込みをする
+            Write((ushort)value);
+        }
 
 
         /// <summary>
         /// 符号付き32bit整数を書き込みます
         /// </summary>
         /// <param name="value">書き込む値</param>
-        public abstract void Write(int value);
+        public void Write(int value)
+        {
+            // 符号なし32bitの書き込みをする
+            Write((uint)value);
+        }
 
 
         /// <summary>
         /// 符号付き64bit整数を書き込みます
         /// </summary>
         /// <param name="value">書き込む値</param>
-        public abstract void Write(long value);
+        public void Write(long value)
+        {
+            // 符号なし64bitの書き込みをする
+            Write((ulong)value);
+        }
 
 
         /// <summary>
@@ -539,14 +584,27 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// 32bit浮動小数点を書き込みます
         /// </summary>
         /// <param name="value">書き込む値</param>
-        public abstract void Write(float value);
+        public void Write(float value)
+        {
+#if UNITY_2018_3_OR_NEWER
+            // ビット値はそのままの状態で32bit化して符号なし32bit書き込みをする
+            Write((uint)FloatToInt32(value));
+#else
+            // ビット値はそのままの状態で32bit化して符号なし32bit書き込みをする
+            Write((uint)BitConverter.SingleToInt32Bits(value));
+#endif
+        }
 
 
         /// <summary>
         /// 64bit浮動小数点を書き込みます
         /// </summary>
         /// <param name="value">書き込む値</param>
-        public abstract void Write(double value);
+        public void Write(double value)
+        {
+            // ビット値はそのままの状態で64bit化して符号なし64bit書き込みをする
+            Write((ulong)BitConverter.DoubleToInt64Bits(value));
+        }
 
 
         /// <summary>
@@ -620,54 +678,6 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
         #region Read function
-        /// <summary>
-        /// 符号付き8bit整数を読み込みます
-        /// </summary>
-        /// <returns>読み込まれた値を返します</returns>
-        public override sbyte ReadSbyte()
-        {
-            // 型サイズ分読み取ってそのまま返す
-            Read(sizeof(sbyte), false);
-            return (sbyte)streamBuffer[0];
-        }
-
-
-        /// <summary>
-        /// 符号付き16bit整数を読み込みます
-        /// </summary>
-        /// <returns>読み込まれた値を返します</returns>
-        public override short ReadShort()
-        {
-            // 型サイズ分読み取って変換して返す
-            Read(sizeof(short), !BitConverter.IsLittleEndian);
-            return BitConverter.ToInt16(streamBuffer, 0);
-        }
-
-
-        /// <summary>
-        /// 符号付き32bit整数を読み込みます
-        /// </summary>
-        /// <returns>読み込まれた値を返します</returns>
-        public override int ReadInt()
-        {
-            // 型サイズ分読み取って変換して返す
-            Read(sizeof(int), !BitConverter.IsLittleEndian);
-            return BitConverter.ToInt32(streamBuffer, 0);
-        }
-
-
-        /// <summary>
-        /// 符号付き64bit整数を読み込みます
-        /// </summary>
-        /// <returns>読み込まれた値を返します</returns>
-        public override long ReadLong()
-        {
-            // 型サイズ分読み取って変換して返す
-            Read(sizeof(long), !BitConverter.IsLittleEndian);
-            return BitConverter.ToInt64(streamBuffer, 0);
-        }
-
-
         /// <summary>
         /// 符号なし8bit整数を読み込みます
         /// </summary>
@@ -743,50 +753,6 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
         #region Write function
         /// <summary>
-        /// 符号付き8bit整数を書き込みます
-        /// </summary>
-        /// <param name="value">書き込む値</param>
-        public override void Write(sbyte value)
-        {
-            // 符号なし8bitの書き込みをする
-            Write((byte)value);
-        }
-
-
-        /// <summary>
-        /// 符号付き16bit整数を書き込みます
-        /// </summary>
-        /// <param name="value">書き込む値</param>
-        public override void Write(short value)
-        {
-            // 符号なし16bitの書き込みをする
-            Write((ushort)value);
-        }
-
-
-        /// <summary>
-        /// 符号付き32bit整数を書き込みます
-        /// </summary>
-        /// <param name="value">書き込む値</param>
-        public override void Write(int value)
-        {
-            // 符号なし32bitの書き込みをする
-            Write((uint)value);
-        }
-
-
-        /// <summary>
-        /// 符号付き64bit整数を書き込みます
-        /// </summary>
-        /// <param name="value">書き込む値</param>
-        public override void Write(long value)
-        {
-            // 符号なし64bitの書き込みをする
-            Write((ulong)value);
-        }
-
-
-        /// <summary>
         /// 符号なし8bit整数を書き込みます
         /// </summary>
         /// <param name="value">書き込む値</param>
@@ -890,28 +856,6 @@ namespace SnowRabbit.VirtualMachine.Runtime
             // 書き込む
             Write(8, false);
         }
-
-
-        /// <summary>
-        /// 32bit浮動小数点を書き込みます
-        /// </summary>
-        /// <param name="value">書き込む値</param>
-        public override void Write(float value)
-        {
-            // ビット値はそのままの状態で32bit化して符号なし32bit書き込みをする
-            Write((uint)BitConverter.SingleToInt32Bits(value));
-        }
-
-
-        /// <summary>
-        /// 64bit浮動小数点を書き込みます
-        /// </summary>
-        /// <param name="value">書き込む値</param>
-        public override void Write(double value)
-        {
-            // ビット値はそのままの状態で64bit化して符号なし64bit書き込みをする
-            Write((ulong)BitConverter.DoubleToInt64Bits(value));
-        }
         #endregion
     }
 
@@ -945,54 +889,6 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
         #region Read function
-        /// <summary>
-        /// 符号付き8bit整数を読み込みます
-        /// </summary>
-        /// <returns>読み込まれた値を返します</returns>
-        public override sbyte ReadSbyte()
-        {
-            // 型サイズ分読み取ってそのまま返す
-            Read(sizeof(sbyte), false);
-            return (sbyte)streamBuffer[0];
-        }
-
-
-        /// <summary>
-        /// 符号付き16bit整数を読み込みます
-        /// </summary>
-        /// <returns>読み込まれた値を返します</returns>
-        public override short ReadShort()
-        {
-            // 型サイズ分読み取って変換して返す
-            Read(sizeof(short), BitConverter.IsLittleEndian);
-            return BitConverter.ToInt16(streamBuffer, 0);
-        }
-
-
-        /// <summary>
-        /// 符号付き32bit整数を読み込みます
-        /// </summary>
-        /// <returns>読み込まれた値を返します</returns>
-        public override int ReadInt()
-        {
-            // 型サイズ分読み取って変換して返す
-            Read(sizeof(int), BitConverter.IsLittleEndian);
-            return BitConverter.ToInt32(streamBuffer, 0);
-        }
-
-
-        /// <summary>
-        /// 符号付き64bit整数を読み込みます
-        /// </summary>
-        /// <returns>読み込まれた値を返します</returns>
-        public override long ReadLong()
-        {
-            // 型サイズ分読み取って変換して返す
-            Read(sizeof(long), BitConverter.IsLittleEndian);
-            return BitConverter.ToInt64(streamBuffer, 0);
-        }
-
-
         /// <summary>
         /// 符号なし8bit整数を読み込みます
         /// </summary>
@@ -1068,50 +964,6 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
         #region Write function
         /// <summary>
-        /// 符号付き8bit整数を書き込みます
-        /// </summary>
-        /// <param name="value">書き込む値</param>
-        public override void Write(sbyte value)
-        {
-            // 符号なし8bitの書き込みをする
-            Write((byte)value);
-        }
-
-
-        /// <summary>
-        /// 符号付き16bit整数を書き込みます
-        /// </summary>
-        /// <param name="value">書き込む値</param>
-        public override void Write(short value)
-        {
-            // 符号なし16bitの書き込みをする
-            Write((ushort)value);
-        }
-
-
-        /// <summary>
-        /// 符号付き32bit整数を書き込みます
-        /// </summary>
-        /// <param name="value">書き込む値</param>
-        public override void Write(int value)
-        {
-            // 符号なし32bitの書き込みをする
-            Write((uint)value);
-        }
-
-
-        /// <summary>
-        /// 符号付き64bit整数を書き込みます
-        /// </summary>
-        /// <param name="value">書き込む値</param>
-        public override void Write(long value)
-        {
-            // 符号なし64bitの書き込みをする
-            Write((ulong)value);
-        }
-
-
-        /// <summary>
         /// 符号なし8bit整数を書き込みます
         /// </summary>
         /// <param name="value">書き込む値</param>
@@ -1214,28 +1066,6 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
             // 書き込む
             Write(8, false);
-        }
-
-
-        /// <summary>
-        /// 32bit浮動小数点を書き込みます
-        /// </summary>
-        /// <param name="value">書き込む値</param>
-        public override void Write(float value)
-        {
-            // ビット値はそのままの状態で32bit化して符号なし32bit書き込みをする
-            Write((uint)BitConverter.SingleToInt32Bits(value));
-        }
-
-
-        /// <summary>
-        /// 64bit浮動小数点を書き込みます
-        /// </summary>
-        /// <param name="value">書き込む値</param>
-        public override void Write(double value)
-        {
-            // ビット値はそのままの状態で64bit化して符号なし64bit書き込みをする
-            Write((ulong)BitConverter.DoubleToInt64Bits(value));
         }
         #endregion
     }
