@@ -25,7 +25,7 @@ namespace SnowRabbit.Runtime
     {
         // メンバ変数定義
         private bool disposed;
-        private StreamEndiannessControl endianControl;
+        private SrBinaryIO binaryIO;
 
 
 
@@ -38,8 +38,8 @@ namespace SnowRabbit.Runtime
         /// <exception cref="ArgumentNullException">stream が null です</exception>
         public CelfDataWriter(Stream stream, bool leaveOpen)
         {
-            // リトルエンディアンコントロールのインスタンスを生成する
-            endianControl = new LittleEndianControl(stream, leaveOpen);
+            // バイナリ入出力のインスタンスを生成する
+            binaryIO = new SrBinaryIO(stream, leaveOpen);
         }
 
 
@@ -82,7 +82,7 @@ namespace SnowRabbit.Runtime
             if (disposing)
             {
                 // エンディアンコントロールの解放
-                endianControl.Dispose();
+                binaryIO.Dispose();
             }
 
 
