@@ -15,7 +15,7 @@
 
 using System.IO;
 
-namespace SnowRabbit.VirtualMachine.Machine
+namespace SnowRabbit.Machine
 {
     /// <summary>
     /// 仮想マシンが実装する仮想マシンストレージの抽象クラスです

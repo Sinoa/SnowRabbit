@@ -16,7 +16,7 @@
 using System.Runtime.CompilerServices;
 using SnowRabbit.VirtualMachine.Runtime;
 
-namespace SnowRabbit.VirtualMachine.Machine
+namespace SnowRabbit.Machine
 {
     /// <summary>
     /// 仮想マシンが実装する仮想マシンプロセッサの抽象クラスです

@@ -16,7 +16,7 @@
 using System;
 using SnowRabbit.VirtualMachine.Runtime;
 
-namespace SnowRabbit.VirtualMachine.Machine
+namespace SnowRabbit.Machine
 {
     /// <summary>
     /// 仮想マシン本体を表す仮想マシン抽象クラスです

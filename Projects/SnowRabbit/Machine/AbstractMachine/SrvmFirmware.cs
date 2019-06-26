@@ -19,7 +19,7 @@ using System.IO;
 using System.Text;
 using SnowRabbit.VirtualMachine.Runtime;
 
-namespace SnowRabbit.VirtualMachine.Machine
+namespace SnowRabbit.Machine
 {
     /// <summary>
     /// 仮想マシンが実装する仮想マシンファームウェアの抽象クラスです

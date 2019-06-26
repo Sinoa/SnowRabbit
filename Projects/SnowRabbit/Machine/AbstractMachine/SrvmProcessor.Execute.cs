@@ -16,7 +16,7 @@
 using System;
 using SnowRabbit.VirtualMachine.Runtime;
 
-namespace SnowRabbit.VirtualMachine.Machine
+namespace SnowRabbit.Machine
 {
     partial class SrvmProcessor
     {
