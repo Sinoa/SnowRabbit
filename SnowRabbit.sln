@@ -15,13 +15,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CarrotAssemblerTokenViewer"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Carrot", "Carrot", "{3A8688D7-2ADA-44C5-BD2A-B87D7B838B51}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VirtualMachine", "VirtualMachine", "{B406F0BF-11B4-474A-9C09-24DDB81B3DDB}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SnowRabbit", "SnowRabbit", "{B406F0BF-11B4-474A-9C09-24DDB81B3DDB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestAndBenchmark", "TestAndBenchmark", "{17CE21C2-A7CC-4582-B045-B20F61655CD2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{8D2D015A-31E5-46D2-A2D7-786EE546227E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApplication01", ".NonUnityTarget\SampleApplication01\SampleApplication01.csproj", "{8C09F1D8-0111-4EC9-913D-904F8B9712B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApplication01", ".NonUnityTarget\SampleApplication01\SampleApplication01.csproj", "{8C09F1D8-0111-4EC9-913D-904F8B9712B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
