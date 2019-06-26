@@ -275,7 +275,7 @@
 
 */
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     /// <summary>
     /// 仮想マシンが理解するオペレーションコードです

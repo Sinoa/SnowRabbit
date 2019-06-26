@@ -15,7 +15,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     /// <summary>
     /// 仮想マシンが実行できる命令コードを表現した共用体です

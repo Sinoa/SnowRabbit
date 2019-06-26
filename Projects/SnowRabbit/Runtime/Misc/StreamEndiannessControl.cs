@@ -17,7 +17,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     #region StreamEndianness interface and abstract class
     /// <summary>

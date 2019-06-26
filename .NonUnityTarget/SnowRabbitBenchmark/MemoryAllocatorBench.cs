@@ -14,7 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using BenchmarkDotNet.Attributes;
-using SnowRabbit.VirtualMachine.Runtime;
+using SnowRabbit.Runtime;
 
 namespace SnowRabbit.Benchmark
 {

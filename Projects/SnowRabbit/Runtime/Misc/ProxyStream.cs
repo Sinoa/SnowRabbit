@@ -15,7 +15,7 @@
 
 using System.IO;
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     /// <summary>
     /// ストリームの参照を変わりに持つストリームクラスです

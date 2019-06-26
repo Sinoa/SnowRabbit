@@ -16,7 +16,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     /// <summary>
     /// SnowRabbit仮想マシンが処理を継続する為のメモリが不足した時にスローする例外です

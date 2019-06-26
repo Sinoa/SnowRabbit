@@ -14,9 +14,9 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
-using static SnowRabbit.VirtualMachine.Runtime.MemoryAllocatorUtility;
+using static SnowRabbit.Runtime.MemoryAllocatorUtility;
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     /// <summary>
     /// SnowRabbit 仮想マシンが使用する標準値型メモリアロケータクラスです

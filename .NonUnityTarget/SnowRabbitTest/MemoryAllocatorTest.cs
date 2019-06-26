@@ -16,7 +16,7 @@
 using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using SnowRabbit.VirtualMachine.Runtime;
+using SnowRabbit.Runtime;
 
 namespace SnowRabbit.Test
 {

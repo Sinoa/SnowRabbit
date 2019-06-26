@@ -15,7 +15,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     /// <summary>
     /// 仮想マシンが扱うメモリ確保情報を定義する共用体です

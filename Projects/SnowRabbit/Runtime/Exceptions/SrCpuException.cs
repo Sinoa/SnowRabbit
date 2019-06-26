@@ -16,7 +16,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     /// <summary>
     /// SnowRabbit仮想マシンがCPUに関係する例外が発生したときの例外クラスです

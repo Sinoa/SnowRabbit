@@ -15,7 +15,7 @@
 
 using System;
 using System.Collections.Generic;
-using SnowRabbit.VirtualMachine.Runtime;
+using SnowRabbit.Runtime;
 
 namespace SnowRabbit.Machine
 {

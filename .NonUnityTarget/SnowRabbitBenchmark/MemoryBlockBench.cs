@@ -15,7 +15,7 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
-using SnowRabbit.VirtualMachine.Runtime;
+using SnowRabbit.Runtime;
 
 namespace SnowRabbit.Benchmark
 {

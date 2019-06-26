@@ -16,7 +16,7 @@
 using System;
 using System.IO;
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     /// <summary>
     /// Carrot Executable and Linkable Formatのデータを書き込むクラスです

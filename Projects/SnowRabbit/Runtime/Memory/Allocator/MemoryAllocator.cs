@@ -15,7 +15,7 @@
 
 using System;
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     /// <summary>
     /// 仮想マシンが使用するメモリを確保するメモリアロケータの抽象クラスです

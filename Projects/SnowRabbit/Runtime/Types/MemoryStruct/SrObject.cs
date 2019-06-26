@@ -15,7 +15,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     /// <summary>
     /// 仮想マシンが扱うオブジェクト型メモリレイアウトを定義する構造体です

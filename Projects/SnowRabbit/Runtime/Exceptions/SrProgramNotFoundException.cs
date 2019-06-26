@@ -16,7 +16,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     /// <summary>
     /// SnowRabbit仮想マシンがプログラムを見つけられなかった時に送出する例外です

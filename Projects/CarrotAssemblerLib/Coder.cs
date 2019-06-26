@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using SnowRabbit.VirtualMachine.Runtime;
+using SnowRabbit.Runtime;
 using TextProcessorLib;
 
 namespace CarrotAssemblerLib

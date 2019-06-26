@@ -15,7 +15,7 @@
 
 using System;
 
-namespace SnowRabbit.VirtualMachine.Runtime
+namespace SnowRabbit.Runtime
 {
     /// <summary>
     /// T の固定長配列から特定の範囲を切り出したブロックを参照として読み書きするための構造体です。
