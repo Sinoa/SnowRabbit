@@ -14,8 +14,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System.IO;
-using SnowRabbit.VirtualMachine.Machine;
-using SnowRabbit.VirtualMachine.Runtime;
+using SnowRabbit.Machine;
+using SnowRabbit.Runtime;
 using UnityEngine;
 
 namespace SrUnityFramework.Components
