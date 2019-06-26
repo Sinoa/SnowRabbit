@@ -193,6 +193,8 @@ namespace SnowRabbit.VirtualMachine.Runtime
         // 定数定義
         private const int IOBufferSize = 4 << 10;
         private const int CharBufferSize = 2 << 10;
+        public const int MinIOBufferSize = 8;
+        public const int MinCharBufferSize = 16;
 
         // クラス変数宣言
         private static readonly Encoding encoding = new UTF8Encoding(false);
@@ -229,12 +231,27 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <param name="stream">ストリーム制御を行う対象のストリーム</param>
         /// <param name="leaveOpen">このインスタンスが破棄される時にストリームを開いたままにする場合は true を、閉じる場合は false</param>
         /// <exception cref="ArgumentNullException">stream が null です</exception>
-        public StreamEndiannessControl(Stream stream, bool leaveOpen)
+        public StreamEndiannessControl(Stream stream, bool leaveOpen) : this(stream, leaveOpen, IOBufferSize, CharBufferSize)
+        {
+        }
+
+
+        /// <summary>
+        /// StreamEndiannessControl クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="stream">ストリーム制御を行う対象のストリーム</param>
+        /// <param name="leaveOpen">このインスタンスが破棄される時にストリームを開いたままにする場合は true を、閉じる場合は false</param>
+        /// <param name="ioBufferSize">ストリームコントロールに用いるIOバッファサイズ。必ず MinIOBufferSize 定数以上のサイズを指定しなければいけません。</param>
+        /// <param name="charBufferSize">文字データを読み込む際に用いる char バッファサイズ（2で割り切れない場合は切り上げされます）。必ず MinCharBufferSize 定数以上のサイズを指定しなければいけません。</param>
+        /// <exception cref="ArgumentNullException">stream が null です</exception>
+        /// <exception cref="ArgumentOutOfRangeException">ioBufferSize に MinIOBufferSize 未満の値は指定出来ません</exception>
+        /// <exception cref="ArgumentOutOfRangeException">charBufferSize に MinCharBufferSize 未満の値は指定出来ません</exception>
+        public StreamEndiannessControl(Stream stream, bool leaveOpen, int ioBufferSize, int charBufferSize)
         {
             // 初期化をする
             BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
-            streamBuffer = new byte[IOBufferSize];
-            charBuffer = new char[CharBufferSize];
+            streamBuffer = new byte[ioBufferSize >= MinIOBufferSize ? ioBufferSize : throw new ArgumentOutOfRangeException(nameof(ioBufferSize), $"{nameof(ioBufferSize)} に {nameof(MinIOBufferSize)} 未満の値は指定出来ません")];
+            charBuffer = new char[charBufferSize >= MinCharBufferSize ? charBufferSize + (charBufferSize & 1) : throw new ArgumentOutOfRangeException(nameof(charBufferSize), $"{nameof(charBufferSize)} に {nameof(MinCharBufferSize)} 未満の値は指定出来ません")];
             this.leaveOpen = leaveOpen;
         }
 
@@ -650,6 +667,7 @@ namespace SnowRabbit.VirtualMachine.Runtime
 
 
 
+    #region LittleEndian ver
     /// <summary>
     /// ストリームの対象がリトルエンディアン向けコントロールクラスです
     /// </summary>
@@ -657,10 +675,10 @@ namespace SnowRabbit.VirtualMachine.Runtime
     {
         #region Constructor
         /// <summary>
-        /// StreamEndiannessControl クラスのインスタンスを初期化します
+        /// LittleEndianControl クラスのインスタンスを初期化します
         /// </summary>
         /// <exception cref="ArgumentNullException">stream が null です</exception>
-        public LittleEndianControl(Stream stream) : base(stream, false)
+        public LittleEndianControl(Stream stream) : base(stream)
         {
         }
 
@@ -672,6 +690,21 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <param name="leaveOpen">このインスタンスが破棄される時にストリームを開いたままにする場合は true を、閉じる場合は false</param>
         /// <exception cref="ArgumentNullException">stream が null です</exception>
         public LittleEndianControl(Stream stream, bool leaveOpen) : base(stream, leaveOpen)
+        {
+        }
+
+
+        /// <summary>
+        /// LittleEndianControl クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="stream">ストリーム制御を行う対象のストリーム</param>
+        /// <param name="leaveOpen">このインスタンスが破棄される時にストリームを開いたままにする場合は true を、閉じる場合は false</param>
+        /// <param name="ioBufferSize">ストリームコントロールに用いるIOバッファサイズ。必ず MinIOBufferSize 定数以上のサイズを指定しなければいけません。</param>
+        /// <param name="charBufferSize">文字データを読み込む際に用いる char バッファサイズ（2で割り切れない場合は切り上げされます）。必ず MinCharBufferSize 定数以上のサイズを指定しなければいけません。</param>
+        /// <exception cref="ArgumentNullException">stream が null です</exception>
+        /// <exception cref="ArgumentOutOfRangeException">ioBufferSize に MinIOBufferSize 未満の値は指定出来ません</exception>
+        /// <exception cref="ArgumentOutOfRangeException">charBufferSize に MinCharBufferSize 未満の値は指定出来ません</exception>
+        public LittleEndianControl(Stream stream, bool leaveOpen, int ioBufferSize, int charBufferSize) : base(stream, leaveOpen, ioBufferSize, charBufferSize)
         {
         }
         #endregion
@@ -858,9 +891,11 @@ namespace SnowRabbit.VirtualMachine.Runtime
         }
         #endregion
     }
+    #endregion
 
 
 
+    #region BigEndian ver
     /// <summary>
     /// ストリームの対象がビッグエンディアン向けコントロールクラスです
     /// </summary>
@@ -883,6 +918,21 @@ namespace SnowRabbit.VirtualMachine.Runtime
         /// <param name="leaveOpen">このインスタンスが破棄される時にストリームを開いたままにする場合は true を、閉じる場合は false</param>
         /// <exception cref="ArgumentNullException">stream が null です</exception>
         public BigEndianControl(Stream stream, bool leaveOpen) : base(stream, leaveOpen)
+        {
+        }
+
+
+        /// <summary>
+        /// BigEndianControl クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="stream">ストリーム制御を行う対象のストリーム</param>
+        /// <param name="leaveOpen">このインスタンスが破棄される時にストリームを開いたままにする場合は true を、閉じる場合は false</param>
+        /// <param name="ioBufferSize">ストリームコントロールに用いるIOバッファサイズ。必ず MinIOBufferSize 定数以上のサイズを指定しなければいけません。</param>
+        /// <param name="charBufferSize">文字データを読み込む際に用いる char バッファサイズ（2で割り切れない場合は切り上げされます）。必ず MinCharBufferSize 定数以上のサイズを指定しなければいけません。</param>
+        /// <exception cref="ArgumentNullException">stream が null です</exception>
+        /// <exception cref="ArgumentOutOfRangeException">ioBufferSize に MinIOBufferSize 未満の値は指定出来ません</exception>
+        /// <exception cref="ArgumentOutOfRangeException">charBufferSize に MinCharBufferSize 未満の値は指定出来ません</exception>
+        public BigEndianControl(Stream stream, bool leaveOpen, int ioBufferSize, int charBufferSize) : base(stream, leaveOpen, ioBufferSize, charBufferSize)
         {
         }
         #endregion
@@ -1069,4 +1119,5 @@ namespace SnowRabbit.VirtualMachine.Runtime
         }
         #endregion
     }
+    #endregion
 }
