@@ -44,5 +44,34 @@ namespace SnowRabbit.Runtime
 
     public struct SectionHeader
     {
+        public byte[] SectionName;
+        public uint SectionOffset;
+        public uint SectionSize;
+        public ulong Reserved;
+    }
+
+
+
+    public struct ProgramCodeSection
+    {
+        public uint CodeCount;
+        public InstructionCode[] Codes;
+    }
+
+
+
+    public struct StringTableSection
+    {
+        public uint StringCount;
+        public StringData[] Strings;
+    }
+
+
+
+    public struct StringData
+    {
+        public uint LoadDestinationIndex;
+        public uint StringDataSize;
+        public byte[] EncodedStringData;
     }
 }
