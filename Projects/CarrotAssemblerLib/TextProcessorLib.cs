@@ -402,7 +402,6 @@ namespace TextProcessorLib
     public abstract class TokenReader : IDisposable
     {
         // 定数定義
-        public const int DefaultBufferSize = (4 << 10);
         public const int EndOfStream = -1;
 
         // 静的メンバ変数定義
@@ -462,26 +461,12 @@ namespace TextProcessorLib
         /// <summary>
         /// TokenReader クラスのインスタンスを初期化します。
         /// </summary>
-        /// <remarks>
-        /// 指定されたストリームは TokenReader インスタンスが破棄される時に閉じられます。
-        /// </remarks>
-        /// <param name="inputStream">トークンを読み出す為のストリーム</param>
-        /// <exception cref="ArgumentNullException">inputStream が null です</exception>
-        public TokenReader(Stream inputStream) : this(inputStream, false)
-        {
-        }
-
-
-        /// <summary>
-        /// TokenReader クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="inputStream">トークンを読み出す為のストリーム</param>
-        /// <param name="leaveOpen">このインスタンスが破棄される時 inputStream を開いたままにする場合は true を、一緒に閉じる場合は false を指定</param>
-        /// <exception cref="ArgumentNullException">inputStream が null です</exception>
-        public TokenReader(Stream inputStream, bool leaveOpen)
+        /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
+        /// <exception cref="ArgumentNullException">textReader が null です</exception>
+        public TokenReader(TextReader textReader)
         {
             // リーダーインスタンスを生成して書くメンバ変数の初期化
-            reader = new StreamReader(inputStream ?? throw new ArgumentNullException(nameof(inputStream)), Encoding.UTF8, true, DefaultBufferSize, leaveOpen);
+            reader = textReader;
             tokenReadBuffer = new StringBuilder();
             lastReadChara = ' ';
             currentLineNumber = 1;

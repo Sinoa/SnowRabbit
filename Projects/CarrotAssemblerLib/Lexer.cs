@@ -463,8 +463,8 @@ namespace CarrotAssemblerLib
         /// <summary>
         /// CarrotAsmLexer クラスのインスタンスを初期化します
         /// </summary>
-        /// <param name="inputStream">字句解析対象となるストリーム</param>
-        public CarrotAsmLexer(Stream inputStream) : base(inputStream)
+        /// <param name="textReader">字句解析対象となるテキストリーダー</param>
+        public CarrotAsmLexer(TextReader textReader) : base(textReader)
         {
         }
 

@@ -49,7 +49,7 @@ namespace CarrotAssemblerTokenViewer
 
 
             // ファイルを開いてトークンリーダーを生成する
-            using (var reader = new CarrotAsmLexer(File.OpenRead(args[0])))
+            using (var reader = new CarrotAsmLexer(new StreamReader(File.OpenRead(args[0]))))
             {
                 // 改行コードをトークンとして認める
                 reader.AllowEndOfLineToken = true;
