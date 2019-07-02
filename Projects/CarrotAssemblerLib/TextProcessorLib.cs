@@ -411,7 +411,7 @@ namespace TextProcessorLib
         // メンバ変数定義
         private bool disposed;
         private Dictionary<string, int> keywordTable;
-        private StreamReader reader;
+        private TextReader reader;
         private StringBuilder tokenReadBuffer;
         private int lastReadChara;
         private int currentLineNumber;
@@ -667,7 +667,7 @@ namespace TextProcessorLib
         private int ReadNextChara()
         {
             // 最後に読み込んだ文字が最終ストリームか既にストリームが最終位置なら
-            if (lastReadChara == EndOfStream || reader.EndOfStream)
+            if (lastReadChara == EndOfStream)
             {
                 // これ以上の読み込みはないことを返す
                 lastReadChara = EndOfStream;
