@@ -465,68 +465,11 @@ namespace TextProcessorLib
         /// <exception cref="ArgumentNullException">textReader が null です</exception>
         public TokenReader(TextReader textReader)
         {
-            // リーダーインスタンスを生成して書くメンバ変数の初期化
-            reader = textReader;
-            tokenReadBuffer = new StringBuilder();
-            lastReadChara = ' ';
-            currentLineNumber = 1;
-            currentColumnNumber = 0;
-            lastReadToken = new Token(TokenKind.Unknown, string.Empty, 0, 0.0, 0, 0);
-
-
-            // キーワードテーブルを取得するが、失敗したら
-            var myType = GetType();
-            if (!KeywordTableTable.TryGetValue(myType, out keywordTable))
-            {
-                // 新しくトークンテーブルを生成して初期化する
-                keywordTable = CreateTokenTable() ?? CreateDefaultTokenTable();
-                KeywordTableTable[myType] = keywordTable;
-            }
+            // 状態リセットを呼ぶ
+            Reset(textReader);
         }
 
 
-        /// <summary>
-        /// 新しいトークンテーブルを生成します
-        /// </summary>
-        /// <returns>生成したトークンテーブルを返します</returns>
-        protected virtual Dictionary<string, int> CreateTokenTable()
-        {
-            // 標準キーワードテーブルの生成関数をそのまま使う
-            return CreateDefaultTokenTable();
-        }
-
-
-        /// <summary>
-        /// 必要最低限の標準トークンテーブルを生成します
-        /// </summary>
-        /// <returns>標準のトークンテーブルを返します</returns>
-        protected Dictionary<string, int> CreateDefaultTokenTable()
-        {
-            // 標準のキーワードテーブルを生成して返す
-            return new Dictionary<string, int>()
-            {
-                // 単独記号
-                { "(", TokenKind.OpenParen }, { ")", TokenKind.CloseParen }, { "<", TokenKind.OpenAngle }, { ">", TokenKind.CloseAngle },
-                { "[", TokenKind.OpenBracket }, { "]", TokenKind.CloseBracket }, { "{", TokenKind.OpenBrace }, { "}", TokenKind.CloseBrace },
-                { ":", TokenKind.Colon }, { ";", TokenKind.Semicolon }, { "#", TokenKind.Sharp }, { ",", TokenKind.Comma }, { ".", TokenKind.Period },
-                { "=", TokenKind.Equal }, { "+", TokenKind.Plus }, { "-", TokenKind.Minus }, { "*", TokenKind.Asterisk }, { "/", TokenKind.Slash },
-                { "%", TokenKind.Percent }, { "!", TokenKind.Exclamation }, { "?", TokenKind.Question }, { "|", TokenKind.Verticalbar },
-                { "&", TokenKind.And }, { "$", TokenKind.Dollar }, { "^", TokenKind.Circumflex }, { "~", TokenKind.Tilde }, { "@", TokenKind.AtSign },
-
-                // 二重記号
-                { "==", TokenKind.DoubleEqual }, { "!=", TokenKind.NotEqual },
-                { "<=", TokenKind.LesserEqual }, { ">=", TokenKind.GreaterEqual },
-                { "+=", TokenKind.PlusEqual }, { "-=", TokenKind.MinusEqual },
-                { "*=", TokenKind.AsteriskEqual }, { "/=", TokenKind.SlashEqual },
-                { "->", TokenKind.RightArrow }, { "<-", TokenKind.LeftArrow },
-                { "&&", TokenKind.DoubleAnd }, { "||", TokenKind.DoubleVerticalbar },
-                { "<<", TokenKind.DoubleOpenAngle }, { ">>", TokenKind.DoubleCloseAngle },
-            };
-        }
-        #endregion
-
-
-        #region Dispose pattern
         /// <summary>
         /// TokenReader クラスのデストラクタです
         /// </summary>
@@ -566,12 +509,86 @@ namespace TextProcessorLib
             if (disposing)
             {
                 // 様々なDisposeを呼ぶ
-                reader.Dispose();
+                reader?.Dispose();
             }
 
 
             // 破棄済みをマーク
             disposed = true;
+        }
+
+
+        /// <summary>
+        /// TokenReader のインスタンス状態をリセットします。
+        /// これにより、新たにインスタンスを生成しなくても、トークンの再取得が可能になります。
+        /// </summary>
+        /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
+        /// <exception cref="ArgumentNullException">textReader が null です</exception>
+        public void Reset(TextReader textReader)
+        {
+            // リーダーインスタンスを生成して書くメンバ変数の初期化
+            reader = textReader ?? throw new ArgumentNullException(nameof(textReader));
+            tokenReadBuffer = tokenReadBuffer ?? new StringBuilder();
+            lastReadChara = ' ';
+            currentLineNumber = 1;
+            currentColumnNumber = 0;
+            lastReadToken = new Token(TokenKind.Unknown, string.Empty, 0, 0.0, 0, 0);
+
+
+            // バッファのクリア
+            tokenReadBuffer.Clear();
+
+
+            // キーワードテーブルを取得するが、失敗したら
+            var myType = GetType();
+            if (!KeywordTableTable.TryGetValue(myType, out keywordTable))
+            {
+                // 新しくトークンテーブルを生成してトークンの追加を行う
+                keywordTable = CreateDefaultTokenTable();
+                AddTokens(keywordTable);
+
+
+                // トークンテーブルの登録
+                KeywordTableTable[myType] = keywordTable;
+            }
+        }
+
+
+        /// <summary>
+        /// 必要最低限の標準トークンテーブルを生成します
+        /// </summary>
+        /// <returns>標準のトークンテーブルを返します</returns>
+        protected Dictionary<string, int> CreateDefaultTokenTable()
+        {
+            // 標準のキーワードテーブルを生成して返す
+            return new Dictionary<string, int>()
+            {
+                // 単独記号
+                { "(", TokenKind.OpenParen }, { ")", TokenKind.CloseParen }, { "<", TokenKind.OpenAngle }, { ">", TokenKind.CloseAngle },
+                { "[", TokenKind.OpenBracket }, { "]", TokenKind.CloseBracket }, { "{", TokenKind.OpenBrace }, { "}", TokenKind.CloseBrace },
+                { ":", TokenKind.Colon }, { ";", TokenKind.Semicolon }, { "#", TokenKind.Sharp }, { ",", TokenKind.Comma }, { ".", TokenKind.Period },
+                { "=", TokenKind.Equal }, { "+", TokenKind.Plus }, { "-", TokenKind.Minus }, { "*", TokenKind.Asterisk }, { "/", TokenKind.Slash },
+                { "%", TokenKind.Percent }, { "!", TokenKind.Exclamation }, { "?", TokenKind.Question }, { "|", TokenKind.Verticalbar },
+                { "&", TokenKind.And }, { "$", TokenKind.Dollar }, { "^", TokenKind.Circumflex }, { "~", TokenKind.Tilde }, { "@", TokenKind.AtSign },
+
+                // 二重記号
+                { "==", TokenKind.DoubleEqual }, { "!=", TokenKind.NotEqual },
+                { "<=", TokenKind.LesserEqual }, { ">=", TokenKind.GreaterEqual },
+                { "+=", TokenKind.PlusEqual }, { "-=", TokenKind.MinusEqual },
+                { "*=", TokenKind.AsteriskEqual }, { "/=", TokenKind.SlashEqual },
+                { "->", TokenKind.RightArrow }, { "<-", TokenKind.LeftArrow },
+                { "&&", TokenKind.DoubleAnd }, { "||", TokenKind.DoubleVerticalbar },
+                { "<<", TokenKind.DoubleOpenAngle }, { ">>", TokenKind.DoubleCloseAngle },
+            };
+        }
+
+
+        /// <summary>
+        /// 既定トークンテーブルに対して、更に実装クラス側で追加が必要なトークンを追加します。
+        /// </summary>
+        /// <param name="tokenTable">追加するトークンを受け取るテーブル</param>
+        protected virtual void AddTokens(Dictionary<string, int> tokenTable)
+        {
         }
         #endregion
 
@@ -800,6 +817,7 @@ namespace TextProcessorLib
                 token = new Token(TokenKind.Integer, tokenReadBuffer.ToString(), result, 0.0, startLineNumber, startColumnNumber);
                 return;
             }
+
 
             // もし次に読み取られた文字がピリオドでは無いのなら
             if (readChara != '.')

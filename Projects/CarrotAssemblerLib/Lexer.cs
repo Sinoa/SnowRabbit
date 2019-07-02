@@ -470,15 +470,11 @@ namespace CarrotAssemblerLib
 
 
         /// <summary>
-        /// トークンテーブルを生成します
+        /// 既定トークンテーブルに対して、更に実装クラス側で追加が必要なトークンを追加します。
         /// </summary>
-        /// <returns>生成したトークンテーブルを返します</returns>
-        protected override Dictionary<string, int> CreateTokenTable()
+        /// <param name="tokenTable">追加するトークンを受け取るテーブル</param>
+        protected override void AddTokens(Dictionary<string, int> tokenTable)
         {
-            // 標準トークンテーブルを生成
-            var tokenTable = CreateDefaultTokenTable();
-
-
             // キーワードトークンの追加
             tokenTable["const"] = CarrotAsmTokenKind.Const;
             tokenTable["global"] = CarrotAsmTokenKind.Global;
@@ -546,10 +542,6 @@ namespace CarrotAssemblerLib
             tokenTable["r13"] = CarrotAsmTokenKind.RegisterR13;
             tokenTable["r14"] = CarrotAsmTokenKind.RegisterR14;
             tokenTable["r15"] = CarrotAsmTokenKind.RegisterR15;
-
-
-            // 結果を返す
-            return tokenTable;
         }
     }
 }
