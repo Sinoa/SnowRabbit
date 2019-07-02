@@ -461,13 +461,6 @@ namespace CarrotAssemblerLib
     public class CarrotAsmLexer : TokenReader
     {
         /// <summary>
-        /// CarrotAssembler のキーワードテーブルID
-        /// </summary>
-        protected override int KeywordTableID => 1;
-
-
-
-        /// <summary>
         /// CarrotAsmLexer クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="inputStream">字句解析対象となるストリーム</param>

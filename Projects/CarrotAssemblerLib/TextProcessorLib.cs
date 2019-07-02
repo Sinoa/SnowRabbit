@@ -406,7 +406,7 @@ namespace TextProcessorLib
         public const int EndOfStream = -1;
 
         // 静的メンバ変数定義
-        private static readonly Dictionary<int, Dictionary<string, int>> KeywordTableTable;
+        private static readonly Dictionary<Type, Dictionary<string, int>> KeywordTableTable;
 
         // メンバ変数定義
         private bool disposed;
@@ -421,12 +421,6 @@ namespace TextProcessorLib
 
 
         #region property
-        /// <summary>
-        /// このトークンリーダーが使用するキーワードテーブルのID
-        /// </summary>
-        protected abstract int KeywordTableID { get; }
-
-
         /// <summary>
         /// ラインフィールド改行コードをトークンとして認めるかどうか
         /// </summary>
@@ -461,7 +455,7 @@ namespace TextProcessorLib
         static TokenReader()
         {
             // キーワードテーブルのテーブルを生成する
-            KeywordTableTable = new Dictionary<int, Dictionary<string, int>>();
+            KeywordTableTable = new Dictionary<Type, Dictionary<string, int>>();
         }
 
 
@@ -496,11 +490,12 @@ namespace TextProcessorLib
 
 
             // キーワードテーブルを取得するが、失敗したら
-            if (!KeywordTableTable.TryGetValue(KeywordTableID, out keywordTable))
+            var myType = GetType();
+            if (!KeywordTableTable.TryGetValue(myType, out keywordTable))
             {
                 // 新しくトークンテーブルを生成して初期化する
                 keywordTable = CreateTokenTable() ?? CreateDefaultTokenTable();
-                KeywordTableTable[KeywordTableID] = keywordTable;
+                KeywordTableTable[myType] = keywordTable;
             }
         }
 
