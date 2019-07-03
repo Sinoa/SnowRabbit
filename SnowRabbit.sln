@@ -23,6 +23,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{8D2D01
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApplication01", ".NonUnityTarget\SampleApplication01\SampleApplication01.csproj", "{8C09F1D8-0111-4EC9-913D-904F8B9712B4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextProcessorLibBenchmark", ".NonUnityTarget\TextProcessorLibBenchmark\TextProcessorLibBenchmark.csproj", "{BE2BB58A-2E66-4B2A-B707-EAD1538BF29D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{8C09F1D8-0111-4EC9-913D-904F8B9712B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C09F1D8-0111-4EC9-913D-904F8B9712B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C09F1D8-0111-4EC9-913D-904F8B9712B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE2BB58A-2E66-4B2A-B707-EAD1538BF29D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE2BB58A-2E66-4B2A-B707-EAD1538BF29D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE2BB58A-2E66-4B2A-B707-EAD1538BF29D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE2BB58A-2E66-4B2A-B707-EAD1538BF29D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +70,7 @@ Global
 		{CB9BA38E-DCC9-42EC-8EF6-CCFE92A65426} = {3A8688D7-2ADA-44C5-BD2A-B87D7B838B51}
 		{856FABAF-1871-4924-A6E3-7ADB3171B32C} = {3A8688D7-2ADA-44C5-BD2A-B87D7B838B51}
 		{8C09F1D8-0111-4EC9-913D-904F8B9712B4} = {8D2D015A-31E5-46D2-A2D7-786EE546227E}
+		{BE2BB58A-2E66-4B2A-B707-EAD1538BF29D} = {17CE21C2-A7CC-4582-B045-B20F61655CD2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08483274-EB20-4F7A-9BE7-94F03D3BB259}
