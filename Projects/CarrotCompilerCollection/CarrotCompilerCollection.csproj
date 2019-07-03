@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="**/*.meta" />
+    <None Remove="**/*.asmdef" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\.NonUnityTarget\SnowRabbitTest\SnowRabbitTest.csproj" />
     <ProjectReference Include="..\TextProcessorLib\TextProcessorLib.csproj" />
   </ItemGroup>
