@@ -23,9 +23,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{8D2D01
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApplication01", ".NonUnityTarget\SampleApplication01\SampleApplication01.csproj", "{8C09F1D8-0111-4EC9-913D-904F8B9712B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextProcessorLibBenchmark", ".NonUnityTarget\TextProcessorLibBenchmark\TextProcessorLibBenchmark.csproj", "{BE2BB58A-2E66-4B2A-B707-EAD1538BF29D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TextProcessorLibBenchmark", ".NonUnityTarget\TextProcessorLibBenchmark\TextProcessorLibBenchmark.csproj", "{BE2BB58A-2E66-4B2A-B707-EAD1538BF29D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextProcessorLib", "Projects\TextProcessorLib\TextProcessorLib.csproj", "{1E4595AA-56D6-457E-99DF-810391F7E2FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TextProcessorLib", "Projects\TextProcessorLib\TextProcessorLib.csproj", "{1E4595AA-56D6-457E-99DF-810391F7E2FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarrotCompilerCollection", "Projects\CarrotCompilerCollection\CarrotCompilerCollection.csproj", "{08D5E5E7-4A6B-467D-9D04-B5E70900CAAD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,6 +67,10 @@ Global
 		{1E4595AA-56D6-457E-99DF-810391F7E2FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E4595AA-56D6-457E-99DF-810391F7E2FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E4595AA-56D6-457E-99DF-810391F7E2FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08D5E5E7-4A6B-467D-9D04-B5E70900CAAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08D5E5E7-4A6B-467D-9D04-B5E70900CAAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08D5E5E7-4A6B-467D-9D04-B5E70900CAAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08D5E5E7-4A6B-467D-9D04-B5E70900CAAD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -78,6 +84,7 @@ Global
 		{8C09F1D8-0111-4EC9-913D-904F8B9712B4} = {8D2D015A-31E5-46D2-A2D7-786EE546227E}
 		{BE2BB58A-2E66-4B2A-B707-EAD1538BF29D} = {17CE21C2-A7CC-4582-B045-B20F61655CD2}
 		{1E4595AA-56D6-457E-99DF-810391F7E2FB} = {3A8688D7-2ADA-44C5-BD2A-B87D7B838B51}
+		{08D5E5E7-4A6B-467D-9D04-B5E70900CAAD} = {3A8688D7-2ADA-44C5-BD2A-B87D7B838B51}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08483274-EB20-4F7A-9BE7-94F03D3BB259}

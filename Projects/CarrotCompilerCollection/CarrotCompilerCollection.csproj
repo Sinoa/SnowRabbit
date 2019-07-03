@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <Authors>Sinoa</Authors>
+    <Description>CarrotスクリプトコードからSnowRabbit実行コードを生成するコンパイラライブラリです</Description>
+    <Copyright>Copyright(c) 2019 Sinoa</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\.NonUnityTarget\SnowRabbitTest\SnowRabbitTest.csproj" />
+    <ProjectReference Include="..\TextProcessorLib\TextProcessorLib.csproj" />
+  </ItemGroup>
+
+</Project>

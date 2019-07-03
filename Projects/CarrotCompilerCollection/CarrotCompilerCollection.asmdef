@@ -1,0 +1,16 @@
+{
+    "name": "CarrotCompilerCollection",
+    "references": [
+        "GUID:ce6ce4e65164d294093409cc5e4378fd",
+        "GUID:045ee64c6b062184dbbcd5170603662e"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}
