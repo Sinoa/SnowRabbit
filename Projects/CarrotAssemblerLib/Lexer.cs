@@ -14,7 +14,6 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System.Collections.Generic;
-using System.IO;
 using TextProcessorLib;
 
 namespace CarrotAssemblerLib
@@ -460,15 +459,6 @@ namespace CarrotAssemblerLib
     /// </summary>
     public class CarrotAsmLexer : TokenReader
     {
-        /// <summary>
-        /// CarrotAsmLexer クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="textReader">字句解析対象となるテキストリーダー</param>
-        public CarrotAsmLexer(TextReader textReader) : base(textReader)
-        {
-        }
-
-
         /// <summary>
         /// 既定トークンテーブルに対して、更に実装クラス側で追加が必要なトークンを追加します。
         /// </summary>
