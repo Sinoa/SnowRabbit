@@ -459,7 +459,15 @@ namespace TextProcessorLib
 
 
         /// <summary>
-        /// TokenReader クラスのインスタンスを初期化します。
+        /// TokenReader クラスのインスタンスを初期化します
+        /// </summary>
+        public TokenReader() : this(TextReader.Null)
+        {
+        }
+
+
+        /// <summary>
+        /// TokenReader クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
         /// <exception cref="ArgumentNullException">textReader が null です</exception>
@@ -545,7 +553,7 @@ namespace TextProcessorLib
             {
                 // 新しくトークンテーブルを生成してトークンの追加を行う
                 keywordTable = CreateDefaultTokenTable();
-                AddTokens(keywordTable);
+                SetupToken(keywordTable);
 
 
                 // トークンテーブルの登録
@@ -587,7 +595,7 @@ namespace TextProcessorLib
         /// 既定トークンテーブルに対して、更に実装クラス側で追加が必要なトークンを追加します。
         /// </summary>
         /// <param name="tokenTable">追加するトークンを受け取るテーブル</param>
-        protected virtual void AddTokens(Dictionary<string, int> tokenTable)
+        protected virtual void SetupToken(Dictionary<string, int> tokenTable)
         {
         }
         #endregion

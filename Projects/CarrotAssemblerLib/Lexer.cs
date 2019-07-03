@@ -473,7 +473,7 @@ namespace CarrotAssemblerLib
         /// 既定トークンテーブルに対して、更に実装クラス側で追加が必要なトークンを追加します。
         /// </summary>
         /// <param name="tokenTable">追加するトークンを受け取るテーブル</param>
-        protected override void AddTokens(Dictionary<string, int> tokenTable)
+        protected override void SetupToken(Dictionary<string, int> tokenTable)
         {
             // キーワードトークンの追加
             tokenTable["const"] = CarrotAsmTokenKind.Const;
