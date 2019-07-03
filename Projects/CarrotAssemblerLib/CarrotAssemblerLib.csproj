@@ -18,5 +18,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SnowRabbit\SnowRabbit.csproj" />
+    <ProjectReference Include="..\TextProcessorLib\TextProcessorLib.csproj" />
   </ItemGroup>
 </Project>

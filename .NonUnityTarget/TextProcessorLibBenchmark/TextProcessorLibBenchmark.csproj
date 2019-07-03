@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Projects\CarrotAssemblerLib\CarrotAssemblerLib.csproj" />
+    <ProjectReference Include="..\..\Projects\TextProcessorLib\TextProcessorLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>
