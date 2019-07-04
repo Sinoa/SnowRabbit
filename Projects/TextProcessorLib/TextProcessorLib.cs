@@ -405,11 +405,12 @@ namespace TextProcessorLib
         public const int EndOfStream = -1;
 
         // クラス変数定義
-        public static readonly TokenReader EmptyReader = new EmptyTokenReader();
+        public static readonly TokenReader EmptyReader;
         private static readonly Dictionary<Type, Dictionary<string, int>> KeywordTableTable;
 
         // メンバ変数定義
         private bool disposed;
+        private bool leaveOpen;
         private Dictionary<string, int> keywordTable;
         private TextReader reader;
         private StringBuilder tokenReadBuffer;
@@ -456,13 +457,14 @@ namespace TextProcessorLib
         {
             // キーワードテーブルのテーブルを生成する
             KeywordTableTable = new Dictionary<Type, Dictionary<string, int>>();
+            EmptyReader = new EmptyTokenReader();
         }
 
 
         /// <summary>
         /// TokenReader クラスのインスタンスを初期化します
         /// </summary>
-        public TokenReader() : this(TextReader.Null)
+        public TokenReader() : this(TextReader.Null, true)
         {
         }
 
@@ -472,10 +474,21 @@ namespace TextProcessorLib
         /// </summary>
         /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
         /// <exception cref="ArgumentNullException">textReader が null です</exception>
-        public TokenReader(TextReader textReader)
+        public TokenReader(TextReader textReader) : this(textReader, false)
+        {
+        }
+
+
+        /// <summary>
+        /// TokenReader クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
+        /// <param name="leaveOpen">このインスタンスが破棄される時に textReader を開いたままにする場合は true を、閉じる場合は false</param>
+        /// <exception cref="ArgumentNullException">textReader が null です</exception>
+        public TokenReader(TextReader textReader, bool leaveOpen)
         {
             // 状態リセットを呼ぶ
-            Reset(textReader);
+            Reset(textReader, leaveOpen);
         }
 
 
@@ -517,8 +530,12 @@ namespace TextProcessorLib
             // マネージド解放なら
             if (disposing)
             {
-                // 様々なDisposeを呼ぶ
-                reader?.Dispose();
+                // leaveOpen が false なら
+                if (!leaveOpen)
+                {
+                    // リーダーの解放をする
+                    reader.Dispose();
+                }
             }
 
 
@@ -535,6 +552,28 @@ namespace TextProcessorLib
         /// <exception cref="ArgumentNullException">textReader が null です</exception>
         public void Reset(TextReader textReader)
         {
+            // textReaderを閉じるようにリセットをする
+            Reset(textReader, false);
+        }
+
+
+        /// <summary>
+        /// TokenReader のインスタンス状態をリセットします。
+        /// これにより、新たにインスタンスを生成しなくても、トークンの再取得が可能になります。
+        /// </summary>
+        /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
+        /// <param name="leaveOpen">このインスタンスが破棄される時に textReader を開いたままにする場合は true を、閉じる場合は false</param>
+        /// <exception cref="ArgumentNullException">textReader が null です</exception>
+        public void Reset(TextReader textReader, bool leaveOpen)
+        {
+            // 既に以前のテキストリーダーが存在しかつ現在の leaveOpen が false なら
+            if (reader != null && !this.leaveOpen)
+            {
+                // 現在持っているリーダーのDisposeを呼ぶ
+                reader.Dispose();
+            }
+
+
             // リーダーインスタンスを生成して書くメンバ変数の初期化
             reader = textReader ?? throw new ArgumentNullException(nameof(textReader));
             tokenReadBuffer = tokenReadBuffer ?? new StringBuilder();
@@ -542,6 +581,7 @@ namespace TextProcessorLib
             currentLineNumber = 1;
             currentColumnNumber = 0;
             lastReadToken = new Token(TokenKind.Unknown, string.Empty, 0, 0.0, 0, 0);
+            this.leaveOpen = leaveOpen;
 
 
             // バッファのクリア
