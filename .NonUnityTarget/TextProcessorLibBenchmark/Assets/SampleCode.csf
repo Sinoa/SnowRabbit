@@ -16,12 +16,12 @@ global number g_ValC;
 global string g_ValD;
 
 
-function MyFunction()
+function void MyFunction()
     WriteLog("びぃぃぃーむ！");
 end
 
 
-function MyGlobalFunction()
+function void MyGlobalFunction()
     WriteLog("貴様見ているな！");
 end
 
@@ -29,7 +29,7 @@ end
 // エントリポイント
 // 実行可能コードの生成の場合は必ず必要
 // リンク前提実行コードなら不要（逆に存在するとエラー）
-fuction main()
+fuction void main()
 
     // ローカル関数は関数のはじめに宣言（途中宣言は出来ない）
     local int i;

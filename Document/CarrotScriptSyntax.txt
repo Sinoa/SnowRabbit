@@ -1,0 +1,149 @@
+
+********** pre-processor directive syntax **********
+
+directive
+    : '#' directives
+
+directives
+    : link-directive
+
+link-directive
+    : 'link' '<' link-object-name '>'
+
+link-object-name
+    : <identifier>
+
+**************************************************
+
+
+********** peripheral syntax **********
+
+peripheral-declare
+    : 'using' function-name '=' return-type import-peripheral-name '.' import-peripheral-function-name '(' [type-list] ')' ';'
+
+import-peripheral-name
+    : <identifier>
+
+import-peripheral-function-name
+    : <identifier>
+
+type-list
+    : non-void-var-type {',' non-void-var-type}
+
+**************************************************
+
+********** global variable syntax **********
+
+global-variable-declare
+    : 'global' non-void-var-type global-var-name ';'
+
+global-var-name
+    : <identifier>
+
+**************************************************
+
+
+********** function syntax **********
+
+function-declare
+    : 'function' return-type function-name '(' [argument-list] ')' {block} 'end'
+
+function-name
+    : <identifier>
+
+argument-list
+    : argument {',' argument}
+
+argument
+    : non-void-var-type argument-name
+
+type
+    : 'void'
+    | non-void-var-type
+
+return-type
+    : type
+
+non-void-var-type
+    : 'int'
+    | 'number'
+    | 'string'
+
+argument-name
+    : <identifier>
+
+function-call
+    : function-name '(' [argument-name-list] ')'
+
+argument-name-list
+    : argument-name {',' argument-name}
+
+**************************************************
+
+********** block syntax **********
+
+block
+    : statement-list
+
+statement-list
+    : empty-statement
+    | declare-statement
+    | iteration-statement
+    | expression-statement
+
+empty-statement
+    : ';'
+
+**************************************************
+
+********** declare statement syntax **********
+
+declare-statement
+    : local-var-declare ';'
+
+local-var-declare
+    : 'local' non-void-var-type local-var-name
+
+local-var-name
+    : <identifier>
+
+**************************************************
+
+********** iteration statement syntax **********
+
+iteration-statement
+    : for-statement
+    : while-statement
+
+for-statement
+    : 'for' '(' [for-initializer] ';' [for-condition] ';' [for-iterator] ')' {block} 'end'
+
+while-statement
+    : 'while' '(' while-condition ')' [block] 'end'
+
+**************************************************
+
+********** expression syntax **********
+
+unary-expression
+    : main-expression
+    | cast-expression
+
+main-expression
+    : literal
+    | function-call
+
+cast-expression
+    : '(' non-void-var-type ')' unary-expression
+
+literal
+    : <integer>
+    | <number>
+    | <string>
+
+simple-name
+    : global-var-name
+    | local-var-name
+    | argument-name
+
+**************************************************
