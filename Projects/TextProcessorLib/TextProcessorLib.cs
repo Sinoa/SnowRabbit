@@ -404,7 +404,8 @@ namespace TextProcessorLib
         // 定数定義
         public const int EndOfStream = -1;
 
-        // 静的メンバ変数定義
+        // クラス変数定義
+        public static readonly TokenReader EmptyReader = new EmptyTokenReader();
         private static readonly Dictionary<Type, Dictionary<string, int>> KeywordTableTable;
 
         // メンバ変数定義
@@ -447,7 +448,7 @@ namespace TextProcessorLib
 
 
 
-        #region Constructor and Initializer
+        #region Constructor and Dispose and Initializer
         /// <summary>
         /// TokenReader クラスの初期化をします
         /// </summary>
@@ -1046,6 +1047,17 @@ namespace TextProcessorLib
                 // オブジェクト破棄済み例外を投げる
                 throw new ObjectDisposedException(null);
             }
+        }
+        #endregion
+
+
+
+        #region EmptyTokenReader
+        /// <summary>
+        /// 追加のトークン解析が無いトークンリーダークラスです
+        /// </summary>
+        private class EmptyTokenReader : TokenReader
+        {
         }
         #endregion
     }
