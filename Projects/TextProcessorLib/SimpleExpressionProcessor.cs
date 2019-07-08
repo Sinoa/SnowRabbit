@@ -159,12 +159,6 @@ namespace TextProcessorLib
                     break;
 
 
-                // オープンパーレンではなくクローズパーレンが先に来ているなら
-                case TokenKind.CloseParen:
-                    ThrowOpenParenNotFound();
-                    break;
-
-
                 // オープンパーレンなら次のトークンを読み取って加算演算のパースから始めて
                 // 最後にクローズパーレンが来ていないなら構文エラー
                 case TokenKind.OpenParen:
@@ -258,18 +252,6 @@ namespace TextProcessorLib
 
             // 変数が見つからなかった例外を投げる
             throw new SimpleExpressionProcessorSyntaxErrorException($"'{variableName}' が未定義です");
-        }
-
-
-        /// <summary>
-        /// オープンパーレンが見つからない例外をスローします
-        /// </summary>
-        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">')' に対応する '(' が存在しません</exception>
-        private void ThrowOpenParenNotFound()
-        {
-            // 例外を投げる
-            ref var token = ref lexer.LastReadToken;
-            throw new SimpleExpressionProcessorSyntaxErrorException($"[{token.LineNumber}行 {token.ColumnNumber}列] ')' に対応する '(' が存在しません");
         }
 
 
