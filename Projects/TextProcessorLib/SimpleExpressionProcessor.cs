@@ -73,8 +73,9 @@ namespace TextProcessorLib
             lexer.ReadNextToken();
 
 
-            // 式解析関数を呼び出して最後に積まれた値を取り出して返す
-            return accumulatorStack.Pop();
+            // 式解析関数を呼び出して、スタックに値が積まれていれば取り出して返す
+            ParseAddExpression();
+            return accumulatorStack.Count > 0 ? accumulatorStack.Pop() : 0.0;
         }
 
 
@@ -85,6 +86,21 @@ namespace TextProcessorLib
         {
             // 優先度の高い乗算系の構文解析をする
             ParseMulExpression();
+
+
+            // プラス, マイナス が見つかる間はループ
+            ref var token = ref lexer.LastReadToken;
+            int lastFetchKind = token.Kind;
+            while (token.Kind == TokenKind.Plus || token.Kind == TokenKind.Minus)
+            {
+                // 次のトークンを読み出してから優先度の高い乗算系の構文解析をする
+                lexer.ReadNextToken();
+                ParseMulExpression();
+
+
+                // 積まれた結果を計算する
+                DoOperation(lastFetchKind);
+            }
         }
 
 
@@ -99,13 +115,16 @@ namespace TextProcessorLib
 
             // アスタリスク, スラッシュ, パーセント が見つかる間はループ
             ref var token = ref lexer.LastReadToken;
-            var lastFetchKind = 0;
+            int lastFetchKind = token.Kind;
             while (token.Kind == TokenKind.Asterisk || token.Kind == TokenKind.Slash || token.Kind == TokenKind.Percent)
             {
-                // 演算子を覚えて次のトークンを読み出してから単項演算の構文解析をする
-                lastFetchKind = token.Kind;
+                // 次のトークンを読み出してから単項演算の構文解析をする
                 lexer.ReadNextToken();
                 ParseUnaryExpression();
+
+
+                // 積まれた結果を計算する
+                DoOperation(lastFetchKind);
             }
         }
 
@@ -115,6 +134,7 @@ namespace TextProcessorLib
         /// </summary>
         /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">'variableName' が未定義です</exception>
         /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">'(' に対応する ')' が存在しません</exception>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">未定義のトークン 'token' です</exception>
         private void ParseUnaryExpression()
         {
             // 最後に読み取られたトークンの種類に応じて処理を変える
@@ -146,7 +166,16 @@ namespace TextProcessorLib
                     ParseAddExpression();
                     ThrowIfCloseParenNotFound();
                     break;
+
+
+                // 想定外のトークンが来たら例外を投げる
+                default:
+                    throw new SimpleExpressionProcessorSyntaxErrorException($"未定義のトークン '{token.Text}' です");
             }
+
+
+            // 次のトークンを読み込んでおく
+            lexer.ReadNextToken();
         }
 
 
@@ -163,7 +192,7 @@ namespace TextProcessorLib
 
 
             // 演算子が除算または剰余の場合に0除算になってしまうかどうかを判定
-            if ((operationTokenKind == TokenKind.Slash || operationTokenKind == TokenKind.Percent) && lValue == 0.0)
+            if ((operationTokenKind == TokenKind.Slash || operationTokenKind == TokenKind.Percent) && rValue == 0.0)
             {
                 // 0除算になってしまう場合は例外を送出する
                 throw new SimpleExpressionProcessorSyntaxErrorException("0除算の実行を行おうとしました");
@@ -173,6 +202,34 @@ namespace TextProcessorLib
             // 演算子によって処理を変える
             switch (operationTokenKind)
             {
+                // 加算演算子なら加算してプッシュする
+                case TokenKind.Plus:
+                    accumulatorStack.Push(lValue + rValue);
+                    break;
+
+
+                // 減算演算子なら減算してプッシュする
+                case TokenKind.Minus:
+                    accumulatorStack.Push(lValue - rValue);
+                    break;
+
+
+                // 乗算演算子なら乗算してプッシュする
+                case TokenKind.Asterisk:
+                    accumulatorStack.Push(lValue * rValue);
+                    break;
+
+
+                // 除算演算子なら除算してプッシュする
+                case TokenKind.Slash:
+                    accumulatorStack.Push(lValue / rValue);
+                    break;
+
+
+                // 剰余演算子なら剰余してプッシュする
+                case TokenKind.Percent:
+                    accumulatorStack.Push(lValue % rValue);
+                    break;
             }
         }
 
