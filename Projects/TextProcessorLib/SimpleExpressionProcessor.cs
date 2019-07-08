@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 
 namespace TextProcessorLib
 {
@@ -82,6 +83,8 @@ namespace TextProcessorLib
         /// </summary>
         private void ParseAddExpression()
         {
+            // 優先度の高い乗算系の構文解析をする
+            ParseMulExpression();
         }
 
 
@@ -90,14 +93,124 @@ namespace TextProcessorLib
         /// </summary>
         private void ParseMulExpression()
         {
+            // 優先度の高い単項演算の構文解析をする
+            ParseUnaryExpression();
+
+
+            // アスタリスク, スラッシュ, パーセント が見つかる間はループ
+            ref var token = ref lexer.LastReadToken;
+            var lastFetchKind = 0;
+            while (token.Kind == TokenKind.Asterisk || token.Kind == TokenKind.Slash || token.Kind == TokenKind.Percent)
+            {
+                // 演算子を覚えて次のトークンを読み出してから単項演算の構文解析をする
+                lastFetchKind = token.Kind;
+                lexer.ReadNextToken();
+                ParseUnaryExpression();
+            }
         }
 
 
         /// <summary>
         /// 単項演算の構文解析を実行します
         /// </summary>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">'variableName' が未定義です</exception>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">'(' に対応する ')' が存在しません</exception>
         private void ParseUnaryExpression()
         {
+            // 最後に読み取られたトークンの種類に応じて処理を変える
+            ref var token = ref lexer.LastReadToken;
+            switch (token.Kind)
+            {
+                // 整数なら実数として計算スタックに詰む
+                case TokenKind.Integer:
+                    accumulatorStack.Push(token.Integer);
+                    break;
+
+
+                // 実数なら実数として計算スタックに詰む
+                case TokenKind.Number:
+                    accumulatorStack.Push(token.Number);
+                    break;
+
+
+                // 識別子なら変数から実数として計算スタックに詰む
+                case TokenKind.Identifier:
+                    PushVariableValue(token.Text);
+                    break;
+
+
+                // オープンパーレンなら次のトークンを読み取って加算演算のパースから始めて
+                // 最後にクローズパーレンが来ていないなら構文エラー
+                case TokenKind.OpenParen:
+                    lexer.ReadNextToken();
+                    ParseAddExpression();
+                    ThrowIfCloseParenNotFound();
+                    break;
+            }
+        }
+
+
+        /// <summary>
+        /// 指定された演算子の種類に応じて計算スタックから値を取り出して計算を行います
+        /// </summary>
+        /// <param name="operationTokenKind">計算する方法を示す演算子のトークン種別</param>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">0除算の実行を行おうとしました</exception>
+        private void DoOperation(int operationTokenKind)
+        {
+            // 計算スタックから値を取り出す
+            var rValue = accumulatorStack.Pop();
+            var lValue = accumulatorStack.Pop();
+
+
+            // 演算子が除算または剰余の場合に0除算になってしまうかどうかを判定
+            if ((operationTokenKind == TokenKind.Slash || operationTokenKind == TokenKind.Percent) && lValue == 0.0)
+            {
+                // 0除算になってしまう場合は例外を送出する
+                throw new SimpleExpressionProcessorSyntaxErrorException("0除算の実行を行おうとしました");
+            }
+
+
+            // 演算子によって処理を変える
+            switch (operationTokenKind)
+            {
+            }
+        }
+
+
+        /// <summary>
+        /// 指定された変数名の値を計算スタックにプッシュします
+        /// </summary>
+        /// <param name="variableName"></param>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">'variableName' が未定義です</exception>
+        private void PushVariableValue(string variableName)
+        {
+            // 変数の値の取得を試みて成功したのなら
+            if (variableTable.TryGetValue(variableName, out var value))
+            {
+                // 値をプッシュして終了
+                accumulatorStack.Push(value);
+                return;
+            }
+
+
+            // 変数が見つからなかった例外を投げる
+            throw new SimpleExpressionProcessorSyntaxErrorException($"'{variableName}' が未定義です");
+        }
+
+
+        /// <summary>
+        /// クローズパーレンが見つからない場合は例外をスローします
+        /// </summary>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">'(' に対応する ')' が存在しません</exception>
+        private void ThrowIfCloseParenNotFound()
+        {
+            // 最後に読み取ったものがクローズパーレン出ない場合
+            ref var token = ref lexer.LastReadToken;
+            if (token.Kind != TokenKind.CloseParen)
+            {
+                // 例外を投げる
+                throw new SimpleExpressionProcessorSyntaxErrorException($"[{token.LineNumber}行 {token.ColumnNumber}列] '(' に対応する ')' が存在しません");
+            }
         }
     }
 
@@ -108,5 +221,40 @@ namespace TextProcessorLib
     /// </summary>
     public class SimpleExpressionProcessorSyntaxErrorException : Exception
     {
+        /// <summary>
+        /// SimpleExpressionProcessorSyntaxErrorException のインスタンスを初期化します
+        /// </summary>
+        public SimpleExpressionProcessorSyntaxErrorException() : base()
+        {
+        }
+
+
+        /// <summary>
+        /// SimpleExpressionProcessorSyntaxErrorException のインスタンスを初期化します
+        /// </summary>
+        /// <param name="message">発生した例外のメッセージ</param>
+        public SimpleExpressionProcessorSyntaxErrorException(string message) : base(message)
+        {
+        }
+
+
+        /// <summary>
+        /// SimpleExpressionProcessorSyntaxErrorException のインスタンスを初期化します
+        /// </summary>
+        /// <param name="message">発生した例外のメッセージ</param>
+        /// <param name="innerException">この例外を発生させた原因の例外</param>
+        public SimpleExpressionProcessorSyntaxErrorException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+
+        /// <summary>
+        /// シリアル化したデータから SimpleExpressionProcessorSyntaxErrorException のインスタンスを初期化します
+        /// </summary>
+        /// <param name="info">シリアル化されたオブジェクト情報</param>
+        /// <param name="context">シリアルデータの転送コンテキスト</param>
+        protected SimpleExpressionProcessorSyntaxErrorException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
     }
 }
