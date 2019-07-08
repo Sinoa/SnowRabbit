@@ -62,6 +62,9 @@ namespace TextProcessorLib
         /// </summary>
         /// <param name="expression">計算したい式。"result = expression" または "expression" の文法が利用可能です</param>
         /// <returns>支持された式の結果を返します</returns>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">'variableName' が未定義です</exception>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">'(' に対応する ')' が存在しません</exception>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">未定義のトークン 'token' です</exception>
         public double Calculate(string expression)
         {
             // 念の為スタックを空にする
@@ -82,6 +85,9 @@ namespace TextProcessorLib
         /// <summary>
         /// 加算演算（+ -）の構文解析を実行します
         /// </summary>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">'variableName' が未定義です</exception>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">'(' に対応する ')' が存在しません</exception>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">未定義のトークン 'token' です</exception>
         private void ParseAddExpression()
         {
             // 優先度の高い乗算系の構文解析をする
@@ -107,6 +113,9 @@ namespace TextProcessorLib
         /// <summary>
         /// 乗算演算（* / %）の構文解析を実行します
         /// </summary>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">'variableName' が未定義です</exception>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">'(' に対応する ')' が存在しません</exception>
+        /// <exception cref="SimpleExpressionProcessorSyntaxErrorException">未定義のトークン 'token' です</exception>
         private void ParseMulExpression()
         {
             // 優先度の高い単項演算の構文解析をする
