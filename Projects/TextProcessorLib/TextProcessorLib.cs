@@ -389,6 +389,18 @@ namespace TextProcessorLib
         /// >>
         /// </summary>
         public const int DoubleCloseAngle = -612;
+
+        /// <summary>
+        /// ダブルプラス
+        /// ++
+        /// </summary>
+        public const int DoublePlush = -613;
+
+        /// <summary>
+        /// ダブルマイナス
+        /// --
+        /// </summary>
+        public const int DoubleMinus = -614;
         #endregion
     }
     #endregion
@@ -628,6 +640,7 @@ namespace TextProcessorLib
                 { "->", TokenKind.RightArrow }, { "<-", TokenKind.LeftArrow },
                 { "&&", TokenKind.DoubleAnd }, { "||", TokenKind.DoubleVerticalbar },
                 { "<<", TokenKind.DoubleOpenAngle }, { ">>", TokenKind.DoubleCloseAngle },
+                { "++", TokenKind.DoublePlush }, { "--", TokenKind.DoubleMinus },
             };
         }
 
