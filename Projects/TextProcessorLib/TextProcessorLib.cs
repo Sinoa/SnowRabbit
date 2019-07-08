@@ -644,6 +644,19 @@ namespace TextProcessorLib
 
         #region Read functions
         /// <summary>
+        /// 次に読み取れるトークンを読み込みます。
+        /// 読み込まれたトークンは LastReadToken プロパティからアクセスする事が出来ます。
+        /// </summary>
+        /// <returns>トークンを読み込んだ場合は true を、読み出すべきトークンがない（EndOfToken）場合は false を返します</returns>
+        /// <exception cref="ObjectDisposedException">インスタンスが既に破棄されています</exception>
+        public bool ReadNextToken()
+        {
+            // 読み込まれたトークンパラメータを破棄するだけの呼び出しを行う
+            return ReadNextToken(out var dummy);
+        }
+
+
+        /// <summary>
         /// 次に読み取れるトークンを読み込みます
         /// </summary>
         /// <param name="token">読み出されたトークンを設定するトークンへの参照</param>
