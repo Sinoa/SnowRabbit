@@ -7,6 +7,10 @@
     <Copyright>Copyright(c) 2019 Sinoa</Copyright>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="**/*.meta" />
     <None Remove="**/*.asmdef" />
