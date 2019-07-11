@@ -80,19 +80,24 @@ namespace CarrotCompilerCollection.TextProcess
         public const int If = KeywordOffset + 45;
 
         /// <summary>
+        /// else
+        /// </summary>
+        public const int Else = KeywordOffset + 50;
+
+        /// <summary>
         /// ifelse
         /// </summary>
-        public const int IfElse = KeywordOffset + 50;
+        public const int IfElse = KeywordOffset + 55;
 
         /// <summary>
         /// for
         /// </summary>
-        public const int For = KeywordOffset + 55;
+        public const int For = KeywordOffset + 60;
 
         /// <summary>
         /// while
         /// </summary>
-        public const int While = KeywordOffset + 60;
+        public const int While = KeywordOffset + 65;
     }
     #endregion
 
@@ -121,6 +126,7 @@ namespace CarrotCompilerCollection.TextProcess
             tokenTable["global"] = CccTokenKind.Global;
             tokenTable["local"] = CccTokenKind.Local;
             tokenTable["if"] = CccTokenKind.If;
+            tokenTable["else"] = CccTokenKind.Else;
             tokenTable["ifelse"] = CccTokenKind.IfElse;
             tokenTable["for"] = CccTokenKind.For;
             tokenTable["while"] = CccTokenKind.While;
