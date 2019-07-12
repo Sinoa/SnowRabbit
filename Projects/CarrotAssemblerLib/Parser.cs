@@ -586,7 +586,7 @@ namespace CarrotAssemblerLib
 
 
     /// <summary>
-    /// コンソール向け構文解析ロガー抽象クラスです
+    /// コンソール向け構文解析ロガークラスです
     /// </summary>
     public class ConsoleParserLogger : IParserLogger
     {
