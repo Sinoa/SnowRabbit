@@ -13,13 +13,23 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using CarrotCompilerCollection.Utility;
-
-namespace CarrotCompilerCollection.TextProcess
+namespace CarrotCompilerCollection.Utility
 {
-    public class CccParser
+    /// <summary>
+    /// 何も処理を行わない構文解析ロガークラスです
+    /// </summary>
+    public class CccNullParserLogger : ICccParserLogger
     {
-        private CccLexer lexer;
-        private ICccParserLogger logger;
+        /// <summary>
+        /// この関数は何も行いません
+        /// </summary>
+        /// <param name="type">無視されます</param>
+        /// <param name="lineNumber">無視されます</param>
+        /// <param name="columnNumber">無視されます</param>
+        /// <param name="code">無視されます</param>
+        /// <param name="message">無視されます</param>
+        public void Write(CccParserLogType type, int lineNumber, int columnNumber, uint code, string message)
+        {
+        }
     }
 }

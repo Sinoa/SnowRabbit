@@ -13,22 +13,26 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using System.Collections.Generic;
-
-namespace CarrotCompilerCollection.TextProcess
+namespace CarrotCompilerCollection.Utility
 {
-    public class SymbolInfo
+    /// <summary>
+    /// 構文解析から出力されるログの種類を表します
+    /// </summary>
+    public enum CccParserLogType
     {
-        public string Name;
-        public int Address;
-        public bool Unresolved;
-    }
+        /// <summary>
+        /// 通常のログです
+        /// </summary>
+        Info,
 
+        /// <summary>
+        /// 構文警告のログです
+        /// </summary>
+        Warning,
 
-
-    public class SymbolManager
-    {
-        public List<SymbolInfo> symbolList;
-        public Dictionary<string, int> symbolIndexTableFromName;
+        /// <summary>
+        /// 構文エラーのログです
+        /// </summary>
+        Error,
     }
 }
