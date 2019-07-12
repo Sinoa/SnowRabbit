@@ -24,11 +24,12 @@ namespace CarrotCompilerCollection.Utility
         /// この関数は何も行いません
         /// </summary>
         /// <param name="type">無視されます</param>
+        /// <param name="scriptName">無視されます</param>
         /// <param name="lineNumber">無視されます</param>
         /// <param name="columnNumber">無視されます</param>
         /// <param name="code">無視されます</param>
         /// <param name="message">無視されます</param>
-        public void Write(CccParserLogType type, int lineNumber, int columnNumber, uint code, string message)
+        public void Write(CccParserLogType type, string scriptName, int lineNumber, int columnNumber, uint code, string message)
         {
         }
     }

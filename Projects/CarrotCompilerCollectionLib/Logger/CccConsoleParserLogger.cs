@@ -47,11 +47,12 @@ namespace CarrotCompilerCollection.Utility
         /// ログを書き込みます
         /// </summary>
         /// <param name="type">ログの種類</param>
+        /// <param name="scriptName">構文解析をしていた対象のスクリプト名</param>
         /// <param name="lineNumber">ログを出すタイミングになった行番号。ただし、正確な位置を保証しているわけではありません。</param>
         /// <param name="columnNumber">ログを出すタイミングになった列番号。ただし、正確な位置を保証しているわけではありません。</param>
         /// <param name="code">構文解析がログを出力する要因となったログコード</param>
         /// <param name="message">構文解析が出力するメッセージ</param>
-        public void Write(CccParserLogType type, int lineNumber, int columnNumber, uint code, string message)
+        public void Write(CccParserLogType type, string scriptName, int lineNumber, int columnNumber, uint code, string message)
         {
             // コンソールカラーパターンを取得するが取得に失敗したら
             if (!ConsoleColorTable.TryGetValue(type, out var pattern))
@@ -71,7 +72,7 @@ namespace CarrotCompilerCollection.Utility
 
 
             // ログを出力してカラーをリセットする
-            Console.WriteLine($"({lineNumber}, {columnNumber}) {type.ToString()} C{code}: {message}");
+            Console.WriteLine($"{scriptName} at (Line:{lineNumber}, Column:{columnNumber}) {type.ToString()} C{code}: {message}");
             Console.ResetColor();
         }
 
