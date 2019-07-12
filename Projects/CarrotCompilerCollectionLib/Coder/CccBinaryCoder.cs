@@ -39,5 +39,13 @@ namespace CarrotCompilerCollection.Coder
             // SnowRabbit向けバイナリIOのインスタンスを生成する
             binaryIO = new SrBinaryIO(outputStream ?? throw new ArgumentNullException(nameof(outputStream)));
         }
+
+
+        /// <summary>
+        /// 現在の状態から実行コードを出力します
+        /// </summary>
+        public void OutputExecuteCode()
+        {
+        }
     }
 }
