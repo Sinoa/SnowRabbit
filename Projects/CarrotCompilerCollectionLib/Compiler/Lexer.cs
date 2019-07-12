@@ -16,7 +16,7 @@
 using System.Collections.Generic;
 using TextProcessorLib;
 
-namespace CarrotCompilerCollection.TextProcess
+namespace CarrotCompilerCollection.Compiler
 {
     #region Kind
     /// <summary>
