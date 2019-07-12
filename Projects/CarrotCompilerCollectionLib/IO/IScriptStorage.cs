@@ -26,7 +26,9 @@ namespace CarrotCompilerCollection.IO
         /// 指定したスクリプト名からスクリプトのテキストリーダーを開きます
         /// </summary>
         /// <param name="scriptName">開くスクリプトのスクリプト名</param>
-        /// <returns>正しくスクリプトを開けた場合はテキストリーダーを返しますが、失敗した場合は null を返します</returns>
+        /// <returns>開いたテキストリーダーを返します</returns>
+        /// <exception cref="ArgumentNullException">scriptName が null です</exception>
+        /// <exception cref="ScriptNotFoundException">スクリプト 'scriptName' が見つかりませんでした。</exception>
         TextReader Open(string scriptName);
 
         /// <summary>

@@ -13,6 +13,7 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
 using System.IO;
 
 namespace CarrotCompilerCollection.IO
@@ -26,14 +27,16 @@ namespace CarrotCompilerCollection.IO
         /// 指定されたスクリプト名のスクリプトを開きます
         /// </summary>
         /// <param name="scriptFilePath">スクリプトが存在するスクリプトファイルパス</param>
-        /// <returns>正しくスクリプトを開けた場合はテキストリーダーを返しますが、失敗した場合は null を返します</returns>
+        /// <returns>開いたテキストリーダーを返します</returns>
+        /// <exception cref="ArgumentNullException">scriptName が null です</exception>
+        /// <exception cref="ScriptNotFoundException">スクリプト 'scriptName' が見つかりませんでした。</exception>
         public TextReader Open(string scriptFilePath)
         {
             // 文字列が無効または、指定されたファイルが存在しないなら
-            if (string.IsNullOrWhiteSpace(scriptFilePath) || !File.Exists(scriptFilePath))
+            if (!File.Exists(scriptFilePath ?? throw new ArgumentNullException(nameof(scriptFilePath))))
             {
-                // 開けないことを返す
-                return null;
+                // 開けない例外を吐く
+                throw new ScriptNotFoundException(scriptFilePath);
             }
 
 
