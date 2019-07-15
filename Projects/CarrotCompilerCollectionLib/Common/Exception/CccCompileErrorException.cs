@@ -16,38 +16,48 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace CarrotCompilerCollection.IO
+namespace CarrotCompilerCollection.Compiler
 {
     /// <summary>
-    /// スクリプト名に対してリソースが見つからなかった場合の例外です
+    /// Ccc コンパイラのコンパイルエラーが発生した場合の例外クラスです。
+    /// Ccc コンパイラの殆どの例外はこのクラスを継承しています。
     /// </summary>
-    public class ScriptNotFoundException : Exception
+    [Serializable]
+    public class CccCompileErrorException : Exception
     {
         /// <summary>
-        /// ScriptNotFoundException クラスのインスタンスを初期化します
+        /// CccCompileErrorException のインスタンスを初期化します
         /// </summary>
-        /// <param name="scriptName">見つけられなかったスクリプト名</param>
-        public ScriptNotFoundException(string scriptName) : base($"スクリプト名 '{scriptName}' のスクリプトが見つかりませんでした。")
+        public CccCompileErrorException() : base()
         {
         }
 
 
         /// <summary>
-        /// ScriptNotFoundException のインスタンスを初期化します
+        /// CccCompileErrorException のインスタンスを初期化します
         /// </summary>
-        /// <param name="scriptName">見つけられなかったスクリプト名</param>
+        /// <param name="message">発生した例外のメッセージ</param>
+        public CccCompileErrorException(string message) : base(message)
+        {
+        }
+
+
+        /// <summary>
+        /// CccCompileErrorException のインスタンスを初期化します
+        /// </summary>
+        /// <param name="message">発生した例外のメッセージ</param>
         /// <param name="innerException">この例外を発生させた原因の例外</param>
-        public ScriptNotFoundException(string scriptName, Exception innerException) : base($"スクリプト名 '{scriptName}' のスクリプトが見つかりませんでした。", innerException)
+        public CccCompileErrorException(string message, Exception innerException) : base(message, innerException)
         {
         }
 
 
         /// <summary>
-        /// シリアル化したデータから ScriptNotFoundException のインスタンスを初期化します
+        /// シリアル化したデータから CccCompileErrorException のインスタンスを初期化します
         /// </summary>
         /// <param name="info">シリアル化されたオブジェクト情報</param>
         /// <param name="context">シリアルデータの転送コンテキスト</param>
-        protected ScriptNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
+        protected CccCompileErrorException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }
