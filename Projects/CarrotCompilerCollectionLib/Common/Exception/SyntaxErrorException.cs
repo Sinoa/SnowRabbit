@@ -22,33 +22,33 @@ namespace CarrotCompilerCollection.Compiler
     /// 構文エラーが発生したときの例外クラスです
     /// </summary>
     [Serializable]
-    public class CccSyntaxErrorException : CccCompileErrorException
+    public class SyntaxErrorException : CccCompileErrorException
     {
         /// <summary>
-        /// CccSyntaxErrorException クラスのインスタンスを初期化します
+        /// SyntaxErrorException クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="scriptName">見つけられなかったスクリプト名</param>
-        public CccSyntaxErrorException(string scriptName) : base($"スクリプト名 '{scriptName}' のスクリプトが見つかりませんでした。")
+        public SyntaxErrorException(string scriptName) : base($"スクリプト名 '{scriptName}' のスクリプトが見つかりませんでした。")
         {
         }
 
 
         /// <summary>
-        /// CccSyntaxErrorException のインスタンスを初期化します
+        /// SyntaxErrorException のインスタンスを初期化します
         /// </summary>
         /// <param name="scriptName">見つけられなかったスクリプト名</param>
         /// <param name="innerException">この例外を発生させた原因の例外</param>
-        public CccSyntaxErrorException(string scriptName, Exception innerException) : base($"スクリプト名 '{scriptName}' のスクリプトが見つかりませんでした。", innerException)
+        public SyntaxErrorException(string scriptName, Exception innerException) : base($"スクリプト名 '{scriptName}' のスクリプトが見つかりませんでした。", innerException)
         {
         }
 
 
         /// <summary>
-        /// シリアル化したデータから CccSyntaxErrorException のインスタンスを初期化します
+        /// シリアル化したデータから SyntaxErrorException のインスタンスを初期化します
         /// </summary>
         /// <param name="info">シリアル化されたオブジェクト情報</param>
         /// <param name="context">シリアルデータの転送コンテキスト</param>
-        protected CccSyntaxErrorException(SerializationInfo info, StreamingContext context) : base(info, context)
+        protected SyntaxErrorException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }
