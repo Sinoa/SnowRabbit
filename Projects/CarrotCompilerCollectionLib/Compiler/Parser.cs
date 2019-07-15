@@ -16,7 +16,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using CarrotCompilerCollection.Coder;
 using CarrotCompilerCollection.IO;
 using CarrotCompilerCollection.Utility;
 

@@ -17,7 +17,7 @@ using System;
 using System.IO;
 using SnowRabbit.Runtime;
 
-namespace CarrotCompilerCollection.Coder
+namespace CarrotCompilerCollection.Compiler
 {
     /// <summary>
     /// SnowRabbit 仮想マシン向け実行コードを生成するコーダークラスです
