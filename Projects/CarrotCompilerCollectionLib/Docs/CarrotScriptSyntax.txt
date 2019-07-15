@@ -1,3 +1,10 @@
+********** compile unit syntax **********
+
+compile-unit
+    : [directive] [peripheral-declare] [global-variable-declare] [block]
+
+**************************************************
+
 
 ********** pre-processor directive syntax **********
 
@@ -31,6 +38,7 @@ type-list
     : non-void-var-type {',' non-void-var-type}
 
 **************************************************
+
 
 ********** global variable syntax **********
 
