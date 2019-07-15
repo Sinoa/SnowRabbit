@@ -61,13 +61,12 @@ namespace CarrotCompilerCollection.Compiler
         public void Compile(string scriptName, Stream outputStream)
         {
             // レキサのリセットとバイナリコーダーの初期化をする
-            lexer.Reset(reader ?? throw new ArgumentNullException(nameof(reader)));
+            currentContext = new ParserContext(scriptName, this);
+            contextStack.Push(currentContext);
             coder = new CccBinaryCoder(outputStream ?? throw new ArgumentNullException(nameof(outputStream)));
 
 
-            // コンパイルを行い実行コードを出力する
-            ParseCompileUnit();
-            coder.OutputExecuteCode();
+            Compile();
         }
 
 
@@ -88,16 +87,42 @@ namespace CarrotCompilerCollection.Compiler
                     return;
                 }
             }
+
+
+            currentContext = new ParserContext(scriptName, this);
+            contextStack.Push(currentContext);
+
+
+            Compile();
+        }
+
+
+        private void Compile()
+        {
+            ParseCompileUnit();
+            contextStack.Pop();
+
+
+            if (contextStack.Count > 0)
+            {
+                currentContext = contextStack.Peek();
+                return;
+            }
+
+
+            coder.OutputExecuteCode();
         }
         #endregion
 
 
+        #region Parse
         /// <summary>
         /// コンパイル単位のルートになる構文解析関数です
         /// </summary>
         private void ParseCompileUnit()
         {
         }
+        #endregion
 
 
         #region exception thrower
