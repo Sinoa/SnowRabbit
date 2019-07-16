@@ -1,7 +1,7 @@
 ********** compile unit syntax **********
 
 compile-unit
-    : [directive] [peripheral-declare] [global-variable-declare] [block]
+    : [directive] [peripheral-declare] [global-variable-declare] [function-declare]
 
 **************************************************
 
@@ -53,7 +53,7 @@ type-list
 ********** global variable syntax **********
 
 global-variable-declare
-    : 'global' non-void-var-type global-var-name ';'
+    : { 'global' non-void-var-type global-var-name ';' }
 
 global-var-name
     : <identifier>
@@ -64,7 +64,7 @@ global-var-name
 ********** function syntax **********
 
 function-declare
-    : 'function' return-type function-name '(' [argument-list] ')' {block} 'end'
+    : { 'function' return-type function-name '(' [argument-list] ')' {block} 'end' }
 
 function-name
     : <identifier>
@@ -98,6 +98,7 @@ argument-name-list
 
 **************************************************
 
+
 ********** block syntax **********
 
 block
@@ -114,6 +115,7 @@ empty-statement
 
 **************************************************
 
+
 ********** declare statement syntax **********
 
 declare-statement
@@ -126,6 +128,7 @@ local-var-name
     : <identifier>
 
 **************************************************
+
 
 ********** iteration statement syntax **********
 
@@ -140,6 +143,7 @@ while-statement
     : 'while' '(' while-condition ')' [block] 'end'
 
 **************************************************
+
 
 ********** expression syntax **********
 

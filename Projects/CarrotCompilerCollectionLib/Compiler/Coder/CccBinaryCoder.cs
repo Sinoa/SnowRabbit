@@ -28,6 +28,8 @@ namespace CarrotCompilerCollection.Compiler
         // メンバ変数定義
         private SrBinaryIO binaryIO;
         private Dictionary<string, FunctionInfo> functionTable;
+        private Dictionary<string, VariableInfo> variableTable;
+        private int nextGlobalVariableAddress;
 
 
 
@@ -41,6 +43,8 @@ namespace CarrotCompilerCollection.Compiler
             // SnowRabbit向けバイナリIOのインスタンスを生成する
             binaryIO = new SrBinaryIO(outputStream ?? throw new ArgumentNullException(nameof(outputStream)));
             functionTable = new Dictionary<string, FunctionInfo>();
+            variableTable = new Dictionary<string, VariableInfo>();
+            nextGlobalVariableAddress = 0;
         }
 
 
@@ -49,6 +53,18 @@ namespace CarrotCompilerCollection.Compiler
         /// </summary>
         public void OutputExecuteCode()
         {
+        }
+
+
+        public string ManglingPeripheralVariableName(string peripheralName)
+        {
+            return $"___CCC_GPVN_{peripheralName}___";
+        }
+
+
+        public string ManglingPheripheralFunctionVariableName(string functionName)
+        {
+            return $"___CCC_GPFVN_{functionName}___";
         }
 
 
@@ -68,18 +84,108 @@ namespace CarrotCompilerCollection.Compiler
                 CccType.Void;
 
 
-            info.ArgumentList = new CccType[argumentList.Count];
+            info.ArgumentList = new CccArgumentInfo[argumentList.Count];
             for (int i = 0; i < info.ArgumentList.Length; ++i)
             {
-                info.ArgumentList[i] =
+                var argumentInfo = new CccArgumentInfo();
+                argumentInfo.Name = i.ToString();
+                argumentInfo.Type =
                     argumentList[i] == CccTokenKind.TypeInt ? CccType.Int :
                     returnType == CccTokenKind.TypeNumber ? CccType.Number :
                     CccType.String;
+
+
+                info.ArgumentList[i] = argumentInfo;
             }
 
 
             functionTable[functionName] = info;
+            RegisterVariable(ManglingPeripheralVariableName(peripheralName), CccTokenKind.TypeInt, VariableType.Global);
+            RegisterVariable(ManglingPheripheralFunctionVariableName(peripheralFunctionName), CccTokenKind.TypeInt, VariableType.Global);
         }
+
+
+        public void RegisterFunction(string functionName, int returnType, List<CccArgumentInfo> argumentList)
+        {
+            var info = new FunctionInfo();
+            info.Name = functionName;
+            info.PeripheralName = string.Empty;
+            info.PeripheralFunctionName = string.Empty;
+            info.Address = -1;
+            info.Unresolve = true;
+            info.Type = FunctionType.Standard;
+            info.ReturnType =
+                returnType == CccTokenKind.TypeInt ? CccType.Int :
+                returnType == CccTokenKind.TypeNumber ? CccType.Number :
+                returnType == CccTokenKind.TypeString ? CccType.String :
+                CccType.Void;
+            info.ArgumentList = argumentList.ToArray();
+
+
+            functionTable[functionName] = info;
+        }
+
+
+        public void RegisterVariable(string name, int typeKind, VariableType varType)
+        {
+            var info = new VariableInfo();
+            info.Name = name;
+            info.Type = varType;
+            info.Address = varType == VariableType.Global ? nextGlobalVariableAddress++ : -1;
+            info.Unresolve = varType != VariableType.Global;
+
+
+            variableTable[name] = info;
+        }
+
+
+
+        #region common
+        internal enum CccType
+        {
+            Void,
+            Int,
+            Number,
+            String,
+        }
+        #endregion
+
+
+
+        #region variable
+        internal enum VariableType
+        {
+            Global,
+            Local,
+        }
+
+
+
+        internal class VariableInfo
+        {
+            private List<Action<int, int>> addressResolverList;
+
+
+
+            public string Name { get; set; }
+            public VariableType Type { get; set; }
+            public int Address { get; set; }
+            public bool Unresolve { get;set;}
+
+
+
+            public VariableInfo()
+            {
+                addressResolverList = new List<Action<int, int>>();
+            }
+
+
+            public void AddAddressResolver(Action<int, int> resolver)
+            {
+                addressResolverList.Add(resolver ?? throw new ArgumentNullException(nameof(resolver)));
+            }
+        }
+        #endregion
 
 
 
@@ -88,16 +194,6 @@ namespace CarrotCompilerCollection.Compiler
         {
             Standard,
             Peripheral,
-        }
-
-
-
-        internal enum CccType
-        {
-            Void,
-            Int,
-            Number,
-            String,
         }
 
 
@@ -123,7 +219,7 @@ namespace CarrotCompilerCollection.Compiler
             public bool Unresolve { get; set; }
             public FunctionType Type { get; set; }
             public CccType ReturnType { get; set; }
-            public CccType[] ArgumentList { get; set; }
+            public CccArgumentInfo[] ArgumentList { get; set; }
 
 
 

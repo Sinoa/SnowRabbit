@@ -33,6 +33,7 @@ namespace CarrotCompilerCollection.Compiler
         private ICccParserLogger logger;
         private Stack<ParserContext> contextStack;
         private ParserContext currentContext;
+        private string parseFunctionName;
 
 
 
@@ -128,7 +129,7 @@ namespace CarrotCompilerCollection.Compiler
             ParseDirective();
             ParsePeripheralDeclare();
             ParseGlobalVariableDeclare();
-            ParseBlock();
+            ParseFunctionDeclare();
         }
 
 
@@ -304,6 +305,109 @@ namespace CarrotCompilerCollection.Compiler
         #region Parse global variable
         private void ParseGlobalVariableDeclare()
         {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            while (token.Kind == CccTokenKind.Global)
+            {
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfNotVariableType(ref token);
+                var variableType = token.Kind;
+
+
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfInvalidGlobalVariableName(ref token);
+                var varName = token.Text;
+
+
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
+
+
+                coder.RegisterVariable(varName, variableType, CccBinaryCoder.VariableType.Global);
+
+
+                currentContext.Lexer.ReadNextToken();
+            }
+        }
+        #endregion
+
+
+        #region Parse function
+        private void ParseFunctionDeclare()
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            while (token.Kind == CccTokenKind.Function)
+            {
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfNotReturnType(ref token);
+                var returnType = token.Kind;
+
+
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfInvalidFunctionName(ref token);
+                var functionName = token.Text;
+
+
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
+
+
+                currentContext.Lexer.ReadNextToken();
+                var argumentList = new List<CccBinaryCoder.CccArgumentInfo>();
+                ParseFunctionArgumentList(argumentList);
+                ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+
+
+                // Register Function
+                coder.RegisterFunction(functionName, returnType, argumentList);
+                parseFunctionName = functionName;
+
+
+                currentContext.Lexer.ReadNextToken();
+                while (token.Kind != CccTokenKind.End)
+                {
+                    ParseBlock();
+                }
+            }
+        }
+
+
+        private void ParseFunctionArgumentList(IList<CccBinaryCoder.CccArgumentInfo> argumentList)
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            if (token.Kind == CccTokenKind.CloseParen)
+            {
+                return;
+            }
+
+
+            while (true)
+            {
+                ThrowExceptionIfNotArgumentType(ref token);
+                var type =
+                    token.Kind == CccTokenKind.TypeInt ? CccBinaryCoder.CccType.Int :
+                    token.Kind == CccTokenKind.TypeNumber ? CccBinaryCoder.CccType.Number :
+                    CccBinaryCoder.CccType.String;
+
+
+                ThrowExceptionIfInvalidArgumentName(ref token);
+                var name = token.Text;
+
+
+                var argument = new CccBinaryCoder.CccArgumentInfo();
+                argument.Name = name;
+                argument.Type = type;
+                argumentList.Add(argument);
+
+
+                currentContext.Lexer.ReadNextToken();
+                if (token.Kind != CccTokenKind.Comma)
+                {
+                    break;
+                }
+
+
+                currentContext.Lexer.ReadNextToken();
+            }
         }
         #endregion
 
@@ -374,6 +478,33 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
+        private void ThrowExceptionIfInvalidFunctionName(ref Token token)
+        {
+            if (token.Kind != CccTokenKind.Identifier)
+            {
+                ThrowExceptionCompileError($"無効な関数名 '{token.Text}' です", 0);
+            }
+        }
+
+
+        private void ThrowExceptionIfInvalidArgumentName(ref Token token)
+        {
+            if (token.Kind != CccTokenKind.Identifier)
+            {
+                ThrowExceptionCompileError($"無効な引数名 '{token.Text}' です", 0);
+            }
+        }
+
+
+        private void ThrowExceptionIfInvalidGlobalVariableName(ref Token token)
+        {
+            if (token.Kind != CccTokenKind.Identifier)
+            {
+                ThrowExceptionCompileError($"無効なグローバル変数名 '{token.Text}' です", 0);
+            }
+        }
+
+
         private void ThrowExceptionIfInvalidImportPeripheralFunctionName(ref Token token)
         {
             if (token.Kind != CccTokenKind.Identifier)
@@ -413,6 +544,18 @@ namespace CarrotCompilerCollection.Compiler
 
 
             ThrowExceptionCompileError($"引数の型 '{token.Text}' が正しくありません。引数の型として使えるのは 'int' 'number' 'string' のいずれかです。", 0);
+        }
+
+
+        private void ThrowExceptionIfNotVariableType(ref Token token)
+        {
+            if (token.Kind == CccTokenKind.TypeInt || token.Kind == CccTokenKind.TypeNumber || token.Kind == CccTokenKind.TypeString)
+            {
+                return;
+            }
+
+
+            ThrowExceptionCompileError($"変数の型 '{token.Text}' が正しくありません。変数の型として使えるのは 'int' 'number' 'string' のいずれかです。", 0);
         }
 
 
