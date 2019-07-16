@@ -105,24 +105,20 @@ block
     : statement-list
 
 statement-list
-    : empty-statement
-    | declare-statement
-    | iteration-statement
+    : ';'
+    | 'local' local-var-declare
+    | 'for' for-statement
+    | 'while' while-statement
     | expression-statement
 
-empty-statement
-    : ';'
 
 **************************************************
 
 
 ********** declare statement syntax **********
 
-declare-statement
-    : local-var-declare ';'
-
 local-var-declare
-    : 'local' non-void-var-type local-var-name
+    : non-void-var-type local-var-name ';'
 
 local-var-name
     : <identifier>
@@ -132,15 +128,11 @@ local-var-name
 
 ********** iteration statement syntax **********
 
-iteration-statement
-    : for-statement
-    : while-statement
-
 for-statement
-    : 'for' '(' [for-initializer] ';' [for-condition] ';' [for-iterator] ')' {block} 'end'
+    : '(' [for-initializer] ';' [for-condition] ';' [for-iterator] ')' {block} 'end'
 
 while-statement
-    : 'while' '(' while-condition ')' [block] 'end'
+    : '(' while-condition ')' {block} 'end'
 
 **************************************************
 

@@ -258,12 +258,12 @@ namespace CarrotCompilerCollection.Compiler
                 ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
                 var argumentList = new List<int>();
 
-                
+
                 currentContext.Lexer.ReadNextToken();
                 ParsePeripheralDeclareTypeList(argumentList);
                 ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
 
-                
+
                 currentContext.Lexer.ReadNextToken();
                 ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
 
@@ -418,6 +418,67 @@ namespace CarrotCompilerCollection.Compiler
 
         #region Parse statements
         private void ParseBlock()
+        {
+            ParseStatementList();
+        }
+
+
+        private void ParseStatementList()
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            switch (token.Kind)
+            {
+                case CccTokenKind.Semicolon:
+                    currentContext.Lexer.ReadNextToken();
+                    return;
+
+
+                case CccTokenKind.Local:
+                    currentContext.Lexer.ReadNextToken();
+                    ParseLocalVariableDeclare();
+                    break;
+
+
+                case CccTokenKind.For:
+                    currentContext.Lexer.ReadNextToken();
+                    ParseForStatement();
+                    break;
+
+
+                case CccTokenKind.While:
+                    currentContext.Lexer.ReadNextToken();
+                    ParseWhileStatement();
+                    break;
+
+
+                default:
+                    ParseExpressionRoot();
+                    break;
+            }
+
+
+            currentContext.Lexer.ReadNextToken();
+        }
+
+
+        private void ParseLocalVariableDeclare()
+        {
+        }
+
+
+        private void ParseForStatement()
+        {
+        }
+
+
+        private void ParseWhileStatement()
+        {
+        }
+        #endregion
+
+
+        #region Expression
+        private void ParseExpressionRoot()
         {
         }
         #endregion

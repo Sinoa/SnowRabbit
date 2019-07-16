@@ -11,11 +11,6 @@ function void HogeFunction()
 end
 
 
-function void main()
-
-end
-
-
 function void Add(int a, int b)
 
 end
@@ -24,3 +19,11 @@ end
 function string SubString(string text, int start, int length)
 
 end
+
+
+function void main()
+
+	Add(10, 123);
+
+end
+
