@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using CarrotCompilerCollection.IO;
 using CarrotCompilerCollection.Utility;
+using TextProcessorLib;
 
 namespace CarrotCompilerCollection.Compiler
 {
@@ -74,7 +75,7 @@ namespace CarrotCompilerCollection.Compiler
         /// 新しいコンテキストを用意してネストされたスクリプトのコンパイルを行います
         /// </summary>
         /// <param name="scriptName">コンパイルするべきスクリプト名</param>
-        private void CompileNestScript(string scriptName)
+        private void Compile(string scriptName)
         {
             // コンテキストスタックをなめる
             foreach (var context in contextStack)
@@ -170,11 +171,7 @@ namespace CarrotCompilerCollection.Compiler
         private void ParseLinkDirective()
         {
             ref var token = ref currentContext.Lexer.LastReadToken;
-            if (token.Kind != CccTokenKind.OpenAngle)
-            {
-                ThrowExceptionNotStartOpenAngle();
-                return;
-            }
+            ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenAngle, "<");
 
 
             currentContext.Lexer.ReadNextToken();
@@ -185,12 +182,11 @@ namespace CarrotCompilerCollection.Compiler
             }
 
 
+            // DoLink -> CallLinkFunction
+
+
             currentContext.Lexer.ReadNextToken();
-            if (token.Kind != CccTokenKind.CloseAngle)
-            {
-                ThrowExceptionNotEndCloseAngle();
-                return;
-            }
+            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseAngle, ">");
 
 
             currentContext.Lexer.ReadNextToken();
@@ -200,11 +196,7 @@ namespace CarrotCompilerCollection.Compiler
         private void ParseCompileDirective()
         {
             ref var token = ref currentContext.Lexer.LastReadToken;
-            if (token.Kind != CccTokenKind.OpenAngle)
-            {
-                ThrowExceptionNotStartOpenAngle();
-                return;
-            }
+            ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenAngle, "<");
 
 
             currentContext.Lexer.ReadNextToken();
@@ -215,12 +207,11 @@ namespace CarrotCompilerCollection.Compiler
             }
 
 
+            Compile(token.Text);
+
+
             currentContext.Lexer.ReadNextToken();
-            if (token.Kind != CccTokenKind.CloseAngle)
-            {
-                ThrowExceptionNotEndCloseAngle();
-                return;
-            }
+            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseAngle, ">");
 
 
             currentContext.Lexer.ReadNextToken();
@@ -231,6 +222,77 @@ namespace CarrotCompilerCollection.Compiler
         #region Parse peripheral
         private void ParsePeripheralDeclare()
         {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            while (token.Kind == CccTokenKind.Using)
+            {
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfInvalidPeripheralFunctionName(ref token);
+                var functionName = token.Text;
+
+
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfUnknownToken(token.Kind, CccTokenKind.Equal, token.Text);
+
+
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfNotReturnType(ref token);
+                var returnTypeKind = token.Kind;
+
+
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfInvalidPeripheralName(ref token);
+                var peripheralName = token.Text;
+
+
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfUnknownToken(token.Kind, CccTokenKind.Period, token.Text);
+
+
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfInvalidImportPeripheralFunctionName(ref token);
+                var importFunctionName = token.Text;
+
+
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
+
+
+                // ArgumentList
+                var argumentList = new List<int>();
+                currentContext.Lexer.ReadNextToken();
+                ParsePeripheralDeclareTypeList(argumentList);
+
+
+                ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+                currentContext.Lexer.ReadNextToken();
+            }
+        }
+
+
+        private void ParsePeripheralDeclareTypeList(IList<int> typeList)
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            if (token.Kind == CccTokenKind.CloseParen)
+            {
+                return;
+            }
+
+
+            while (true)
+            {
+                ThrowExceptionIfNotArgumentType(ref token);
+                typeList.Add(token.Kind);
+
+
+                currentContext.Lexer.ReadNextToken();
+                if (token.Kind != CccTokenKind.Comma)
+                {
+                    break;
+                }
+
+
+                currentContext.Lexer.ReadNextToken();
+            }
         }
         #endregion
 
@@ -281,15 +343,81 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        private void ThrowExceptionNotStartOpenAngle()
+        private void ThrowExceptionNotStartOpenSymbol(ref Token token, int kind, string symbol)
         {
-            ThrowExceptionCompileError("'<' から始める必要があります", 0);
+            if (token.Kind != kind)
+            {
+                ThrowExceptionCompileError($"'{symbol}' から始める必要があります", 0);
+            }
         }
 
 
-        private void ThrowExceptionNotEndCloseAngle()
+        private void ThrowExceptionNotEndCloseSymbol(ref Token token, int kind, string symbol)
         {
-            ThrowExceptionCompileError("'>' で終了している必要があります", 0);
+            if (token.Kind != kind)
+            {
+                ThrowExceptionCompileError($"'{symbol}' で終了している必要があります", 0);
+            }
+        }
+
+
+        private void ThrowExceptionIfInvalidPeripheralFunctionName(ref Token token)
+        {
+            if (token.Kind != CccTokenKind.Identifier)
+            {
+                ThrowExceptionCompileError($"無効な周辺関数名 '{token.Text}' です", 0);
+            }
+        }
+
+
+        private void ThrowExceptionIfInvalidImportPeripheralFunctionName(ref Token token)
+        {
+            if (token.Kind != CccTokenKind.Identifier)
+            {
+                ThrowExceptionCompileError($"無効なインポート周辺関数名 '{token.Text}' です", 0);
+            }
+        }
+
+
+        private void ThrowExceptionIfUnknownToken(int tokenKind, int kind, string tokenText)
+        {
+            if (tokenKind != kind)
+            {
+                ThrowExceptionCompileError($"不明なトークン '{tokenText}' です", 0);
+            }
+        }
+
+
+        private void ThrowExceptionIfNotReturnType(ref Token token)
+        {
+            if (token.Kind == CccTokenKind.TypeVoid || token.Kind == CccTokenKind.TypeInt || token.Kind == CccTokenKind.TypeNumber || token.Kind == CccTokenKind.TypeString)
+            {
+                return;
+            }
+
+
+            ThrowExceptionCompileError($"戻り値の型 '{token.Text}' が正しくありません。戻り値の型として使えるのは 'void' 'int' 'number' 'string' のいずれかです。", 0);
+        }
+
+
+        private void ThrowExceptionIfNotArgumentType(ref Token token)
+        {
+            if (token.Kind == CccTokenKind.TypeInt || token.Kind == CccTokenKind.TypeNumber || token.Kind == CccTokenKind.TypeString)
+            {
+                return;
+            }
+
+
+            ThrowExceptionCompileError($"引数の型 '{token.Text}' が正しくありません。引数の型として使えるのは 'int' 'number' 'string' のいずれかです。", 0);
+        }
+
+
+        private void ThrowExceptionIfInvalidPeripheralName(ref Token token)
+        {
+            if (token.Kind != CccTokenKind.Identifier)
+            {
+                ThrowExceptionCompileError($"不明な周辺機器名 '{token.Text}' です", 0);
+            }
         }
 
 
@@ -304,7 +432,7 @@ namespace CarrotCompilerCollection.Compiler
             var lexer = currentContext.Lexer;
             ref var token = ref lexer.LastReadToken;
             logger.Write(CccParserLogType.Error, scriptName, token.LineNumber, token.ColumnNumber, errorCode, message);
-            throw new CccCompileErrorException(message);
+            throw new SyntaxErrorException(message);
         }
         #endregion
 

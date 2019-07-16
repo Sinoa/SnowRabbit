@@ -33,7 +33,10 @@ script-name
 ********** peripheral syntax **********
 
 peripheral-declare
-    : 'using' function-name '=' return-type import-peripheral-name '.' import-peripheral-function-name '(' [type-list] ')' ';'
+    : { 'using' peripheral-function-name '=' return-type import-peripheral-name '.' import-peripheral-function-name '(' [type-list] ')' ';' }
+
+peripheral-function-name
+    : <identifier>
 
 import-peripheral-name
     : <identifier>
