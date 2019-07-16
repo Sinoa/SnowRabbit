@@ -9,15 +9,22 @@ compile-unit
 ********** pre-processor directive syntax **********
 
 directive
-    : '#' directives
+    : { '#' directives }
 
 directives
-    : link-directive
+    : 'link' link-directive
+    | 'compile' compile-directive
 
 link-directive
-    : 'link' '<' link-object-name '>'
+    : '<' link-object-name '>'
 
 link-object-name
+    : <identifier>
+
+compile-directive
+    : '<' script-name '>'
+
+script-name
     : <identifier>
 
 **************************************************

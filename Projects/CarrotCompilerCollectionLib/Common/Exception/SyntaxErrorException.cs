@@ -27,8 +27,8 @@ namespace CarrotCompilerCollection.Compiler
         /// <summary>
         /// SyntaxErrorException クラスのインスタンスを初期化します
         /// </summary>
-        /// <param name="scriptName">見つけられなかったスクリプト名</param>
-        public SyntaxErrorException(string scriptName) : base($"スクリプト名 '{scriptName}' のスクリプトが見つかりませんでした。")
+        /// <param name="message">構文エラーメッセージ</param>
+        public SyntaxErrorException(string message) : base(message)
         {
         }
 
@@ -36,9 +36,9 @@ namespace CarrotCompilerCollection.Compiler
         /// <summary>
         /// SyntaxErrorException のインスタンスを初期化します
         /// </summary>
-        /// <param name="scriptName">見つけられなかったスクリプト名</param>
+        /// <param name="message">構文エラーメッセージ</param>
         /// <param name="innerException">この例外を発生させた原因の例外</param>
-        public SyntaxErrorException(string scriptName, Exception innerException) : base($"スクリプト名 '{scriptName}' のスクリプトが見つかりませんでした。", innerException)
+        public SyntaxErrorException(string message, Exception innerException) : base(message, innerException)
         {
         }
 

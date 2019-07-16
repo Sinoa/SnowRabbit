@@ -52,7 +52,7 @@ namespace CarrotCompilerCollection.Compiler
 
 
 
-        private enum FunctionType
+        internal enum FunctionType
         {
             Standard,
             Peripheral,
@@ -60,7 +60,25 @@ namespace CarrotCompilerCollection.Compiler
 
 
 
-        private class FunctionInfo
+        internal enum CccType
+        {
+            Void,
+            Int,
+            Number,
+            String,
+        }
+
+
+
+        internal class CccArgumentInfo
+        {
+            public string Name { get; set; }
+            public CccType Type { get; set; }
+        }
+
+
+
+        internal class FunctionInfo
         {
             private List<Action<int, int>> addressResolverList;
 
@@ -70,6 +88,8 @@ namespace CarrotCompilerCollection.Compiler
             public int Address { get; set; }
             public bool Unresolve { get; set; }
             public FunctionType Type { get; set; }
+            public CccType ReturnType { get; set; }
+            public CccType[] ArgumentList { get; set; }
 
 
 

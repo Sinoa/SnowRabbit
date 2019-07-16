@@ -98,6 +98,16 @@ namespace CarrotCompilerCollection.Compiler
         /// while
         /// </summary>
         public const int While = KeywordOffset + 65;
+
+        /// <summary>
+        /// link
+        /// </summary>
+        public const int Link = KeywordOffset + 70;
+
+        /// <summary>
+        /// compile
+        /// </summary>
+        public const int Compile = KeywordOffset + 75;
     }
     #endregion
 
@@ -130,6 +140,8 @@ namespace CarrotCompilerCollection.Compiler
             tokenTable["ifelse"] = CccTokenKind.IfElse;
             tokenTable["for"] = CccTokenKind.For;
             tokenTable["while"] = CccTokenKind.While;
+            tokenTable["link"] = CccTokenKind.Link;
+            tokenTable["compile"] = CccTokenKind.Compile;
         }
     }
     #endregion

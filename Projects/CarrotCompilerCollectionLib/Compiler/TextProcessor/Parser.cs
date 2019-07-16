@@ -121,7 +121,132 @@ namespace CarrotCompilerCollection.Compiler
         /// </summary>
         private void ParseCompileUnit()
         {
+            currentContext.Lexer.ReadNextToken();
+
+
+            ParseDirective();
+            ParsePeripheralDeclare();
+            ParseGlobalVariableDeclare();
+            ParseBlock();
         }
+
+
+        #region Parse directive
+        private void ParseDirective()
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            while (token.Kind == CccTokenKind.Sharp)
+            {
+                currentContext.Lexer.ReadNextToken();
+                ParseDirectives();
+            }
+        }
+
+
+        private void ParseDirectives()
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            switch (token.Kind)
+            {
+                case CccTokenKind.Link:
+                    currentContext.Lexer.ReadNextToken();
+                    ParseLinkDirective();
+                    break;
+
+
+                case CccTokenKind.Compile:
+                    currentContext.Lexer.ReadNextToken();
+                    ParseCompileDirective();
+                    break;
+
+
+                default:
+                    ThrowExceptionUnknownDirective(token.Text);
+                    break;
+            }
+        }
+
+
+        private void ParseLinkDirective()
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            if (token.Kind != CccTokenKind.OpenAngle)
+            {
+                ThrowExceptionNotStartOpenAngle();
+                return;
+            }
+
+
+            currentContext.Lexer.ReadNextToken();
+            if (token.Kind != CccTokenKind.Identifier)
+            {
+                ThrowExceptionUnknownLinkObjectName(token.Text);
+                return;
+            }
+
+
+            currentContext.Lexer.ReadNextToken();
+            if (token.Kind != CccTokenKind.CloseAngle)
+            {
+                ThrowExceptionNotEndCloseAngle();
+                return;
+            }
+
+
+            currentContext.Lexer.ReadNextToken();
+        }
+
+
+        private void ParseCompileDirective()
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            if (token.Kind != CccTokenKind.OpenAngle)
+            {
+                ThrowExceptionNotStartOpenAngle();
+                return;
+            }
+
+
+            currentContext.Lexer.ReadNextToken();
+            if (token.Kind != CccTokenKind.Identifier)
+            {
+                ThrowExceptionUnknownCompileScriptName(token.Text);
+                return;
+            }
+
+
+            currentContext.Lexer.ReadNextToken();
+            if (token.Kind != CccTokenKind.CloseAngle)
+            {
+                ThrowExceptionNotEndCloseAngle();
+                return;
+            }
+
+
+            currentContext.Lexer.ReadNextToken();
+        }
+        #endregion
+
+
+        #region Parse peripheral
+        private void ParsePeripheralDeclare()
+        {
+        }
+        #endregion
+
+
+        #region Parse global variable
+        private void ParseGlobalVariableDeclare()
+        {
+        }
+        #endregion
+
+
+        #region Parse statements
+        private void ParseBlock()
+        {
+        }
+        #endregion
         #endregion
 
 
@@ -135,6 +260,36 @@ namespace CarrotCompilerCollection.Compiler
         {
             // 再帰コンパイルしようとしている恐れのコンパイルエラーを吐く
             ThrowExceptionCompileError($"スクリプト '{scriptName}' にて再帰コンパイルを検出しました", 0);
+        }
+
+
+        private void ThrowExceptionUnknownDirective(string directiveName)
+        {
+            ThrowExceptionCompileError($"不明なディレクティグ '{directiveName}' です", 0);
+        }
+
+
+        private void ThrowExceptionUnknownLinkObjectName(string objectName)
+        {
+            ThrowExceptionCompileError($"リンクするオブジェクト名 '{objectName}' が正しくありません", 0);
+        }
+
+
+        private void ThrowExceptionUnknownCompileScriptName(string scriptName)
+        {
+            ThrowExceptionCompileError($"コンパイルするスクリプト名 '{scriptName}' が正しくありません", 0);
+        }
+
+
+        private void ThrowExceptionNotStartOpenAngle()
+        {
+            ThrowExceptionCompileError("'<' から始める必要があります", 0);
+        }
+
+
+        private void ThrowExceptionNotEndCloseAngle()
+        {
+            ThrowExceptionCompileError("'>' で終了している必要があります", 0);
         }
 
 
