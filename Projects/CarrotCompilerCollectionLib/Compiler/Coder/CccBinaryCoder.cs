@@ -40,6 +40,7 @@ namespace CarrotCompilerCollection.Compiler
         {
             // SnowRabbit向けバイナリIOのインスタンスを生成する
             binaryIO = new SrBinaryIO(outputStream ?? throw new ArgumentNullException(nameof(outputStream)));
+            functionTable = new Dictionary<string, FunctionInfo>();
         }
 
 
@@ -51,7 +52,38 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
+        public void RegisterPeripheralFunction(string functionName, int returnType, IList<int> argumentList, string peripheralName, string peripheralFunctionName)
+        {
+            var info = new FunctionInfo();
+            info.Name = functionName;
+            info.PeripheralName = peripheralName;
+            info.PeripheralFunctionName = peripheralFunctionName;
+            info.Address = -1;
+            info.Unresolve = false;
+            info.Type = FunctionType.Peripheral;
+            info.ReturnType =
+                returnType == CccTokenKind.TypeInt ? CccType.Int :
+                returnType == CccTokenKind.TypeNumber ? CccType.Number :
+                returnType == CccTokenKind.TypeString ? CccType.String :
+                CccType.Void;
 
+
+            info.ArgumentList = new CccType[argumentList.Count];
+            for (int i = 0; i < info.ArgumentList.Length; ++i)
+            {
+                info.ArgumentList[i] =
+                    argumentList[i] == CccTokenKind.TypeInt ? CccType.Int :
+                    returnType == CccTokenKind.TypeNumber ? CccType.Number :
+                    CccType.String;
+            }
+
+
+            functionTable[functionName] = info;
+        }
+
+
+
+        #region function
         internal enum FunctionType
         {
             Standard,
@@ -85,6 +117,8 @@ namespace CarrotCompilerCollection.Compiler
 
 
             public string Name { get; set; }
+            public string PeripheralName { get; set; }
+            public string PeripheralFunctionName { get; set; }
             public int Address { get; set; }
             public bool Unresolve { get; set; }
             public FunctionType Type { get; set; }
@@ -103,6 +137,7 @@ namespace CarrotCompilerCollection.Compiler
             {
                 addressResolverList.Add(resolver ?? throw new ArgumentNullException(nameof(resolver)));
             }
+            #endregion
         }
     }
 }

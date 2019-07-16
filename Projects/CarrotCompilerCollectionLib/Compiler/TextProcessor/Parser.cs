@@ -231,7 +231,7 @@ namespace CarrotCompilerCollection.Compiler
 
 
                 currentContext.Lexer.ReadNextToken();
-                ThrowExceptionIfUnknownToken(token.Kind, CccTokenKind.Equal, token.Text);
+                ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Equal);
 
 
                 currentContext.Lexer.ReadNextToken();
@@ -245,7 +245,7 @@ namespace CarrotCompilerCollection.Compiler
 
 
                 currentContext.Lexer.ReadNextToken();
-                ThrowExceptionIfUnknownToken(token.Kind, CccTokenKind.Period, token.Text);
+                ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Period);
 
 
                 currentContext.Lexer.ReadNextToken();
@@ -255,15 +255,19 @@ namespace CarrotCompilerCollection.Compiler
 
                 currentContext.Lexer.ReadNextToken();
                 ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
-
-
-                // ArgumentList
                 var argumentList = new List<int>();
+
+                
                 currentContext.Lexer.ReadNextToken();
                 ParsePeripheralDeclareTypeList(argumentList);
-
-
                 ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+
+                
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
+
+
+                coder.RegisterPeripheralFunction(functionName, returnTypeKind, argumentList, peripheralName, importFunctionName);
                 currentContext.Lexer.ReadNextToken();
             }
         }
@@ -379,11 +383,11 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        private void ThrowExceptionIfUnknownToken(int tokenKind, int kind, string tokenText)
+        private void ThrowExceptionIfUnknownToken(ref Token token, int kind)
         {
-            if (tokenKind != kind)
+            if (token.Kind != kind)
             {
-                ThrowExceptionCompileError($"不明なトークン '{tokenText}' です", 0);
+                ThrowExceptionCompileError($"不明なトークン '{token.Text}' です", 0);
             }
         }
 
