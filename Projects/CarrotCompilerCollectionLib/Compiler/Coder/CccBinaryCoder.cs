@@ -84,10 +84,10 @@ namespace CarrotCompilerCollection.Compiler
                 CccType.Void;
 
 
-            info.ArgumentList = new CccArgumentInfo[argumentList.Count];
-            for (int i = 0; i < info.ArgumentList.Length; ++i)
+            for (int i = 0; i < argumentList.Count; ++i)
             {
                 var argumentInfo = new CccArgumentInfo();
+                argumentInfo.Index = i;
                 argumentInfo.Name = i.ToString();
                 argumentInfo.Type =
                     argumentList[i] == CccTokenKind.TypeInt ? CccType.Int :
@@ -95,7 +95,7 @@ namespace CarrotCompilerCollection.Compiler
                     CccType.String;
 
 
-                info.ArgumentList[i] = argumentInfo;
+                info.ArgumentTable[argumentInfo.Name] = argumentInfo;
             }
 
 
@@ -119,7 +119,14 @@ namespace CarrotCompilerCollection.Compiler
                 returnType == CccTokenKind.TypeNumber ? CccType.Number :
                 returnType == CccTokenKind.TypeString ? CccType.String :
                 CccType.Void;
-            info.ArgumentList = argumentList.ToArray();
+
+
+            int index = 0;
+            foreach (var argument in argumentList)
+            {
+                argument.Index = index++;
+                info.ArgumentTable[argument.Name] = argument;
+            }
 
 
             functionTable[functionName] = info;
@@ -130,9 +137,13 @@ namespace CarrotCompilerCollection.Compiler
         {
             var info = new VariableInfo();
             info.Name = name;
-            info.Type = varType;
+            info.StorageType = varType;
             info.Address = varType == VariableType.Global ? nextGlobalVariableAddress++ : -1;
             info.Unresolve = varType != VariableType.Global;
+            info.Type =
+                typeKind == CccTokenKind.TypeInt ? CccType.Int :
+                typeKind == CccTokenKind.TypeNumber ? CccType.Number :
+                CccType.String;
 
 
             variableTable[name] = info;
@@ -168,9 +179,10 @@ namespace CarrotCompilerCollection.Compiler
 
 
             public string Name { get; set; }
-            public VariableType Type { get; set; }
+            public CccType Type { get; set; }
+            public VariableType StorageType { get; set; }
             public int Address { get; set; }
-            public bool Unresolve { get;set;}
+            public bool Unresolve { get; set; }
 
 
 
@@ -200,6 +212,7 @@ namespace CarrotCompilerCollection.Compiler
 
         internal class CccArgumentInfo
         {
+            public int Index { get; set; }
             public string Name { get; set; }
             public CccType Type { get; set; }
         }
@@ -219,13 +232,14 @@ namespace CarrotCompilerCollection.Compiler
             public bool Unresolve { get; set; }
             public FunctionType Type { get; set; }
             public CccType ReturnType { get; set; }
-            public CccArgumentInfo[] ArgumentList { get; set; }
+            public Dictionary<string, CccArgumentInfo> ArgumentTable { get; set; }
 
 
 
             public FunctionInfo()
             {
                 addressResolverList = new List<Action<int, int>>();
+                ArgumentTable = new Dictionary<string, CccArgumentInfo>();
             }
 
 

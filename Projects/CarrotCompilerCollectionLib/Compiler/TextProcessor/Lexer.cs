@@ -131,7 +131,7 @@ namespace CarrotCompilerCollection.Compiler
             tokenTable["int"] = CccTokenKind.TypeInt;
             tokenTable["number"] = CccTokenKind.TypeNumber;
             tokenTable["string"] = CccTokenKind.TypeString;
-            tokenTable["end"] = CccTokenKind.TypeString;
+            tokenTable["end"] = CccTokenKind.End;
             tokenTable["function"] = CccTokenKind.Function;
             tokenTable["global"] = CccTokenKind.Global;
             tokenTable["local"] = CccTokenKind.Local;

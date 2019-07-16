@@ -367,6 +367,9 @@ namespace CarrotCompilerCollection.Compiler
                 {
                     ParseBlock();
                 }
+
+
+                currentContext.Lexer.ReadNextToken();
             }
         }
 
@@ -389,6 +392,7 @@ namespace CarrotCompilerCollection.Compiler
                     CccBinaryCoder.CccType.String;
 
 
+                currentContext.Lexer.ReadNextToken();
                 ThrowExceptionIfInvalidArgumentName(ref token);
                 var name = token.Text;
 
