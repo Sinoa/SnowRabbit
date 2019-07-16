@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using SnowRabbit.Runtime;
 
@@ -26,6 +27,7 @@ namespace CarrotCompilerCollection.Compiler
     {
         // メンバ変数定義
         private SrBinaryIO binaryIO;
+        private Dictionary<string, FunctionInfo> functionTable;
 
 
 
@@ -46,6 +48,41 @@ namespace CarrotCompilerCollection.Compiler
         /// </summary>
         public void OutputExecuteCode()
         {
+        }
+
+
+
+        private enum FunctionType
+        {
+            Standard,
+            Peripheral,
+        }
+
+
+
+        private class FunctionInfo
+        {
+            private List<Action<int, int>> addressResolverList;
+
+
+
+            public string Name { get; set; }
+            public int Address { get; set; }
+            public bool Unresolve { get; set; }
+            public FunctionType Type { get; set; }
+
+
+
+            public FunctionInfo()
+            {
+                addressResolverList = new List<Action<int, int>>();
+            }
+
+
+            public void AddAddressResolver(Action<int, int> resolver)
+            {
+                addressResolverList.Add(resolver ?? throw new ArgumentNullException(nameof(resolver)));
+            }
         }
     }
 }
