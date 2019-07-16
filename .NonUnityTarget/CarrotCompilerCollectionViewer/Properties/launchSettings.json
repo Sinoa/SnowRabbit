@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CarrotCompilerCollectionViewer": {
+      "commandName": "Project",
+      "commandLineArgs": "Assets/SampleScript.txt"
+    }
+  }
+}

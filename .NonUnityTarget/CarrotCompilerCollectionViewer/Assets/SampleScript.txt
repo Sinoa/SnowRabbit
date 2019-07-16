@@ -1,0 +1,26 @@
+﻿using WriteLog = void SampleUtility.WriteLog(string);
+using GetVersion = int SampleUtility.GetVersion();
+
+
+global int hoge;
+global string moge;
+
+
+function void HogeFunction()
+
+end
+
+
+function void main()
+
+end
+
+
+function void Add(int a, int b)
+
+end
+
+
+function string SubString(string text, int start, int length)
+
+end
