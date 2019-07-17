@@ -507,6 +507,8 @@ namespace CarrotCompilerCollection.Compiler
         {
             ref var token = ref currentContext.Lexer.LastReadToken;
             ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
+
+            currentContext.Lexer.ReadNextToken();
             ParseExpression();
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
 
