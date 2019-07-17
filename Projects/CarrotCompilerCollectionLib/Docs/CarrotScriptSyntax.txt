@@ -12,20 +12,14 @@ directive
     : { '#' directives }
 
 directives
-    : 'link' link-directive
-    | 'compile' compile-directive
-
-link-directive
-    : '<' link-object-name '>'
+    : 'link' link-object-name
+    | 'compile' script-name
 
 link-object-name
-    : <identifier>
-
-compile-directive
-    : '<' script-name '>'
+    : <string>
 
 script-name
-    : <identifier>
+    : <string>
 
 **************************************************
 

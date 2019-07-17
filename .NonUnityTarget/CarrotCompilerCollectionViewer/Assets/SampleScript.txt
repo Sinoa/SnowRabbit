@@ -1,29 +1,69 @@
-﻿using WriteLog = void SampleUtility.WriteLog(string);
-using GetVersion = int SampleUtility.GetVersion();
+﻿// 他のコンパイル済みオブジェクトをリンク
+#link "externalLib.co"
+
+// 以下の周辺装置の関数を使用する
+using WriteLog = void HogeUtility.WriteLog(string);
+using SetPosition = void HogeUtility.TransformSetPosition(int, number, number, number);
+using SetRotasion = void HogeUtility.TransformSetRotation(int, number, number, number);
+using SetScale = void HogeUtility.TransformSetScale(int, number, number, number);
+using CheckExit = int HogeSample.CheckExit();
+using DoAnimation = void HogeSample.DoAnimation();
+
+// グローバル変数宣言（かといってC#側に見えるわけではない）
+global int g_ValA;
+global int g_ValB;
+global number g_ValC;
+global string g_ValD;
 
 
-global int hoge;
-global string moge;
-
-
-function void HogeFunction()
-
+function void MyFunction()
+    WriteLog("びぃぃぃーむ！");
 end
 
 
-function void Add(int a, int b)
-
+function void MyGlobalFunction()
+    WriteLog("貴様見ているな！");
 end
 
 
-function string SubString(string text, int start, int length)
+// エントリポイント
+// 実行可能コードの生成の場合は必ず必要
+// リンク前提実行コードなら不要（逆に存在するとエラー）
+fuction void main()
 
+    // ローカル関数は関数のはじめに宣言（途中宣言は出来ない）
+    local int i;
+    local int check;
+
+
+    // 無限ループ
+    while (1)
+
+        // 値をインクリメント（+= 1なんて便利な演算は面倒なので後で）
+        g_ValA = g_ValA + 1;
+
+
+        // もし値が100以上ならループから抜ける
+        if (g_ValA >= 100)
+            break;
+        end
+
+        // もしくはこんな風にも書ける（見辛くなくのであまり推奨しない）
+        if (g_ValA >= 100) break; end
+
+        // ループ
+        for (i=0;i<10;i=i+1)
+            // C#から終了チェックの結果をもらう
+            check = CheckExit();
+            if (check == 0)
+                break;
+            end
+        end
+
+        // アニメーションを実行
+        // 残念ながらスクリプトから任意で待機をするかしないかの選択権はない
+        // C#側が止めると言ったらCPUが一時停止される
+        DoAnimation();
+
+    end
 end
-
-
-function void main()
-
-	Add(10, 123);
-
-end
-

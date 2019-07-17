@@ -172,22 +172,10 @@ namespace CarrotCompilerCollection.Compiler
         private void ParseLinkDirective()
         {
             ref var token = ref currentContext.Lexer.LastReadToken;
-            ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenAngle, "<");
-
-
-            currentContext.Lexer.ReadNextToken();
-            if (token.Kind != CccTokenKind.Identifier)
-            {
-                ThrowExceptionUnknownLinkObjectName(token.Text);
-                return;
-            }
+            ThrowExceptionIfUnknownLinkObjectName(ref token);
 
 
             // DoLink -> CallLinkFunction
-
-
-            currentContext.Lexer.ReadNextToken();
-            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseAngle, ">");
 
 
             currentContext.Lexer.ReadNextToken();
@@ -197,24 +185,8 @@ namespace CarrotCompilerCollection.Compiler
         private void ParseCompileDirective()
         {
             ref var token = ref currentContext.Lexer.LastReadToken;
-            ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenAngle, "<");
-
-
-            currentContext.Lexer.ReadNextToken();
-            if (token.Kind != CccTokenKind.Identifier)
-            {
-                ThrowExceptionUnknownCompileScriptName(token.Text);
-                return;
-            }
-
-
+            ThrowExceptionUnknownIfCompileScriptName(ref token);
             Compile(token.Text);
-
-
-            currentContext.Lexer.ReadNextToken();
-            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseAngle, ">");
-
-
             currentContext.Lexer.ReadNextToken();
         }
         #endregion
@@ -504,15 +476,21 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        private void ThrowExceptionUnknownLinkObjectName(string objectName)
+        private void ThrowExceptionIfUnknownLinkObjectName(ref Token token)
         {
-            ThrowExceptionCompileError($"リンクするオブジェクト名 '{objectName}' が正しくありません", 0);
+            if (token.Kind != CccTokenKind.String)
+            {
+                ThrowExceptionCompileError($"リンクするオブジェクト名 '{token.Text}' が正しくありません", 0);
+            }
         }
 
 
-        private void ThrowExceptionUnknownCompileScriptName(string scriptName)
+        private void ThrowExceptionUnknownIfCompileScriptName(ref Token token)
         {
-            ThrowExceptionCompileError($"コンパイルするスクリプト名 '{scriptName}' が正しくありません", 0);
+            if (token.Kind != CccTokenKind.String)
+            {
+                ThrowExceptionCompileError($"コンパイルするスクリプト名 '{token.Text}' が正しくありません", 0);
+            }
         }
 
 
