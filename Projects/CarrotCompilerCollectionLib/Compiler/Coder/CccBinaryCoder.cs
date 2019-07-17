@@ -29,6 +29,7 @@ namespace CarrotCompilerCollection.Compiler
         private SrBinaryIO binaryIO;
         private Dictionary<string, FunctionInfo> functionTable;
         private Dictionary<string, VariableInfo> variableTable;
+        private Dictionary<string, ConstantInfo> constantTable;
         private int nextGlobalVariableAddress;
 
 
@@ -44,6 +45,7 @@ namespace CarrotCompilerCollection.Compiler
             binaryIO = new SrBinaryIO(outputStream ?? throw new ArgumentNullException(nameof(outputStream)));
             functionTable = new Dictionary<string, FunctionInfo>();
             variableTable = new Dictionary<string, VariableInfo>();
+            constantTable = new Dictionary<string, ConstantInfo>();
             nextGlobalVariableAddress = 0;
         }
 
@@ -60,7 +62,7 @@ namespace CarrotCompilerCollection.Compiler
         #endregion
 
 
-        #region function and variable control
+        #region constant and function and variable control
         public string ManglingPeripheralVariableName(string peripheralName)
         {
             return $"___CCC_GPVN_{peripheralName}___";
@@ -70,6 +72,32 @@ namespace CarrotCompilerCollection.Compiler
         public string ManglingPeripheralFunctionVariableName(string functionName)
         {
             return $"___CCC_GPFVN_{functionName}___";
+        }
+
+
+        public void RegisterConstantValue(string name, CccType type, long integer, float number, string text)
+        {
+            var info = new ConstantInfo();
+            info.Name = name;
+            info.Type = type;
+            info.IntegerValue = integer;
+            info.NumberValue = number;
+            info.TextValue = text;
+
+
+            constantTable[name] = info;
+        }
+
+
+        public ConstantInfo GetConstant(string name)
+        {
+            return constantTable.TryGetValue(name, out var constant) ? constant : null;
+        }
+
+
+        public bool ContainConstant(string name)
+        {
+            return constantTable.ContainsKey(name);
         }
 
 
@@ -195,6 +223,19 @@ namespace CarrotCompilerCollection.Compiler
             Int,
             Number,
             String,
+        }
+        #endregion
+
+
+
+        #region const
+        internal class ConstantInfo
+        {
+            public string Name { get; set; }
+            public CccType Type { get; set; }
+            public long IntegerValue { get; set; }
+            public float NumberValue { get; set; }
+            public string TextValue { get; set; }
         }
         #endregion
 

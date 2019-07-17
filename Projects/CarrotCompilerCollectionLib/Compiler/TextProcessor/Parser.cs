@@ -166,6 +166,12 @@ namespace CarrotCompilerCollection.Compiler
                     break;
 
 
+                case CccTokenKind.Const:
+                    currentContext.Lexer.ReadNextToken();
+                    ParseConstantDirective();
+                    break;
+
+
                 default:
                     ThrowExceptionUnknownDirective(token.Text);
                     break;
@@ -191,6 +197,37 @@ namespace CarrotCompilerCollection.Compiler
             ref var token = ref currentContext.Lexer.LastReadToken;
             ThrowExceptionUnknownIfCompileScriptName(ref token);
             Compile(token.Text);
+            currentContext.Lexer.ReadNextToken();
+        }
+
+
+        private void ParseConstantDirective()
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            ThrowExceptionIfInvalidConstantName(ref token);
+            var name = token.Text;
+
+
+            currentContext.Lexer.ReadNextToken();
+            ThrowExceptionIfInvalidConstantValue(ref token);
+            switch (token.Kind)
+            {
+                case CccTokenKind.Integer:
+                    coder.RegisterConstantValue(name, CccBinaryCoder.CccType.Int, token.Integer, 0.0f, null);
+                    break;
+
+
+                case CccTokenKind.Number:
+                    coder.RegisterConstantValue(name, CccBinaryCoder.CccType.Number, 0, (float)token.Number, null);
+                    break;
+
+
+                case CccTokenKind.String:
+                    coder.RegisterConstantValue(name, CccBinaryCoder.CccType.String, 0, 0.0f, token.Text);
+                    break;
+            }
+
+
             currentContext.Lexer.ReadNextToken();
         }
         #endregion
@@ -566,6 +603,27 @@ namespace CarrotCompilerCollection.Compiler
             {
                 ThrowExceptionCompileError($"コンパイルするスクリプト名 '{token.Text}' が正しくありません", 0);
             }
+        }
+
+
+        private void ThrowExceptionIfInvalidConstantName(ref Token token)
+        {
+            if (token.Kind != CccTokenKind.Identifier)
+            {
+                ThrowExceptionCompileError($"無効な定数名 '{token.Text}' です", 0);
+            }
+        }
+
+
+        private void ThrowExceptionIfInvalidConstantValue(ref Token token)
+        {
+            if (token.Kind == CccTokenKind.Integer || token.Kind == CccTokenKind.Number || token.Kind == CccTokenKind.String)
+            {
+                return;
+            }
+
+
+            ThrowExceptionCompileError($"無効な定数値 '{token.Text}' です", 0);
         }
 
 

@@ -108,6 +108,11 @@ namespace CarrotCompilerCollection.Compiler
         /// compile
         /// </summary>
         public const int Compile = KeywordOffset + 75;
+
+        /// <summary>
+        /// const
+        /// </summary>
+        public const int Const = KeywordOffset + 80;
     }
     #endregion
 
@@ -142,6 +147,7 @@ namespace CarrotCompilerCollection.Compiler
             tokenTable["while"] = CccTokenKind.While;
             tokenTable["link"] = CccTokenKind.Link;
             tokenTable["compile"] = CccTokenKind.Compile;
+            tokenTable["const"] = CccTokenKind.Const;
         }
     }
     #endregion

@@ -14,12 +14,21 @@ directive
 directives
     : 'link' link-object-name
     | 'compile' script-name
+    | 'const' constant-var-name constant-value
 
 link-object-name
     : <string>
 
 script-name
     : <string>
+
+constant-var-name
+    : <identifier>
+
+constant-value
+    : <integer>
+    | <number>
+    | <string>
 
 **************************************************
 
