@@ -247,7 +247,7 @@ namespace CarrotCompilerCollection.Compiler
             {
                 addressResolverList.Add(resolver ?? throw new ArgumentNullException(nameof(resolver)));
             }
-            #endregion
         }
+        #endregion
     }
 }
