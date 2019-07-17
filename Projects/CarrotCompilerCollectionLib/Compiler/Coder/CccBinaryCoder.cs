@@ -62,7 +62,7 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        public string ManglingPheripheralFunctionVariableName(string functionName)
+        public string ManglingPeripheralFunctionVariableName(string functionName)
         {
             return $"___CCC_GPFVN_{functionName}___";
         }
@@ -100,8 +100,15 @@ namespace CarrotCompilerCollection.Compiler
 
 
             functionTable[functionName] = info;
-            RegisterVariable(ManglingPeripheralVariableName(peripheralName), CccTokenKind.TypeInt, VariableType.Global);
-            RegisterVariable(ManglingPheripheralFunctionVariableName(peripheralFunctionName), CccTokenKind.TypeInt, VariableType.Global);
+
+
+            var peripheralVariableName = ManglingPeripheralVariableName(peripheralName);
+            var peripheralFunctionVariableName = ManglingPeripheralFunctionVariableName(peripheralFunctionName);
+            if (!variableTable.ContainsKey(peripheralVariableName))
+            {
+                RegisterVariable(peripheralVariableName, CccTokenKind.TypeInt, VariableType.Global);
+            }
+            RegisterVariable(peripheralFunctionVariableName, CccTokenKind.TypeInt, VariableType.Global);
         }
 
 
@@ -130,6 +137,12 @@ namespace CarrotCompilerCollection.Compiler
 
 
             functionTable[functionName] = info;
+        }
+
+
+        public FunctionInfo GetFunction(string functionName)
+        {
+            return functionTable.TryGetValue(functionName, out var function) ? function : null;
         }
 
 
@@ -233,6 +246,10 @@ namespace CarrotCompilerCollection.Compiler
             public FunctionType Type { get; set; }
             public CccType ReturnType { get; set; }
             public Dictionary<string, CccArgumentInfo> ArgumentTable { get; set; }
+            public Dictionary<string, VariableInfo> LocalVariableTable { get; set; }
+
+
+            private int nextLocalVariableIndex = 0;
 
 
 
@@ -240,12 +257,30 @@ namespace CarrotCompilerCollection.Compiler
             {
                 addressResolverList = new List<Action<int, int>>();
                 ArgumentTable = new Dictionary<string, CccArgumentInfo>();
+                LocalVariableTable = new Dictionary<string, VariableInfo>();
             }
 
 
             public void AddAddressResolver(Action<int, int> resolver)
             {
                 addressResolverList.Add(resolver ?? throw new ArgumentNullException(nameof(resolver)));
+            }
+
+
+            public void RegisterVariable(string name, int typeKind)
+            {
+                var info = new VariableInfo();
+                info.Name = name;
+                info.StorageType = VariableType.Local;
+                info.Address = nextLocalVariableIndex++;
+                info.Unresolve = true;
+                info.Type =
+                    typeKind == CccTokenKind.TypeInt ? CccType.Int :
+                    typeKind == CccTokenKind.TypeNumber ? CccType.Number :
+                    CccType.String;
+
+
+                LocalVariableTable[name] = info;
             }
         }
         #endregion

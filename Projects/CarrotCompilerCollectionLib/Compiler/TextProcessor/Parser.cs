@@ -33,7 +33,7 @@ namespace CarrotCompilerCollection.Compiler
         private ICccParserLogger logger;
         private Stack<ParserContext> contextStack;
         private ParserContext currentContext;
-        private string parseFunctionName;
+        private string currentParseFunctionName;
 
 
 
@@ -130,6 +130,10 @@ namespace CarrotCompilerCollection.Compiler
             ParsePeripheralDeclare();
             ParseGlobalVariableDeclare();
             ParseFunctionDeclare();
+
+
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            ThrowExceptionIfUnknownToken(ref token, CccTokenKind.EndOfToken);
         }
 
 
@@ -331,7 +335,7 @@ namespace CarrotCompilerCollection.Compiler
 
                 // Register Function
                 coder.RegisterFunction(functionName, returnType, argumentList);
-                parseFunctionName = functionName;
+                currentParseFunctionName = functionName;
 
 
                 currentContext.Lexer.ReadNextToken();
@@ -423,18 +427,37 @@ namespace CarrotCompilerCollection.Compiler
                     break;
 
 
+                case CccTokenKind.If:
+                    currentContext.Lexer.ReadNextToken();
+                    ParseIfStatement();
+                    break;
+
+
                 default:
                     ParseExpressionRoot();
                     break;
             }
-
-
-            currentContext.Lexer.ReadNextToken();
         }
 
 
         private void ParseLocalVariableDeclare()
         {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            ThrowExceptionIfNotVariableType(ref token);
+            var type = token.Kind;
+
+
+            currentContext.Lexer.ReadNextToken();
+            ThrowExceptionIfInvalidLocalVariableName(ref token);
+            var name = token.Text;
+
+
+            currentContext.Lexer.ReadNextToken();
+            ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
+
+
+            coder.GetFunction(currentParseFunctionName).RegisterVariable(name, type);
+            currentContext.Lexer.ReadNextToken();
         }
 
 
@@ -445,6 +468,39 @@ namespace CarrotCompilerCollection.Compiler
 
         private void ParseWhileStatement()
         {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
+
+
+            // Parse Expression
+            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+
+
+            currentContext.Lexer.ReadNextToken();
+            ParseBlock();
+            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
+
+
+            currentContext.Lexer.ReadNextToken();
+        }
+
+
+        private void ParseIfStatement()
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
+
+
+            // Parse Expression
+            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+
+
+            currentContext.Lexer.ReadNextToken();
+            ParseBlock();
+            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
+
+
+            currentContext.Lexer.ReadNextToken();
         }
         #endregion
 
@@ -452,6 +508,7 @@ namespace CarrotCompilerCollection.Compiler
         #region Expression
         private void ParseExpressionRoot()
         {
+            currentContext.Lexer.ReadNextToken();
         }
         #endregion
         #endregion
@@ -544,6 +601,15 @@ namespace CarrotCompilerCollection.Compiler
             if (token.Kind != CccTokenKind.Identifier)
             {
                 ThrowExceptionCompileError($"無効なグローバル変数名 '{token.Text}' です", 0);
+            }
+        }
+
+
+        private void ThrowExceptionIfInvalidLocalVariableName(ref Token token)
+        {
+            if (token.Kind != CccTokenKind.Identifier)
+            {
+                ThrowExceptionCompileError($"無効なローカル変数名 '{token.Text}' です", 0);
             }
         }
 

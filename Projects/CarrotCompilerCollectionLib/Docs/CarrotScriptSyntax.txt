@@ -103,6 +103,7 @@ statement-list
     | 'local' local-var-declare
     | 'for' for-statement
     | 'while' while-statement
+    | 'if' if-statement
     | expression-statement
 
 
@@ -127,6 +128,14 @@ for-statement
 
 while-statement
     : '(' while-condition ')' {block} 'end'
+
+**************************************************
+
+
+********** flow control syntax **********
+
+if-statement
+    : '(' expression ')' {block} 'end'
 
 **************************************************
 
