@@ -434,7 +434,7 @@ namespace CarrotCompilerCollection.Compiler
 
 
                 default:
-                    ParseExpressionRoot();
+                    ParseExpression();
                     break;
             }
         }
@@ -470,9 +470,7 @@ namespace CarrotCompilerCollection.Compiler
         {
             ref var token = ref currentContext.Lexer.LastReadToken;
             ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
-
-
-            // Parse Expression
+            ParseExpression();
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
 
 
@@ -489,9 +487,7 @@ namespace CarrotCompilerCollection.Compiler
         {
             ref var token = ref currentContext.Lexer.LastReadToken;
             ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
-
-
-            // Parse Expression
+            ParseExpression();
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
 
 
@@ -506,7 +502,7 @@ namespace CarrotCompilerCollection.Compiler
 
 
         #region Expression
-        private void ParseExpressionRoot()
+        private void ParseExpression()
         {
             currentContext.Lexer.ReadNextToken();
         }
