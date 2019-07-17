@@ -504,7 +504,23 @@ namespace CarrotCompilerCollection.Compiler
         #region Expression
         private void ParseExpression()
         {
+            ParseAddExpression();
             currentContext.Lexer.ReadNextToken();
+        }
+
+
+        private void ParseAddExpression()
+        {
+        }
+
+
+        private void ParseMulExpression()
+        {
+        }
+
+
+        private void ParseUnaryExpression()
+        {
         }
         #endregion
         #endregion
@@ -526,6 +542,12 @@ namespace CarrotCompilerCollection.Compiler
         private void ThrowExceptionUnknownDirective(string directiveName)
         {
             ThrowExceptionCompileError($"不明なディレクティグ '{directiveName}' です", 0);
+        }
+
+
+        private void ThrowExceptionUnknownToken(ref Token token)
+        {
+            ThrowExceptionCompileError($"不明なトークン '{token.Text}' です", 0);
         }
 
 

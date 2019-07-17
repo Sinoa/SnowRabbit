@@ -56,6 +56,11 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
+        #region code generate function
+        #endregion
+
+
+        #region function and variable control
         public string ManglingPeripheralVariableName(string peripheralName)
         {
             return $"___CCC_GPVN_{peripheralName}___";
@@ -146,6 +151,12 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
+        public bool ContainFunction(string functionName)
+        {
+            return functionTable.ContainsKey(functionName);
+        }
+
+
         public void RegisterVariable(string name, int typeKind, VariableType varType)
         {
             var info = new VariableInfo();
@@ -161,6 +172,19 @@ namespace CarrotCompilerCollection.Compiler
 
             variableTable[name] = info;
         }
+
+
+        public VariableInfo GetVariable(string name)
+        {
+            return variableTable.TryGetValue(name, out var variable) ? variable : null;
+        }
+
+
+        public bool ContainVariable(string name)
+        {
+            return variableTable.ContainsKey(name);
+        }
+        #endregion
 
 
 
@@ -281,6 +305,18 @@ namespace CarrotCompilerCollection.Compiler
 
 
                 LocalVariableTable[name] = info;
+            }
+
+
+            public bool ContainArgument(string name)
+            {
+                return ArgumentTable.ContainsKey(name);
+            }
+
+
+            public bool ContainVariable(string name)
+            {
+                return LocalVariableTable.ContainsKey(name);
             }
         }
         #endregion
