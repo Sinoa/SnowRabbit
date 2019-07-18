@@ -12,6 +12,11 @@ function void MyGlobalFunction()
 end
 
 
+function int Add(int a, int b)
+    return a + b;
+end
+
+
 // エントリポイント
 // 実行可能コードの生成の場合は必ず必要
 // リンク前提実行コードなら不要（逆に存在するとエラー）
@@ -20,6 +25,11 @@ function void main()
     // ローカル関数は関数のはじめに宣言（途中宣言は出来ない）
     local int i;
     local int check;
+    local int test;
+
+
+    MyFunction();
+    test = Add(10, 20);
 
 
     // 無限ループ

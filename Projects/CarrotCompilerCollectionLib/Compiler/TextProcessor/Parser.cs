@@ -550,16 +550,65 @@ namespace CarrotCompilerCollection.Compiler
 
         private void ParseAddExpression()
         {
+            ParseMulExpression();
         }
 
 
         private void ParseMulExpression()
         {
+            ParseUnaryExpression();
         }
 
 
         private void ParseUnaryExpression()
         {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            switch (token.Kind)
+            {
+                case CccTokenKind.Plus:
+                case CccTokenKind.Minus:
+                    break;
+
+
+                case CccTokenKind.Integer:
+                case CccTokenKind.Number:
+                case CccTokenKind.String:
+                    break;
+
+
+                case CccTokenKind.Identifier:
+                    switch (coder.GetIdentifirKind(token.Text, currentParseFunctionName))
+                    {
+                        case CccBinaryCoder.IdentifierKind.LocalVariable:
+                            break;
+
+
+                        case CccBinaryCoder.IdentifierKind.ArgumentVariable:
+                            break;
+
+
+                        case CccBinaryCoder.IdentifierKind.GlobalVariable:
+                            break;
+
+
+                        case CccBinaryCoder.IdentifierKind.ConstantValue:
+                            break;
+
+
+                        case CccBinaryCoder.IdentifierKind.StandardFunction:
+                            break;
+
+
+                        case CccBinaryCoder.IdentifierKind.PeripheralFunction:
+                            break;
+
+
+                        case CccBinaryCoder.IdentifierKind.Unknown:
+                            ThrowExceptionUnknownToken(ref token);
+                            return;
+                    }
+                    break;
+            }
         }
         #endregion
         #endregion

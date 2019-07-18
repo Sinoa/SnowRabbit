@@ -212,11 +212,69 @@ namespace CarrotCompilerCollection.Compiler
         {
             return variableTable.ContainsKey(name);
         }
+
+
+        public IdentifierKind GetIdentifirKind(string identifier, string functionName)
+        {
+            if (!string.IsNullOrWhiteSpace(functionName))
+            {
+                var function = GetFunction(functionName);
+                if (function != null)
+                {
+                    if (function.ContainVariable(identifier))
+                    {
+                        return IdentifierKind.LocalVariable;
+                    }
+                    else if (function.ContainArgument(identifier))
+                    {
+                        return IdentifierKind.ArgumentVariable;
+                    }
+                }
+            }
+
+
+            if (ContainVariable(identifier))
+            {
+                return IdentifierKind.GlobalVariable;
+            }
+            else if (ContainConstant(identifier))
+            {
+                return IdentifierKind.ConstantValue;
+            }
+            else if (ContainFunction(identifier))
+            {
+                var info = GetFunction(identifier);
+                if (info.Type == FunctionType.Standard)
+                {
+                    return IdentifierKind.StandardFunction;
+                }
+                else if (info.Type == FunctionType.Peripheral)
+                {
+                    return IdentifierKind.PeripheralFunction;
+                }
+            }
+
+
+            return IdentifierKind.Unknown;
+        }
         #endregion
 
 
 
         #region common
+        internal enum IdentifierKind
+        {
+            Unknown,
+            LocalVariable,
+            ArgumentVariable,
+            GlobalVariable,
+            ConstantValue,
+            StandardFunction,
+            PeripheralFunction,
+        }
+
+
+
         internal enum CccType
         {
             Void,

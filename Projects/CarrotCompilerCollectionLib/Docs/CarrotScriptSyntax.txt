@@ -151,6 +151,18 @@ if-statement
 
 ********** expression syntax **********
 
+expression
+	: simple-expression
+	| assignment-expression
+
+assignment-expression
+	: 
+
+simple-expression
+	: assignment-expression
+	| 
+
+
 unary-expression
     : main-expression
     | cast-expression
