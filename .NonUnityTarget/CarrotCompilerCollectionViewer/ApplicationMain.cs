@@ -32,20 +32,20 @@ namespace CarrotCompilerCollection
         /// <param name="args">アプリケーション引数</param>
         private static void Main(string[] args)
         {
-            // コマンドライン引数に1つも渡されていないのなら
-            if (args.Length < 1)
+            // コマンドライン引数に2つも渡されていないのなら
+            if (args.Length < 2)
             {
                 // ちょっとした説明を出して終了
-                Console.WriteLine("トークンを読み取るためのスクリプトファイルを指定して下さい");
+                Console.WriteLine("トークンを読み取るためのスクリプトファイル、２つを指定して下さい");
                 return;
             }
 
 
             // 渡された値がファイル名であることを前提としてファイルの存在を確認する
-            if (!File.Exists(args[0]))
+            if (!File.Exists(args[0]) || !File.Exists(args[1]))
             {
                 // ファイルが見つからないことを表示して終了
-                Console.WriteLine($"ファイル '{args[0]}' が見つかりません");
+                Console.WriteLine($"ファイル '{args[0]}' または '{args[1]}' が見つかりません");
                 return;
             }
 
@@ -53,6 +53,7 @@ namespace CarrotCompilerCollection
             // 文字列型ストレージを生成してサンプルスクリプトコードから文字列としてスクリプトを登録
             var storage = new StringScriptStorage();
             storage.SetScriptCode("sample", File.ReadAllText(args[0]));
+            storage.SetScriptCode("common", File.ReadAllText(args[1]));
 
 
             // コンパイラを生成してサンプルスクリプトのコンパイル

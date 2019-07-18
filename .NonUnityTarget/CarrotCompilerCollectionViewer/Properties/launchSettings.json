@@ -2,7 +2,7 @@
   "profiles": {
     "CarrotCompilerCollectionViewer": {
       "commandName": "Project",
-      "commandLineArgs": "Assets/SampleScript.txt"
+      "commandLineArgs": "Assets/SampleScript.txt Assets/SampleScript2.txt"
     }
   }
 }
