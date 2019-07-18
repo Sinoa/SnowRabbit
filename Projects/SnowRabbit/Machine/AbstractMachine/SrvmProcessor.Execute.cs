@@ -190,6 +190,16 @@ namespace SnowRabbit.Machine
                         break;
 
 
+                    case OpCode.Neg:
+                        context[regANumber].Value.Long[0] = -context[regBNumber].Value.Long[0];
+                        break;
+
+
+                    case OpCode.Negl:
+                        context[regANumber].Value.Long[0] = -immediate;
+                        break;
+
+
                     case OpCode.Fadd:
                         context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] + context[regCNumber].Value.Float[0];
                         break;
@@ -247,6 +257,16 @@ namespace SnowRabbit.Machine
 
                     case OpCode.Fpowl:
                         context[regANumber].Value.Float[0] = (float)Math.Pow(context[regBNumber].Value.Float[0], immediateF);
+                        break;
+
+
+                    case OpCode.Fneg:
+                        context[regANumber].Value.Float[0] = -context[regBNumber].Value.Float[0];
+                        break;
+
+
+                    case OpCode.Fnegl:
+                        context[regANumber].Value.Float[0] = -immediateF;
                         break;
                     #endregion
 

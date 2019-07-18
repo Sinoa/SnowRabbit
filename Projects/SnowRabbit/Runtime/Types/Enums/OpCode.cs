@@ -156,6 +156,16 @@ namespace SnowRabbit.Runtime
         Powl = 0x2B,
 
         /// <summary>
+        /// レジスタの値を符号反転します：Ra = -Rb
+        /// </summary>
+        Neg = 0x2C,
+
+        /// <summary>
+        /// 即値を符号反転します：Ra = -Imm
+        /// </summary>
+        Negl = 0x2D,
+
+        /// <summary>
         /// レジスタ間の浮動小数点加算をします：Ra = Rb + Rc
         /// </summary>
         Fadd = 0x40,
@@ -214,6 +224,16 @@ namespace SnowRabbit.Runtime
         /// レジスタと即値の累乗を求めます：Ra = Pow(Rb, Imm)
         /// </summary>
         Fpowl = 0x4B,
+
+        /// <summary>
+        /// レジスタの値を符号反転します：Ra = -Rb
+        /// </summary>
+        Fneg = 0x4C,
+
+        /// <summary>
+        /// 即値を符号反転します：Ra = -Rb
+        /// </summary>
+        Fnegl = 0x4D,
         #endregion
 
         #region Logic
