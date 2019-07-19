@@ -139,9 +139,9 @@ namespace CarrotCompilerCollection.Compiler
             var peripheralFunctionVariableName = ManglingPeripheralFunctionVariableName(peripheralFunctionName);
             if (!variableTable.ContainsKey(peripheralVariableName))
             {
-                RegisterVariable(peripheralVariableName, CccTokenKind.TypeInt, VariableType.Global);
+                RegisterVariable(peripheralVariableName, CccTokenKind.TypeInt);
             }
-            RegisterVariable(peripheralFunctionVariableName, CccTokenKind.TypeInt, VariableType.Global);
+            RegisterVariable(peripheralFunctionVariableName, CccTokenKind.TypeInt);
         }
 
 
@@ -185,13 +185,13 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        public void RegisterVariable(string name, int typeKind, VariableType varType)
+        public void RegisterVariable(string name, int typeKind)
         {
             var info = new VariableInfo();
             info.Name = name;
-            info.StorageType = varType;
-            info.Address = varType == VariableType.Global ? nextGlobalVariableAddress++ : -1;
-            info.Unresolve = varType != VariableType.Global;
+            info.StorageType = VariableType.Global;
+            info.Address = nextGlobalVariableAddress++;
+            info.Unresolve = false;
             info.Type =
                 typeKind == CccTokenKind.TypeInt ? CccType.Int :
                 typeKind == CccTokenKind.TypeNumber ? CccType.Number :

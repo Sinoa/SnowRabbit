@@ -335,7 +335,7 @@ namespace CarrotCompilerCollection.Compiler
                 ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
 
 
-                coder.RegisterVariable(varName, variableType, CccBinaryCoder.VariableType.Global);
+                coder.RegisterVariable(varName, variableType);
 
 
                 currentContext.Lexer.ReadNextToken();
@@ -543,8 +543,27 @@ namespace CarrotCompilerCollection.Compiler
         #region Expression
         private void ParseExpression()
         {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            var name = token.Text;
+
+
             ParseAddExpression();
+
+
+            if (token.Kind != CccTokenKind.Equal)
+            {
+                currentContext.Lexer.ReadNextToken();
+                return;
+            }
+
+
+            ThrowExceptionIfNotAssignmentTarget(name);
             currentContext.Lexer.ReadNextToken();
+            ParseExpression();
+
+
+            var function = coder.GetFunction(currentParseFunctionName);
+            // Generate code
         }
 
 
@@ -801,6 +820,21 @@ namespace CarrotCompilerCollection.Compiler
             {
                 ThrowExceptionCompileError($"不明な周辺機器名 '{token.Text}' です", 0);
             }
+        }
+
+
+        private void ThrowExceptionIfNotAssignmentTarget(string name)
+        {
+            var identifirKind = coder.GetIdentifirKind(name, currentParseFunctionName);
+            if (identifirKind == CccBinaryCoder.IdentifierKind.LocalVariable ||
+                identifirKind == CccBinaryCoder.IdentifierKind.ArgumentVariable ||
+                identifirKind == CccBinaryCoder.IdentifierKind.GlobalVariable)
+            {
+                return;
+            }
+
+
+            ThrowExceptionCompileError($"識別子 '{name}' は代入可能な式ではありません", 0);
         }
 
 
