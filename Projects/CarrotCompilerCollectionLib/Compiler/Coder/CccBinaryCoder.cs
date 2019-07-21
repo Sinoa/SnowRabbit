@@ -30,7 +30,7 @@ namespace CarrotCompilerCollection.Compiler
         private Dictionary<string, FunctionInfo> functionTable;
         private Dictionary<string, VariableInfo> variableTable;
         private Dictionary<string, ConstantInfo> constantTable;
-        private int nextGlobalVariableAddress;
+        private int nextVirtualAddress;
 
 
 
@@ -46,7 +46,7 @@ namespace CarrotCompilerCollection.Compiler
             functionTable = new Dictionary<string, FunctionInfo>();
             variableTable = new Dictionary<string, VariableInfo>();
             constantTable = new Dictionary<string, ConstantInfo>();
-            nextGlobalVariableAddress = 0;
+            nextVirtualAddress = -1;
         }
 
 
@@ -107,7 +107,7 @@ namespace CarrotCompilerCollection.Compiler
             info.Name = functionName;
             info.PeripheralName = peripheralName;
             info.PeripheralFunctionName = peripheralFunctionName;
-            info.Address = -1;
+            info.Address = nextVirtualAddress--;
             info.Unresolve = false;
             info.Type = FunctionType.Peripheral;
             info.ReturnType =
@@ -151,7 +151,7 @@ namespace CarrotCompilerCollection.Compiler
             info.Name = functionName;
             info.PeripheralName = string.Empty;
             info.PeripheralFunctionName = string.Empty;
-            info.Address = -1;
+            info.Address = nextVirtualAddress--;
             info.Unresolve = true;
             info.Type = FunctionType.Standard;
             info.ReturnType =
@@ -190,7 +190,7 @@ namespace CarrotCompilerCollection.Compiler
             var info = new VariableInfo();
             info.Name = name;
             info.StorageType = VariableType.Global;
-            info.Address = nextGlobalVariableAddress++;
+            info.Address = nextVirtualAddress--;
             info.Unresolve = false;
             info.Type =
                 typeKind == CccTokenKind.TypeInt ? CccType.Int :
@@ -372,7 +372,7 @@ namespace CarrotCompilerCollection.Compiler
             public Dictionary<string, VariableInfo> LocalVariableTable { get; set; }
 
 
-            private int nextLocalVariableIndex = 0;
+            private int nextLocalVariableIndex;
 
 
 
@@ -381,6 +381,7 @@ namespace CarrotCompilerCollection.Compiler
                 addressResolverList = new List<Action<int, int>>();
                 ArgumentTable = new Dictionary<string, CccArgumentInfo>();
                 LocalVariableTable = new Dictionary<string, VariableInfo>();
+                nextLocalVariableIndex = 0;
             }
 
 
