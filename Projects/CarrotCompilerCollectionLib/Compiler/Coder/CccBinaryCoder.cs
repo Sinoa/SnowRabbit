@@ -30,6 +30,7 @@ namespace CarrotCompilerCollection.Compiler
         private Dictionary<string, FunctionInfo> functionTable;
         private Dictionary<string, VariableInfo> variableTable;
         private Dictionary<string, ConstantInfo> constantTable;
+        private Dictionary<int, SymbolInfo> symbolTable;
         private int nextVirtualAddress;
 
 
@@ -46,6 +47,7 @@ namespace CarrotCompilerCollection.Compiler
             functionTable = new Dictionary<string, FunctionInfo>();
             variableTable = new Dictionary<string, VariableInfo>();
             constantTable = new Dictionary<string, ConstantInfo>();
+            symbolTable = new Dictionary<int, SymbolInfo>();
             nextVirtualAddress = -1;
         }
 
@@ -133,6 +135,13 @@ namespace CarrotCompilerCollection.Compiler
 
 
             functionTable[functionName] = info;
+            symbolTable[info.Address] = new SymbolInfo()
+            {
+                Type = SymbolType.GlobalFunction,
+                Function = info,
+                Name = functionName,
+                VirtualAddress = info.Address,
+            };
 
 
             var peripheralVariableName = ManglingPeripheralVariableName(peripheralName);
@@ -170,6 +179,13 @@ namespace CarrotCompilerCollection.Compiler
 
 
             functionTable[functionName] = info;
+            symbolTable[info.Address] = new SymbolInfo()
+            {
+                Type = SymbolType.GlobalFunction,
+                Function = info,
+                Name = functionName,
+                VirtualAddress = info.Address,
+            };
         }
 
 
@@ -199,6 +215,13 @@ namespace CarrotCompilerCollection.Compiler
 
 
             variableTable[name] = info;
+            symbolTable[info.Address] = new SymbolInfo()
+            {
+                Type = SymbolType.GlobalVariable,
+                Variable = info,
+                Name = name,
+                VirtualAddress = info.Address,
+            };
         }
 
 
@@ -282,6 +305,13 @@ namespace CarrotCompilerCollection.Compiler
             Number,
             String,
         }
+
+
+
+        public SymbolInfo GetSymbolFromVirtualAddress(int virtualAddress)
+        {
+            return symbolTable.TryGetValue(virtualAddress, out var symbol) ? symbol : null;
+        }
         #endregion
 
 
@@ -357,10 +387,6 @@ namespace CarrotCompilerCollection.Compiler
 
         internal class FunctionInfo
         {
-            private List<Action<int, int>> addressResolverList;
-
-
-
             public string Name { get; set; }
             public string PeripheralName { get; set; }
             public string PeripheralFunctionName { get; set; }
@@ -378,16 +404,9 @@ namespace CarrotCompilerCollection.Compiler
 
             public FunctionInfo()
             {
-                addressResolverList = new List<Action<int, int>>();
                 ArgumentTable = new Dictionary<string, CccArgumentInfo>();
                 LocalVariableTable = new Dictionary<string, VariableInfo>();
                 nextLocalVariableIndex = 0;
-            }
-
-
-            public void AddAddressResolver(Action<int, int> resolver)
-            {
-                addressResolverList.Add(resolver ?? throw new ArgumentNullException(nameof(resolver)));
             }
 
 
@@ -418,6 +437,28 @@ namespace CarrotCompilerCollection.Compiler
             {
                 return LocalVariableTable.ContainsKey(name);
             }
+        }
+        #endregion
+
+
+
+        #region symbol
+        internal enum SymbolType
+        {
+            Unknown,
+            GlobalVariable,
+            GlobalFunction,
+        }
+
+
+
+        internal class SymbolInfo
+        {
+            public int VirtualAddress { get; set; }
+            public SymbolType Type { get; set; }
+            public string Name { get; set; }
+            public FunctionInfo Function { get; set; }
+            public VariableInfo Variable { get; set; }
         }
         #endregion
     }
