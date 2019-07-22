@@ -118,6 +118,11 @@ namespace CarrotCompilerCollection.Compiler
         /// return
         /// </summary>
         public const int Return = KeywordOffset + 85;
+
+        /// <summary>
+        /// break
+        /// </summary>
+        public const int Break = KeywordOffset + 90;
     }
     #endregion
 
@@ -154,6 +159,7 @@ namespace CarrotCompilerCollection.Compiler
             tokenTable["compile"] = CccTokenKind.Compile;
             tokenTable["const"] = CccTokenKind.Const;
             tokenTable["return"] = CccTokenKind.Return;
+            tokenTable["break"] = CccTokenKind.Break;
         }
     }
     #endregion
