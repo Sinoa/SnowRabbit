@@ -40,7 +40,7 @@ function void main()
 
 
         // もし値が100以上ならループから抜ける
-        if (g_ValA >= 100)
+        if (g_ValA)
             break;
         end
 

@@ -237,7 +237,7 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        public IdentifierKind GetIdentifirKind(string identifier, string functionName)
+        public IdentifierKind GetIdentifierKind(string identifier, string functionName)
         {
             if (!string.IsNullOrWhiteSpace(functionName))
             {

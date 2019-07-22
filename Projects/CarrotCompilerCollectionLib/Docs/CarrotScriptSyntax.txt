@@ -113,7 +113,8 @@ statement-list
     | 'for' for-statement
     | 'while' while-statement
     | 'if' if-statement
-    | expression-statement
+    | 'break' ';'
+    | expression
 
 
 **************************************************
@@ -152,36 +153,44 @@ if-statement
 ********** expression syntax **********
 
 expression
-    : simple-expression
-    | assignment-expression
+    : var-name '=' expression
+    | simple-expression
 
-assignment-expression
-    : 
+var-name
+    : argument-name
+    | local-var-name
+    | global-var-name
 
 simple-expression
-    : assignment-expression
-    | 
-
-
-unary-expression
-    : main-expression
-    | cast-expression
-
-main-expression
-    : literal
+    : '(' expression ')'
+    | unary-operation simple-expression
+    | literal
     | function-call
-
-cast-expression
-    : '(' non-void-var-type ')' unary-expression
+    | expression binary-operation expression
 
 literal
     : <integer>
     | <number>
     | <string>
 
-simple-name
-    : global-var-name
-    | local-var-name
-    | argument-name
+unary-operation
+    : '-'
+
+binary-operation
+    : '+'
+    | '-'
+    | '*'
+    | '/'
+    | '^'
+    | '%'
+    | '>>'
+    | '<<'
+    | '>'
+    | '>='
+    | '<'
+    | '<='
+    | '=='
+    | '&&'
+    | '||'
 
 **************************************************

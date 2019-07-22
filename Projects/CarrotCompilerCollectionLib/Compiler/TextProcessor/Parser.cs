@@ -27,6 +27,12 @@ namespace CarrotCompilerCollection.Compiler
     /// </summary>
     public class CccParser
     {
+        // 定数定義
+        private int UnaryOperationPriority = 20;
+
+        // クラス変数定義
+        private static readonly Dictionary<int, int> OperatorPriorityTable;
+
         // メンバ変数定義
         private CccBinaryCoder coder;
         private IScriptStorage storage;
@@ -38,6 +44,33 @@ namespace CarrotCompilerCollection.Compiler
 
 
         #region Constructor and initialize
+        /// <summary>
+        /// CccParser クラスの初期化をします
+        /// </summary>
+        static CccParser()
+        {
+            // 演算子の優先順位テーブルを初期化する
+            OperatorPriorityTable = new Dictionary<int, int>()
+            {
+                // 優先順位は値が大きいほど高い
+                { CccTokenKind.Asterisk, 15 },          // '*'
+                { CccTokenKind.Slash, 15 },             // '/'
+                { CccTokenKind.Percent, 15 },           // '%'
+                { CccTokenKind.Plus, 12 },              // '+'
+                { CccTokenKind.Minus, 12 },             // '-'
+                { CccTokenKind.DoubleAnd, 10 },         // '&&'
+                { CccTokenKind.DoubleVerticalbar, 10 }, // '||'
+                { CccTokenKind.DoubleCloseAngle, 7 },   // '>>'
+                { CccTokenKind.DoubleOpenAngle, 7 },    // '<<'
+                { CccTokenKind.DoubleEqual, 6 },        // '=='
+                { CccTokenKind.CloseAngle, 6 },         // '>'
+                { CccTokenKind.OpenAngle, 6 },          // '<'
+                { CccTokenKind.GreaterEqual, 6 },       // '>='
+                { CccTokenKind.LesserEqual, 6 },        // '<='
+            };
+        }
+
+
         /// <summary>
         /// CccParser クラスのインスタンスを初期化します
         /// </summary>
@@ -470,6 +503,14 @@ namespace CarrotCompilerCollection.Compiler
                     break;
 
 
+                case CccTokenKind.Break:
+                    currentContext.Lexer.ReadNextToken();
+                    ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
+                    currentContext.Lexer.ReadNextToken();
+                    // ParseBreakStatement
+                    break;
+
+
                 default:
                     ParseExpression();
                     break;
@@ -549,17 +590,11 @@ namespace CarrotCompilerCollection.Compiler
         #region Expression
         private void ParseExpression()
         {
-            ParseAssignmentExpression();
-        }
-
-
-        private void ParseAssignmentExpression()
-        {
             ref var token = ref currentContext.Lexer.LastReadToken;
             var copiedToken = token;
 
 
-            ParseRelationalExpression();
+            ParseSimpleExpression(0);
 
 
             currentContext.Lexer.ReadNextToken();
@@ -569,83 +604,98 @@ namespace CarrotCompilerCollection.Compiler
             }
 
 
-            ThrowExceptionIfNotAssignmentTarget(copiedToken.Text);
+            ThrowExceptionIfNotAssignableTarget(copiedToken.Text);
             currentContext.Lexer.ReadNextToken();
             ParseExpression();
 
 
-            var function = coder.GetFunction(currentParseFunctionName);
-            // Generate code
+            // Generate assignment code
         }
 
 
-        private void ParseRelationalExpression()
-        {
-            ParseAddExpression();
-        }
-
-
-        private void ParseAddExpression()
-        {
-            ParseMulExpression();
-        }
-
-
-        private void ParseMulExpression()
-        {
-            ParseUnaryExpression();
-        }
-
-
-        private void ParseUnaryExpression()
+        private int ParseSimpleExpression(int currentOpPriority)
         {
             ref var token = ref currentContext.Lexer.LastReadToken;
-            switch (token.Kind)
+
+
+            if (token.Kind == CccTokenKind.OpenParen)
             {
-                case CccTokenKind.Plus:
-                case CccTokenKind.Minus:
-                    break;
-
-
-                case CccTokenKind.Integer:
-                case CccTokenKind.Number:
-                case CccTokenKind.String:
-                    break;
-
-
-                case CccTokenKind.Identifier:
-                    switch (coder.GetIdentifirKind(token.Text, currentParseFunctionName))
-                    {
-                        case CccBinaryCoder.IdentifierKind.LocalVariable:
-                            break;
-
-
-                        case CccBinaryCoder.IdentifierKind.ArgumentVariable:
-                            break;
-
-
-                        case CccBinaryCoder.IdentifierKind.GlobalVariable:
-                            break;
-
-
-                        case CccBinaryCoder.IdentifierKind.ConstantValue:
-                            break;
-
-
-                        case CccBinaryCoder.IdentifierKind.StandardFunction:
-                            break;
-
-
-                        case CccBinaryCoder.IdentifierKind.PeripheralFunction:
-                            break;
-
-
-                        case CccBinaryCoder.IdentifierKind.Unknown:
-                            ThrowExceptionUnknownToken(ref token);
-                            return;
-                    }
-                    break;
+                ParseExpression();
+                ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+                currentContext.Lexer.ReadNextToken();
+                return 0;
             }
+
+
+            if (token.Kind == CccTokenKind.Minus)
+            {
+                currentContext.Lexer.ReadNextToken();
+                ParseSimpleExpression(UnaryOperationPriority);
+                // Generate negate operation
+                return 0;
+            }
+
+
+            if (token.Kind == CccTokenKind.Integer || token.Kind == CccTokenKind.Number || token.Kind == CccTokenKind.String)
+            {
+                // Generate rax assignment
+            }
+
+
+            if (token.Kind == CccTokenKind.Identifier)
+            {
+                var identifierKind = coder.GetIdentifierKind(token.Text, currentParseFunctionName);
+                switch (identifierKind)
+                {
+                    case CccBinaryCoder.IdentifierKind.PeripheralFunction:
+                        // generate peripheral function call
+                        break;
+
+
+                    case CccBinaryCoder.IdentifierKind.StandardFunction:
+                        // generate function call
+                        break;
+
+
+                    case CccBinaryCoder.IdentifierKind.ArgumentVariable:
+                        // generate rax assignment
+                        break;
+
+
+                    case CccBinaryCoder.IdentifierKind.LocalVariable:
+                        // generate rax assignment
+                        break;
+
+
+                    case CccBinaryCoder.IdentifierKind.GlobalVariable:
+                        // generate rax assignment
+                        break;
+
+
+                    case CccBinaryCoder.IdentifierKind.ConstantValue:
+                        // generate rax assignment
+                        break;
+
+
+                    case CccBinaryCoder.IdentifierKind.Unknown:
+                        ThrowExceptionUnknownToken(ref token);
+                        break;
+                }
+            }
+
+
+            currentContext.Lexer.ReadNextToken();
+            var opToken = token;
+
+
+            var isOperator = OperatorPriorityTable.TryGetValue(opToken.Kind, out var opPriority);
+            while (isOperator && opPriority > currentOpPriority)
+            {
+                currentContext.Lexer.ReadNextToken();
+            }
+
+
+            return opPriority;
         }
         #endregion
         #endregion
@@ -841,9 +891,9 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        private void ThrowExceptionIfNotAssignmentTarget(string name)
+        private void ThrowExceptionIfNotAssignableTarget(string name)
         {
-            var identifirKind = coder.GetIdentifirKind(name, currentParseFunctionName);
+            var identifirKind = coder.GetIdentifierKind(name, currentParseFunctionName);
             if (identifirKind == CccBinaryCoder.IdentifierKind.LocalVariable ||
                 identifirKind == CccBinaryCoder.IdentifierKind.ArgumentVariable ||
                 identifirKind == CccBinaryCoder.IdentifierKind.GlobalVariable)
