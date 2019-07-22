@@ -507,14 +507,16 @@ namespace CarrotCompilerCollection.Compiler
         {
             ref var token = ref currentContext.Lexer.LastReadToken;
             ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
-
             currentContext.Lexer.ReadNextToken();
             ParseExpression();
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
 
 
-            currentContext.Lexer.ReadNextToken();
-            ParseBlock();
+            while (token.Kind != CccTokenKind.End)
+            {
+                currentContext.Lexer.ReadNextToken();
+                ParseBlock();
+            }
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
 
 
@@ -526,12 +528,16 @@ namespace CarrotCompilerCollection.Compiler
         {
             ref var token = ref currentContext.Lexer.LastReadToken;
             ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
+            currentContext.Lexer.ReadNextToken();
             ParseExpression();
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
 
 
-            currentContext.Lexer.ReadNextToken();
-            ParseBlock();
+            while (token.Kind != CccTokenKind.End)
+            {
+                currentContext.Lexer.ReadNextToken();
+                ParseBlock();
+            }
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
 
 
@@ -543,27 +549,39 @@ namespace CarrotCompilerCollection.Compiler
         #region Expression
         private void ParseExpression()
         {
+            ParseAssignmentExpression();
+        }
+
+
+        private void ParseAssignmentExpression()
+        {
             ref var token = ref currentContext.Lexer.LastReadToken;
-            var name = token.Text;
+            var copiedToken = token;
 
 
-            ParseAddExpression();
+            ParseRelationalExpression();
 
 
+            currentContext.Lexer.ReadNextToken();
             if (token.Kind != CccTokenKind.Equal)
             {
-                currentContext.Lexer.ReadNextToken();
                 return;
             }
 
 
-            ThrowExceptionIfNotAssignmentTarget(name);
+            ThrowExceptionIfNotAssignmentTarget(copiedToken.Text);
             currentContext.Lexer.ReadNextToken();
             ParseExpression();
 
 
             var function = coder.GetFunction(currentParseFunctionName);
             // Generate code
+        }
+
+
+        private void ParseRelationalExpression()
+        {
+            ParseAddExpression();
         }
 
 
