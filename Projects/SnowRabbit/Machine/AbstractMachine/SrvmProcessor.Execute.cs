@@ -335,7 +335,7 @@ namespace SnowRabbit.Machine
 
                     #region Flow Control
                     case OpCode.Br:
-                        nextInstructionPointer = context[regANumber].Value.Long[0];
+                        nextInstructionPointer = context[regANumber].Value.Long[0] + immediate;
                         break;
 
 
@@ -345,7 +345,7 @@ namespace SnowRabbit.Machine
 
 
                     case OpCode.Bnz:
-                        nextInstructionPointer = context[regBNumber].Value.Long[0] != 0 ? context[regANumber].Value.Long[0] : nextInstructionPointer;
+                        nextInstructionPointer = context[regBNumber].Value.Long[0] != 0 ? context[regANumber].Value.Long[0] + immediate : nextInstructionPointer;
                         break;
 
 
@@ -358,7 +358,7 @@ namespace SnowRabbit.Machine
                         sp = context[RegisterSPIndex].Value.Long[0] - 1;
                         memory[(int)sp].Value.Long[0] = nextInstructionPointer;
                         context[RegisterSPIndex].Value.Long[0] = sp;
-                        nextInstructionPointer = context[regANumber].Value.Long[0];
+                        nextInstructionPointer = context[regANumber].Value.Long[0] + immediate;
                         break;
 
 
@@ -376,7 +376,7 @@ namespace SnowRabbit.Machine
                             sp = context[RegisterSPIndex].Value.Long[0] - 1;
                             memory[(int)sp].Value.Long[0] = nextInstructionPointer;
                             context[RegisterSPIndex].Value.Long[0] = sp;
-                            nextInstructionPointer = context[regANumber].Value.Long[0];
+                            nextInstructionPointer = context[regANumber].Value.Long[0] + immediate;
                         }
                         break;
 

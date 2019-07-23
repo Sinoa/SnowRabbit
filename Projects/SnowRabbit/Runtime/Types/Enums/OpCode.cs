@@ -300,7 +300,7 @@ namespace SnowRabbit.Runtime
 
         #region Flow Control
         /// <summary>
-        /// 無条件でレジスタによって指定されたアドレスへ分岐します：IP = Ra
+        /// 無条件でレジスタと即値によって指定されたアドレスへ分岐します：IP = Ra + Imm
         /// </summary>
         Br = 0x80,
 
@@ -310,7 +310,7 @@ namespace SnowRabbit.Runtime
         Brl = 0x81,
 
         /// <summary>
-        /// 指定されたレジスタが0でない場合に、レジスタによって指定されたアドレスへ分岐します：IP = Rb != 0 ? Ra : IP
+        /// 指定されたレジスタが0でない場合に、レジスタと即値によって指定されたアドレスへ分岐します：IP = Rb != 0 ? Ra + Imm : IP
         /// </summary>
         Bnz = 0x82,
 
@@ -320,7 +320,7 @@ namespace SnowRabbit.Runtime
         Bnzl = 0x83,
 
         /// <summary>
-        /// 次に実行するべき命令のアドレスをプッシュして、レジスタによって指定されたアドレスへ分岐します：PUSH(IP+1); IP = Ra
+        /// 次に実行するべき命令のアドレスをプッシュして、レジスタと即値によって指定されたアドレスへ分岐します：PUSH(IP+1); IP = Ra + Imm
         /// </summary>
         Call = 0x84,
 
@@ -330,7 +330,7 @@ namespace SnowRabbit.Runtime
         Calll = 0x85,
 
         /// <summary>
-        /// 指定されたレジスタが0でない場合に、次に実行するべき命令のアドレスをプッシュして、レジスタによって指定されたアドレスへ分岐します：if (Rb != 0) { PUSH(IP+1); IP = Ra; }
+        /// 指定されたレジスタが0でない場合に、次に実行するべき命令のアドレスをプッシュして、レジスタと即値によって指定されたアドレスへ分岐します：if (Rb != 0) { PUSH(IP+1); IP = Ra + Imm; }
         /// </summary>
         Callnz = 0x86,
 
