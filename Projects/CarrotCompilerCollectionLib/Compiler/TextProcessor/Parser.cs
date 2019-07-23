@@ -514,6 +514,54 @@ namespace CarrotCompilerCollection.Compiler
 
             currentContext.Lexer.ReadNextToken();
         }
+
+
+        private void ParseFunctionCall()
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            var function = coder.GetFunction(currentParseFunctionName);
+            var targetFunction = coder.GetFunction(token.Text);
+            var argumentCount = targetFunction.ArgumentTable.Count;
+
+
+            currentContext.Lexer.ReadNextToken();
+            ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
+
+
+            currentContext.Lexer.ReadNextToken();
+            if (token.Kind != CccTokenKind.CloseParen)
+            {
+                while (true)
+                {
+                    ParseExpression();
+                    coder.GeneratePushRax(function);
+                    argumentCount--;
+
+
+                    if (token.Kind != CccTokenKind.Comma)
+                    {
+                        break;
+                    }
+                }
+            }
+
+
+            if (argumentCount != 0)
+            {
+                ThrowExceptionDifferArgumentCount(targetFunction.Name);
+            }
+
+
+            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+
+
+            // generate peripheral function call
+            coder.GenerateFunctionCall(function, token.Text);
+            coder.GenerateStackPointerAdd(function, targetFunction.ArgumentTable.Count);
+
+
+            currentContext.Lexer.ReadNextToken();
+        }
         #endregion
 
 
@@ -754,7 +802,7 @@ namespace CarrotCompilerCollection.Compiler
 
 
                     case CccBinaryCoder.IdentifierKind.StandardFunction:
-                        // generate function call
+                        ParseFunctionCall();
                         break;
 
 

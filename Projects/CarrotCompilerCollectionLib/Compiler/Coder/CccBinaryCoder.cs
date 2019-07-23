@@ -151,9 +151,12 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        public void GeneralFunctionCall(FunctionInfo function, string functionName)
+        public void GenerateFunctionCall(FunctionInfo function, string functionName)
         {
             var targetFunction = GetFunction(functionName);
+
+            // calll imm = targetFunctionAddress
+            function.CreateInstruction(OpCode.Calll, 0, 0, 0, targetFunction.Address, true);
         }
         #endregion
 
