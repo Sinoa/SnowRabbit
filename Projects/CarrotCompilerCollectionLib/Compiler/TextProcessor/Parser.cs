@@ -408,6 +408,11 @@ namespace CarrotCompilerCollection.Compiler
                 currentParseFunctionName = functionName;
 
 
+                // Generate function enter
+                var function = coder.GetFunction(functionName);
+                coder.GenerateFunctionEnter(function, argumentList.Count);
+
+
                 currentContext.Lexer.ReadNextToken();
                 while (token.Kind != CccTokenKind.End)
                 {
@@ -415,6 +420,8 @@ namespace CarrotCompilerCollection.Compiler
                 }
 
 
+                // Generate function leave
+                coder.GenerateFunctionLeave(function);
                 currentContext.Lexer.ReadNextToken();
             }
         }
@@ -458,6 +465,54 @@ namespace CarrotCompilerCollection.Compiler
 
                 currentContext.Lexer.ReadNextToken();
             }
+        }
+
+
+        private void ParsePeripheralFunctionCall()
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            var function = coder.GetFunction(currentParseFunctionName);
+            var peripheralFunction = coder.GetFunction(token.Text);
+            var argumentCount = peripheralFunction.ArgumentTable.Count;
+
+
+            currentContext.Lexer.ReadNextToken();
+            ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
+
+
+            currentContext.Lexer.ReadNextToken();
+            if (token.Kind != CccTokenKind.CloseParen)
+            {
+                while (true)
+                {
+                    ParseExpression();
+                    coder.GeneratePushRax(function);
+                    argumentCount--;
+
+
+                    if (token.Kind != CccTokenKind.Comma)
+                    {
+                        break;
+                    }
+                }
+            }
+
+
+            if (argumentCount != 0)
+            {
+                ThrowExceptionDifferArgumentCount(peripheralFunction.Name);
+            }
+
+
+            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+
+
+            // generate peripheral function call
+            coder.GeneratePeripheralFunctionCall(function, token.Text);
+            coder.GenerateStackPointerAdd(function, peripheralFunction.ArgumentTable.Count);
+
+
+            currentContext.Lexer.ReadNextToken();
         }
         #endregion
 
@@ -694,7 +749,7 @@ namespace CarrotCompilerCollection.Compiler
                 switch (identifierKind)
                 {
                     case CccBinaryCoder.IdentifierKind.PeripheralFunction:
-                        // generate peripheral function call
+                        ParsePeripheralFunctionCall();
                         break;
 
 
@@ -934,6 +989,12 @@ namespace CarrotCompilerCollection.Compiler
             {
                 ThrowExceptionCompileError($"不明な周辺機器名 '{token.Text}' です", 0);
             }
+        }
+
+
+        private void ThrowExceptionDifferArgumentCount(string functionName)
+        {
+            ThrowExceptionCompileError($"関数 '{functionName}' の引数の数が一致しません", 0);
         }
 
 

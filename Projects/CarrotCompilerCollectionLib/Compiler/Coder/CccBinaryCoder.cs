@@ -79,6 +79,82 @@ namespace CarrotCompilerCollection.Compiler
             function.InstructionInfoList[instructionIndex].Code.Immediate.Int = jumpIndex;
             function.InstructionInfoList[instructionIndex].UnresolveAddress = false;
         }
+
+
+        public void GenerateFunctionEnter(FunctionInfo function, int argumentCount)
+        {
+            // push ra = rbp
+            // mov ra = rbp, rb = rsp
+            // subl ra = rsp, rb = rsp, imm = argumentCount
+            var rsp = (byte)SrvmProcessor.RegisterSPIndex;
+            var rbp = (byte)SrvmProcessor.RegisterBPIndex;
+            function.CreateInstruction(OpCode.Push, rbp, 0, 0, 0, false);
+            function.CreateInstruction(OpCode.Mov, rbp, rsp, 0, 0, false);
+            function.CreateInstruction(OpCode.Subl, rsp, rsp, 0, argumentCount, false);
+        }
+
+
+        public void GenerateFunctionLeave(FunctionInfo function)
+        {
+            // mov ra = rsp, rb = rbp
+            // pop ra = rbp
+            // ret
+            var rsp = (byte)SrvmProcessor.RegisterSPIndex;
+            var rbp = (byte)SrvmProcessor.RegisterBPIndex;
+            function.CreateInstruction(OpCode.Mov, rsp, rbp, 0, 0, false);
+            function.CreateInstruction(OpCode.Pop, rbp, 0, 0, 0, false);
+            function.CreateInstruction(OpCode.Ret, 0, 0, 0, 0, false);
+        }
+
+
+        public void GeneratePushRax(FunctionInfo function)
+        {
+            function.CreateInstruction(OpCode.Push, SrvmProcessor.RegisterAIndex, 0, 0, 0, false);
+        }
+
+
+        public void GenerateStackPointerAdd(FunctionInfo function, int value)
+        {
+            // addl ra = sp, rb = sp, imm = value
+            var sp = (byte)SrvmProcessor.RegisterSPIndex;
+            function.CreateInstruction(OpCode.Addl, sp, sp, 0, value, false);
+        }
+
+
+        public void GeneratePeripheralFunctionCall(FunctionInfo function, string functionName)
+        {
+            var peripheralFunction = GetFunction(functionName);
+            if (peripheralFunction == null)
+            {
+                return;
+            }
+
+
+            var peripheralVarName = ManglingPeripheralVariableName(peripheralFunction.PeripheralName);
+            var peripheralFunctionVarName = ManglingPeripheralFunctionVariableName(peripheralFunction.PeripheralFunctionName);
+            var peripheralVarAddress = GetVariable(peripheralVarName).Address;
+            var peripheralFunctionVarAddress = GetVariable(peripheralFunctionVarName).Address;
+            var argumentCount = peripheralFunction.ArgumentTable.Count;
+
+
+            // ldrl ra = r8, imm = peripheralID
+            // ldrl ra = r9, imm = peripheralFunctionID
+            // movl ra = r10, imm = argumentCount
+            // cpf ra = r8, rb = r9, rc = r10
+            var r8 = (byte)SrvmProcessor.RegisterR8Index;
+            var r9 = (byte)SrvmProcessor.RegisterR9Index;
+            var r10 = (byte)SrvmProcessor.RegisterR10Index;
+            function.CreateInstruction(OpCode.Ldrl, r8, 0, 0, peripheralVarAddress, true);
+            function.CreateInstruction(OpCode.Ldrl, r9, 0, 0, peripheralFunctionVarAddress, true);
+            function.CreateInstruction(OpCode.Movl, r10, 0, 0, argumentCount, false);
+            function.CreateInstruction(OpCode.Cpf, r8, r9, r10, 0, false);
+        }
+
+
+        public void GeneralFunctionCall(FunctionInfo function, string functionName)
+        {
+            var targetFunction = GetFunction(functionName);
+        }
         #endregion
 
 
