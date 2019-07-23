@@ -312,6 +312,14 @@ namespace CarrotCompilerCollection.Compiler
         {
             return symbolTable.TryGetValue(virtualAddress, out var symbol) ? symbol : null;
         }
+
+
+
+        public class InstructionInfo
+        {
+            public InstructionCode Code;
+            public bool UnresolveAddress;
+        }
         #endregion
 
 
@@ -396,6 +404,8 @@ namespace CarrotCompilerCollection.Compiler
             public CccType ReturnType { get; set; }
             public Dictionary<string, CccArgumentInfo> ArgumentTable { get; set; }
             public Dictionary<string, VariableInfo> LocalVariableTable { get; set; }
+            public Dictionary<string, int> InstructionOffsetAddressTable { get; set; }
+            public List<InstructionInfo> InstructionInfoList { get; set; }
 
 
             private int nextLocalVariableIndex;
@@ -406,6 +416,8 @@ namespace CarrotCompilerCollection.Compiler
             {
                 ArgumentTable = new Dictionary<string, CccArgumentInfo>();
                 LocalVariableTable = new Dictionary<string, VariableInfo>();
+                InstructionOffsetAddressTable = new Dictionary<string, int>();
+                InstructionInfoList = new List<InstructionInfo>();
                 nextLocalVariableIndex = 0;
             }
 
@@ -436,6 +448,20 @@ namespace CarrotCompilerCollection.Compiler
             public bool ContainVariable(string name)
             {
                 return LocalVariableTable.ContainsKey(name);
+            }
+
+
+            public int CreateInstructionCurrentAddress(string name)
+            {
+                var currentInstructionIndex = InstructionInfoList.Count;
+                InstructionOffsetAddressTable[name] = currentInstructionIndex;
+                return currentInstructionIndex;
+            }
+
+
+            public int GetInstructionOffsetAddress(string name)
+            {
+                return InstructionOffsetAddressTable.TryGetValue(name, out var address) ? address : 0;
             }
         }
         #endregion
