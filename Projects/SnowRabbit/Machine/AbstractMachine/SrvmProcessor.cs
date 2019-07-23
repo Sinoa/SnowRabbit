@@ -32,7 +32,14 @@ namespace SnowRabbit.Machine
         public const int RegisterDIIndex = 5; // General DestinationIndex Register[RDI]
         public const int RegisterBPIndex = 6; // General BasePointer Register[RBP]
         public const int RegisterSPIndex = 7; // General StackPointer Register[RSP]
-        public const int RegisterRnBaseIndex = 8; // FullGeneral Register (x8)[Rx => R8 - R15]
+        public const int RegisterR8Index = 8; // FullGeneral Register (x8)[Rx => R8 - R15]
+        public const int RegisterR9Index = 9; // FullGeneral Register (x8)[Rx => R8 - R15]
+        public const int RegisterR10Index = 10; // FullGeneral Register (x8)[Rx => R8 - R15]
+        public const int RegisterR11Index = 11; // FullGeneral Register (x8)[Rx => R8 - R15]
+        public const int RegisterR12Index = 12; // FullGeneral Register (x8)[Rx => R8 - R15]
+        public const int RegisterR13Index = 13; // FullGeneral Register (x8)[Rx => R8 - R15]
+        public const int RegisterR14Index = 14; // FullGeneral Register (x8)[Rx => R8 - R15]
+        public const int RegisterR15Index = 15; // FullGeneral Register (x8)[Rx => R8 - R15]
         public const int RegisterIPIndex = 16; // InstructionPointer Register (SpecialRegister index 0)[IP]
         // Register Information
         public const int RegisterTotalCount = RegisterIPIndex + 1;

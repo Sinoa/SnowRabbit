@@ -145,7 +145,7 @@ while-statement
 ********** flow control syntax **********
 
 if-statement
-    : '(' expression ')' {block} 'end'
+    : '(' expression ')' {block ['elseif' '(' expression ')'] } else {block} 'end'
 
 **************************************************
 

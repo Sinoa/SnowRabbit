@@ -546,11 +546,21 @@ namespace CarrotCompilerCollection.Compiler
 
         private void ParseWhileStatement()
         {
+            var targetFunction = coder.GetFunction(currentParseFunctionName);
+            targetFunction.PushWhileNumber();
+            targetFunction.SetInstructionCurrentAddress(targetFunction.GetCurrentWhileBeginLabelName());
+
+
             ref var token = ref currentContext.Lexer.LastReadToken;
             ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
             currentContext.Lexer.ReadNextToken();
             ParseExpression();
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+
+
+
+            var patchTargetIndex = coder.GenerateJumpTest(targetFunction, 0);
+
 
 
             while (token.Kind != CccTokenKind.End)
@@ -561,12 +571,18 @@ namespace CarrotCompilerCollection.Compiler
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
 
 
+            var endLabelIndex = targetFunction.SetInstructionCurrentAddress(targetFunction.GetCurrentWhileEndLabelName());
+            coder.UpdateJumpAddress(targetFunction, patchTargetIndex, endLabelIndex);
+
+
+            targetFunction.PopWhileNumber();
             currentContext.Lexer.ReadNextToken();
         }
 
 
         private void ParseIfStatement()
         {
+            var targetFunction = coder.GetFunction(currentParseFunctionName);
             ref var token = ref currentContext.Lexer.LastReadToken;
             ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
             currentContext.Lexer.ReadNextToken();
@@ -574,12 +590,42 @@ namespace CarrotCompilerCollection.Compiler
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
 
 
+            var patchTargetIndex = coder.GenerateJumpTest(targetFunction, 0);
+
+
+            bool existsElse = false;
             while (token.Kind != CccTokenKind.End)
             {
                 currentContext.Lexer.ReadNextToken();
                 ParseBlock();
+
+
+                if (token.Kind == CccTokenKind.ElseIf)
+                {
+                    coder.UpdateJumpAddress(targetFunction, patchTargetIndex, targetFunction.InstructionInfoList.Count);
+                    currentContext.Lexer.ReadNextToken();
+                    ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
+                    currentContext.Lexer.ReadNextToken();
+                    ParseExpression();
+                    ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+
+
+                    patchTargetIndex = coder.GenerateJumpTest(targetFunction, 0);
+                }
+
+
+                if (token.Kind == CccTokenKind.Else)
+                {
+                    existsElse = true;
+                    coder.UpdateJumpAddress(targetFunction, patchTargetIndex, targetFunction.InstructionInfoList.Count);
+                }
             }
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
+
+            if (!existsElse)
+            {
+                coder.UpdateJumpAddress(targetFunction, patchTargetIndex, targetFunction.InstructionInfoList.Count);
+            }
 
 
             currentContext.Lexer.ReadNextToken();
