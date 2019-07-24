@@ -683,8 +683,7 @@ namespace CarrotCompilerCollection.Compiler
         private void ParseWhileStatement()
         {
             var targetFunction = coder.GetFunction(currentParseFunctionName);
-            targetFunction.PushWhileNumber();
-            targetFunction.SetInstructionCurrentAddress(targetFunction.GetCurrentWhileBeginLabelName());
+            var whileHeadAddress = targetFunction.CurrentInstructionCount;
 
 
             ref var token = ref currentContext.Lexer.LastReadToken;
@@ -707,11 +706,11 @@ namespace CarrotCompilerCollection.Compiler
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
 
 
-            var endLabelIndex = targetFunction.SetInstructionCurrentAddress(targetFunction.GetCurrentWhileEndLabelName());
-            coder.UpdateJumpAddress(targetFunction, patchTargetIndex, endLabelIndex);
+            coder.GenerateOffsetJump(targetFunction, -(targetFunction.CurrentInstructionCount - whileHeadAddress));
+            var whileTailAddress = targetFunction.CurrentInstructionCount - patchTargetIndex;
+            coder.UpdateJumpAddress(targetFunction, patchTargetIndex, whileTailAddress);
 
 
-            targetFunction.PopWhileNumber();
             currentContext.Lexer.ReadNextToken();
         }
 

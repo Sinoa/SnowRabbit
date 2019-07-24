@@ -62,15 +62,27 @@ namespace CarrotCompilerCollection.Compiler
 
 
         #region code generate function
-        public int GenerateJumpTest(FunctionInfo function, int endLabelIndex)
+        public int GenerateJumpTest(FunctionInfo function, int offsetAddress)
         {
             // movl ra = r8, imm = 0
-            // Teq ra = rax, rb = rax, rc = r8
-            // Bnzl rb = rax, imm = endlabel
-            function.CreateInstruction(OpCode.Movl, SrvmProcessor.RegisterR8Index, 0, 0, 0, false);
-            function.CreateInstruction(OpCode.Teq, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR8Index, 0, false);
-            function.CreateInstruction(OpCode.Bnzl, 0, SrvmProcessor.RegisterAIndex, 0, endLabelIndex, true);
+            // teq ra = rax, rb = rax, rc = r8
+            // bnz ra = ip, rb = rax, imm = endlabel
+            var r8 = (byte)SrvmProcessor.RegisterR8Index;
+            var rax = (byte)SrvmProcessor.RegisterAIndex;
+            var ip = (byte)SrvmProcessor.RegisterIPIndex;
+            function.CreateInstruction(OpCode.Movl, r8, 0, 0, 0, false);
+            function.CreateInstruction(OpCode.Teq, rax, rax, r8, 0, false);
+            function.CreateInstruction(OpCode.Bnz, ip, rax, 0, offsetAddress, true);
             return function.InstructionInfoList.Count - 1;
+        }
+
+
+        public int GenerateOffsetJump(FunctionInfo function, int offsetAddress)
+        {
+            // br ra = ip, imm = offsetAddress
+            var ip = (byte)SrvmProcessor.RegisterIPIndex;
+            function.CreateInstruction(OpCode.Br, ip, 0, 0, offsetAddress, false);
+            return function.CurrentInstructionCount - 1;
         }
 
 
@@ -509,11 +521,10 @@ namespace CarrotCompilerCollection.Compiler
             public Dictionary<string, VariableInfo> LocalVariableTable { get; set; }
             public Dictionary<string, int> InstructionOffsetAddressTable { get; set; }
             public List<InstructionInfo> InstructionInfoList { get; set; }
-            public Stack<int> WhileNumberStack { get; set; }
+            public int CurrentInstructionCount => InstructionInfoList.Count;
 
 
             private int nextLocalVariableIndex;
-            private int nextWhileNumber;
 
 
 
@@ -523,9 +534,7 @@ namespace CarrotCompilerCollection.Compiler
                 LocalVariableTable = new Dictionary<string, VariableInfo>();
                 InstructionOffsetAddressTable = new Dictionary<string, int>();
                 InstructionInfoList = new List<InstructionInfo>();
-                WhileNumberStack = new Stack<int>();
                 nextLocalVariableIndex = 0;
-                nextWhileNumber = 0;
             }
 
 
@@ -604,38 +613,6 @@ namespace CarrotCompilerCollection.Compiler
             public int GetInstructionOffsetAddress(string name)
             {
                 return InstructionOffsetAddressTable.TryGetValue(name, out var address) ? address : 0;
-            }
-
-
-            public int PushWhileNumber()
-            {
-                var number = nextWhileNumber++;
-                WhileNumberStack.Push(number);
-                return number;
-            }
-
-
-            public int PeekWhileNumber()
-            {
-                return WhileNumberStack.Peek();
-            }
-
-
-            public string GetCurrentWhileBeginLabelName()
-            {
-                return $"__begin_while_{PeekWhileNumber()}";
-            }
-
-
-            public string GetCurrentWhileEndLabelName()
-            {
-                return $"__end_while_{PeekWhileNumber()}";
-            }
-
-
-            public int PopWhileNumber()
-            {
-                return WhileNumberStack.Pop();
             }
         }
         #endregion
