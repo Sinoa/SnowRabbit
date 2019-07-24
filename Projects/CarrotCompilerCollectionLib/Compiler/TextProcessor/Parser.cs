@@ -643,6 +643,40 @@ namespace CarrotCompilerCollection.Compiler
 
         private void ParseForStatement()
         {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
+            currentContext.Lexer.ReadNextToken();
+            if (token.Kind != CccTokenKind.Semicolon)
+            {
+                // initial expression
+                ParseExpression();
+            }
+            ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
+            currentContext.Lexer.ReadNextToken();
+            if (token.Kind != CccTokenKind.Semicolon)
+            {
+                // condition expression
+                ParseExpression();
+            }
+            ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
+            currentContext.Lexer.ReadNextToken();
+            if (token.Kind != CccTokenKind.Semicolon)
+            {
+                // iterate expression
+                ParseExpression();
+            }
+            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+
+
+            currentContext.Lexer.ReadNextToken();
+            while (token.Kind != CccTokenKind.End)
+            {
+                ParseBlock();
+            }
+            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
+
+
+            currentContext.Lexer.ReadNextToken();
         }
 
 
