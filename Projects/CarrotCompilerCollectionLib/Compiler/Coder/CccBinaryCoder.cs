@@ -86,21 +86,27 @@ namespace CarrotCompilerCollection.Compiler
             // push ra = rbp
             // mov ra = rbp, rb = rsp
             // subl ra = rsp, rb = rsp, imm = argumentCount
+            // push ra = r15
             var rsp = (byte)SrvmProcessor.RegisterSPIndex;
             var rbp = (byte)SrvmProcessor.RegisterBPIndex;
+            var r15 = (byte)SrvmProcessor.RegisterR15Index;
             function.CreateInstruction(OpCode.Push, rbp, 0, 0, 0, false);
             function.CreateInstruction(OpCode.Mov, rbp, rsp, 0, 0, false);
             function.CreateInstruction(OpCode.Subl, rsp, rsp, 0, argumentCount, false);
+            function.CreateInstruction(OpCode.Push, r15, 0, 0, 0, false);
         }
 
 
         public void GenerateFunctionLeave(FunctionInfo function)
         {
+            // pop ra = r15
             // mov ra = rsp, rb = rbp
             // pop ra = rbp
             // ret
             var rsp = (byte)SrvmProcessor.RegisterSPIndex;
             var rbp = (byte)SrvmProcessor.RegisterBPIndex;
+            var r15 = (byte)SrvmProcessor.RegisterR15Index;
+            function.CreateInstruction(OpCode.Pop, r15, 0, 0, 0, false);
             function.CreateInstruction(OpCode.Mov, rsp, rbp, 0, 0, false);
             function.CreateInstruction(OpCode.Pop, rbp, 0, 0, 0, false);
             function.CreateInstruction(OpCode.Ret, 0, 0, 0, 0, false);
