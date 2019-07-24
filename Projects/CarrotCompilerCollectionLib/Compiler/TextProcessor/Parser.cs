@@ -660,7 +660,7 @@ namespace CarrotCompilerCollection.Compiler
             }
             ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
             currentContext.Lexer.ReadNextToken();
-            if (token.Kind != CccTokenKind.Semicolon)
+            if (token.Kind != CccTokenKind.CloseParen)
             {
                 // iterate expression
                 ParseExpression();
