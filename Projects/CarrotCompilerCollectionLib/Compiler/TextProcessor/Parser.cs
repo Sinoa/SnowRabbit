@@ -737,7 +737,7 @@ namespace CarrotCompilerCollection.Compiler
 
                 if (token.Kind == CccTokenKind.ElseIf)
                 {
-                    coder.UpdateJumpAddress(targetFunction, patchTargetIndex, targetFunction.InstructionInfoList.Count);
+                    coder.UpdateJumpAddress(targetFunction, patchTargetIndex, targetFunction.CurrentInstructionCount - patchTargetIndex);
                     currentContext.Lexer.ReadNextToken();
                     ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
                     currentContext.Lexer.ReadNextToken();
@@ -752,14 +752,14 @@ namespace CarrotCompilerCollection.Compiler
                 if (token.Kind == CccTokenKind.Else)
                 {
                     existsElse = true;
-                    coder.UpdateJumpAddress(targetFunction, patchTargetIndex, targetFunction.InstructionInfoList.Count);
+                    coder.UpdateJumpAddress(targetFunction, patchTargetIndex, targetFunction.CurrentInstructionCount - patchTargetIndex);
                 }
             }
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
 
             if (!existsElse)
             {
-                coder.UpdateJumpAddress(targetFunction, patchTargetIndex, targetFunction.InstructionInfoList.Count);
+                coder.UpdateJumpAddress(targetFunction, patchTargetIndex, targetFunction.CurrentInstructionCount - patchTargetIndex);
             }
 
 
