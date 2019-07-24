@@ -40,7 +40,7 @@ function void main()
 
 
         // もし値が100以上ならループから抜ける
-        if (g_ValA)
+        if (g_ValA >= 100)
             break;
         end
 
@@ -48,13 +48,13 @@ function void main()
         if (g_ValA >= 100) break; end
 
         // ループ
-        for (i=0;i<10;i=i+1)
-            // C#から終了チェックの結果をもらう
-            check = CheckExit();
-            if (check == 0)
-                break;
-            end
-        end
+//        for (i=0;i<10;i=i+1)
+//            // C#から終了チェックの結果をもらう
+//            check = CheckExit();
+//            if (check == 0)
+//                break;
+//            end
+//        end
 
         // アニメーションを実行
         // 残念ながらスクリプトから任意で待機をするかしないかの選択権はない

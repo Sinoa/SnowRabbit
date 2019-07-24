@@ -31,7 +31,7 @@ namespace CarrotCompilerCollection.Compiler
         private int UnaryOperationPriority = 20;
 
         // クラス変数定義
-        private static readonly Dictionary<int, int> OperatorPriorityTable;
+        private static readonly Dictionary<int, (int left, int right)> OperatorPriorityTable;
 
         // メンバ変数定義
         private CccBinaryCoder coder;
@@ -50,23 +50,16 @@ namespace CarrotCompilerCollection.Compiler
         static CccParser()
         {
             // 演算子の優先順位テーブルを初期化する
-            OperatorPriorityTable = new Dictionary<int, int>()
+            OperatorPriorityTable = new Dictionary<int, (int left, int right)>()
             {
-                // 優先順位は値が大きいほど高い
-                { CccTokenKind.Asterisk, 15 },          // '*'
-                { CccTokenKind.Slash, 15 },             // '/'
-                { CccTokenKind.Percent, 15 },           // '%'
-                { CccTokenKind.Plus, 12 },              // '+'
-                { CccTokenKind.Minus, 12 },             // '-'
-                { CccTokenKind.DoubleAnd, 10 },         // '&&'
-                { CccTokenKind.DoubleVerticalbar, 10 }, // '||'
-                { CccTokenKind.DoubleCloseAngle, 7 },   // '>>'
-                { CccTokenKind.DoubleOpenAngle, 7 },    // '<<'
-                { CccTokenKind.DoubleEqual, 6 },        // '=='
-                { CccTokenKind.CloseAngle, 6 },         // '>'
-                { CccTokenKind.OpenAngle, 6 },          // '<'
-                { CccTokenKind.GreaterEqual, 6 },       // '>='
-                { CccTokenKind.LesserEqual, 6 },        // '<='
+                // 優先順位は値が大きいほど高い、左右の優先順位値は等価なら左結合あるいは非結合、他は低い値から高い値への結合規則になります（殆どの場合は右結合）
+                { CccTokenKind.Asterisk, (15, 15) }, { CccTokenKind.Slash, (15, 15) }, { CccTokenKind.Percent, (15, 15) },      // '*', '/', '%'
+                { CccTokenKind.Plus, (12, 12) }, { CccTokenKind.Minus, (12, 12) },                                              // '+', '-'
+                { CccTokenKind.DoubleAnd, (10, 10) }, { CccTokenKind.DoubleVerticalbar, (10, 10) },                             // '&&', '||'
+                { CccTokenKind.DoubleCloseAngle, (7, 6) }, { CccTokenKind.DoubleOpenAngle, (7, 6) },                            // '>>', '<<'
+                { CccTokenKind.DoubleEqual, (5, 5) }, { CccTokenKind.CloseAngle, (5, 5) }, { CccTokenKind.OpenAngle, (5, 5) },  // '==', '>', '<'
+                { CccTokenKind.GreaterEqual, (5, 5) }, { CccTokenKind.LesserEqual, (5, 5) },                                    // '>=', '<='
+                { CccTokenKind.Equal, (2, 1) }                                                                                  // '='
             };
         }
 
@@ -494,6 +487,9 @@ namespace CarrotCompilerCollection.Compiler
                     {
                         break;
                     }
+
+
+                    currentContext.Lexer.ReadNextToken();
                 }
             }
 
@@ -542,6 +538,9 @@ namespace CarrotCompilerCollection.Compiler
                     {
                         break;
                     }
+
+
+                    currentContext.Lexer.ReadNextToken();
                 }
             }
 
@@ -556,7 +555,7 @@ namespace CarrotCompilerCollection.Compiler
 
 
             // generate peripheral function call
-            coder.GenerateFunctionCall(function, token.Text);
+            coder.GenerateFunctionCall(function, targetFunction.Name);
             coder.GenerateStackPointerAdd(function, targetFunction.ArgumentTable.Count);
 
 
@@ -666,9 +665,9 @@ namespace CarrotCompilerCollection.Compiler
 
 
 
+            currentContext.Lexer.ReadNextToken();
             while (token.Kind != CccTokenKind.End)
             {
-                currentContext.Lexer.ReadNextToken();
                 ParseBlock();
             }
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
@@ -697,9 +696,9 @@ namespace CarrotCompilerCollection.Compiler
 
 
             bool existsElse = false;
+            currentContext.Lexer.ReadNextToken();
             while (token.Kind != CccTokenKind.End)
             {
-                currentContext.Lexer.ReadNextToken();
                 ParseBlock();
 
 
@@ -739,112 +738,81 @@ namespace CarrotCompilerCollection.Compiler
         #region Expression
         private void ParseExpression()
         {
-            ref var token = ref currentContext.Lexer.LastReadToken;
-            var copiedToken = token;
-
-
-            ParseSimpleExpression(0);
-
-
-            currentContext.Lexer.ReadNextToken();
-            if (token.Kind != CccTokenKind.Equal)
-            {
-                return;
-            }
-
-
-            ThrowExceptionIfNotAssignableTarget(copiedToken.Text);
-            currentContext.Lexer.ReadNextToken();
-            ParseExpression();
-
-
-            // Generate assignment code
+            ParseExpression(0);
         }
 
 
-        private int ParseSimpleExpression(int currentOpPriority)
+        private int ParseExpression(int currentOpPriority)
         {
             ref var token = ref currentContext.Lexer.LastReadToken;
-
-
-            if (token.Kind == CccTokenKind.OpenParen)
+            switch (token.Kind)
             {
-                ParseExpression();
-                ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
-                currentContext.Lexer.ReadNextToken();
-                return 0;
-            }
+                case CccTokenKind.OpenParen:
+                    currentContext.Lexer.ReadNextToken();
+                    ParseExpression();
+                    ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+                    break;
 
 
-            if (token.Kind == CccTokenKind.Minus)
-            {
-                currentContext.Lexer.ReadNextToken();
-                ParseSimpleExpression(UnaryOperationPriority);
-                // Generate negate operation
-                return 0;
-            }
+                case CccTokenKind.Identifier:
+                    var identifierKind = coder.GetIdentifierKind(token.Text, currentParseFunctionName);
+                    switch (identifierKind)
+                    {
+                        case CccBinaryCoder.IdentifierKind.PeripheralFunction:
+                            ParsePeripheralFunctionCall();
+                            break;
 
 
-            if (token.Kind == CccTokenKind.Integer || token.Kind == CccTokenKind.Number || token.Kind == CccTokenKind.String)
-            {
-                // Generate rax assignment
-            }
+                        case CccBinaryCoder.IdentifierKind.StandardFunction:
+                            ParseFunctionCall();
+                            break;
 
 
-            if (token.Kind == CccTokenKind.Identifier)
-            {
-                var identifierKind = coder.GetIdentifierKind(token.Text, currentParseFunctionName);
-                switch (identifierKind)
-                {
-                    case CccBinaryCoder.IdentifierKind.PeripheralFunction:
-                        ParsePeripheralFunctionCall();
-                        break;
+                        case CccBinaryCoder.IdentifierKind.ArgumentVariable:
+                            // generate rax assignment
+                            break;
 
 
-                    case CccBinaryCoder.IdentifierKind.StandardFunction:
-                        ParseFunctionCall();
-                        break;
+                        case CccBinaryCoder.IdentifierKind.LocalVariable:
+                            // generate rax assignment
+                            break;
 
 
-                    case CccBinaryCoder.IdentifierKind.ArgumentVariable:
-                        // generate rax assignment
-                        break;
+                        case CccBinaryCoder.IdentifierKind.GlobalVariable:
+                            // generate rax assignment
+                            break;
 
 
-                    case CccBinaryCoder.IdentifierKind.LocalVariable:
-                        // generate rax assignment
-                        break;
+                        case CccBinaryCoder.IdentifierKind.ConstantValue:
+                            // generate rax assignment
+                            break;
 
 
-                    case CccBinaryCoder.IdentifierKind.GlobalVariable:
-                        // generate rax assignment
-                        break;
+                        case CccBinaryCoder.IdentifierKind.Unknown:
+                            ThrowExceptionUnknownToken(ref token);
+                            break;
+                    }
+                    break;
 
 
-                    case CccBinaryCoder.IdentifierKind.ConstantValue:
-                        // generate rax assignment
-                        break;
-
-
-                    case CccBinaryCoder.IdentifierKind.Unknown:
-                        ThrowExceptionUnknownToken(ref token);
-                        break;
-                }
+                default:
+                    break;
             }
 
 
             currentContext.Lexer.ReadNextToken();
-            var opToken = token;
-
-
-            var isOperator = OperatorPriorityTable.TryGetValue(opToken.Kind, out var opPriority);
-            while (isOperator && opPriority > currentOpPriority)
+            var op = token.Kind;
+            while (OperatorPriorityTable.ContainsKey(op) && OperatorPriorityTable[op].left > currentOpPriority)
             {
                 currentContext.Lexer.ReadNextToken();
+                var nextOperator = ParseExpression(OperatorPriorityTable[op].right);
+                // Generate operation code
+                // And result store code
+                op = nextOperator;
             }
 
 
-            return opPriority;
+            return op;
         }
         #endregion
         #endregion

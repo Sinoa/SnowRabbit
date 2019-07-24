@@ -70,7 +70,7 @@ namespace CarrotCompilerCollection.Compiler
             function.CreateInstruction(OpCode.Movl, SrvmProcessor.RegisterR8Index, 0, 0, 0, false);
             function.CreateInstruction(OpCode.Teq, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR8Index, 0, false);
             function.CreateInstruction(OpCode.Bnzl, 0, SrvmProcessor.RegisterAIndex, 0, endLabelIndex, true);
-            return function.InstructionInfoList.Count;
+            return function.InstructionInfoList.Count - 1;
         }
 
 
