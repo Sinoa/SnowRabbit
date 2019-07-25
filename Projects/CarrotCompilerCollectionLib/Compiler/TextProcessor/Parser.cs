@@ -59,6 +59,7 @@ namespace CarrotCompilerCollection.Compiler
                 { CccTokenKind.DoubleCloseAngle, (7, 6) }, { CccTokenKind.DoubleOpenAngle, (7, 6) },                            // '>>', '<<'
                 { CccTokenKind.DoubleEqual, (5, 5) }, { CccTokenKind.CloseAngle, (5, 5) }, { CccTokenKind.OpenAngle, (5, 5) },  // '==', '>', '<'
                 { CccTokenKind.GreaterEqual, (5, 5) }, { CccTokenKind.LesserEqual, (5, 5) },                                    // '>=', '<='
+                { CccTokenKind.PlusEqual, (2, 1) }, { CccTokenKind.MinusEqual, (2, 1) },                                        // '+=', '-='
                 { CccTokenKind.Equal, (2, 1) }                                                                                  // '='
             };
         }
@@ -782,53 +783,92 @@ namespace CarrotCompilerCollection.Compiler
         #region Expression
         private void ParseExpression()
         {
-            ParseExpression(0);
+            ParseExpression(out var val, 0);
         }
 
 
-        private int ParseExpression(int currentOpPriority)
+        private int ParseExpression(out CccBinaryCoder.ExpressionValue value, int currentOpPriority)
         {
+            value = default;
             ref var token = ref currentContext.Lexer.LastReadToken;
             switch (token.Kind)
             {
                 case CccTokenKind.OpenParen:
                     currentContext.Lexer.ReadNextToken();
-                    ParseExpression();
+                    ParseExpression(out value, 0);
                     ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+                    break;
+
+
+                case CccTokenKind.Integer:
+                    value.IdentifierKind = CccBinaryCoder.IdentifierKind.ConstantValue;
+                    value.Type = CccBinaryCoder.CccType.Int;
+                    value.Integer = token.Integer;
+                    break;
+
+
+                case CccTokenKind.Number:
+                    value.IdentifierKind = CccBinaryCoder.IdentifierKind.ConstantValue;
+                    value.Type = CccBinaryCoder.CccType.Number;
+                    value.Number = token.Number;
+                    break;
+
+
+                case CccTokenKind.String:
+                    value.IdentifierKind = CccBinaryCoder.IdentifierKind.ConstantValue;
+                    value.Type = CccBinaryCoder.CccType.String;
+                    value.Text = token.Text;
                     break;
 
 
                 case CccTokenKind.Identifier:
                     var identifierKind = coder.GetIdentifierKind(token.Text, currentParseFunctionName);
+                    var identifierName = token.Text;
+                    value.IdentifierKind = identifierKind;
                     switch (identifierKind)
                     {
+                        case CccBinaryCoder.IdentifierKind.ConstantValue:
+                            var constantInfo = coder.GetConstant(identifierName);
+                            value.Type = constantInfo.Type;
+                            value.Integer = constantInfo.IntegerValue;
+                            value.Number = constantInfo.NumberValue;
+                            value.Text = constantInfo.TextValue;
+                            break;
+
+
                         case CccBinaryCoder.IdentifierKind.PeripheralFunction:
                             ParsePeripheralFunctionCall();
+                            value.Type = coder.GetFunction(identifierName).ReturnType;
                             break;
 
 
                         case CccBinaryCoder.IdentifierKind.StandardFunction:
                             ParseFunctionCall();
+                            value.Type = coder.GetFunction(identifierName).ReturnType;
                             break;
 
 
                         case CccBinaryCoder.IdentifierKind.ArgumentVariable:
-                            // generate rax assignment
+                            var argumentInfo = coder.GetFunction(currentParseFunctionName).ArgumentTable[identifierName];
+                            value.Type = argumentInfo.Type;
+                            value.Integer = argumentInfo.Index;
+                            value.Text = argumentInfo.Name;
                             break;
 
 
                         case CccBinaryCoder.IdentifierKind.LocalVariable:
-                            // generate rax assignment
+                            var variableInfo = coder.GetFunction(currentParseFunctionName).LocalVariableTable[identifierName];
+                            value.Type = variableInfo.Type;
+                            value.Integer = variableInfo.Address;
+                            value.Text = variableInfo.Name;
                             break;
 
 
                         case CccBinaryCoder.IdentifierKind.GlobalVariable:
-                            // generate rax assignment
-                            break;
-
-
-                        case CccBinaryCoder.IdentifierKind.ConstantValue:
-                            // generate rax assignment
+                            var globalVariableInfo = coder.GetVariable(identifierName);
+                            value.Type = globalVariableInfo.Type;
+                            value.Integer = globalVariableInfo.Address;
+                            value.Text = globalVariableInfo.Name;
                             break;
 
 
@@ -849,7 +889,7 @@ namespace CarrotCompilerCollection.Compiler
             while (OperatorPriorityTable.ContainsKey(op) && OperatorPriorityTable[op].left > currentOpPriority)
             {
                 currentContext.Lexer.ReadNextToken();
-                var nextOperator = ParseExpression(OperatorPriorityTable[op].right);
+                var nextOperator = ParseExpression(out var rightValue, OperatorPriorityTable[op].right);
                 // Generate operation code
                 // And result store code
                 op = nextOperator;

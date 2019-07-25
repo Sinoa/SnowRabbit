@@ -176,6 +176,11 @@ namespace CarrotCompilerCollection.Compiler
             // calll imm = targetFunctionAddress
             function.CreateInstruction(OpCode.Calll, 0, 0, 0, targetFunction.Address, true);
         }
+
+
+        public void GenerateOperationCode(FunctionInfo function, int operationKind, ref ExpressionValue left, ref ExpressionValue right)
+        {
+        }
         #endregion
 
 
@@ -636,6 +641,19 @@ namespace CarrotCompilerCollection.Compiler
             public string Name { get; set; }
             public FunctionInfo Function { get; set; }
             public VariableInfo Variable { get; set; }
+        }
+        #endregion
+
+
+
+        #region expression
+        internal struct ExpressionValue
+        {
+            public IdentifierKind IdentifierKind;
+            public CccType Type;
+            public long Integer;
+            public double Number;
+            public string Text;
         }
         #endregion
     }
