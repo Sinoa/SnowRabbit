@@ -93,19 +93,27 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        public void GenerateFunctionEnter(FunctionInfo function, int argumentCount)
+        public int GenerateFunctionEnter(FunctionInfo function)
         {
             // push ra = rbp
             // mov ra = rbp, rb = rsp
-            // subl ra = rsp, rb = rsp, imm = argumentCount
+            // subl ra = rsp, rb = rsp, imm = localVarCount
             // push ra = r15
             var rsp = (byte)SrvmProcessor.RegisterSPIndex;
             var rbp = (byte)SrvmProcessor.RegisterBPIndex;
             var r15 = (byte)SrvmProcessor.RegisterR15Index;
             function.CreateInstruction(OpCode.Push, rbp, 0, 0, 0, false);
             function.CreateInstruction(OpCode.Mov, rbp, rsp, 0, 0, false);
-            function.CreateInstruction(OpCode.Subl, rsp, rsp, 0, argumentCount, false);
+            function.CreateInstruction(OpCode.Subl, rsp, rsp, 0, 0, false);
+            var patchIndex = function.CurrentInstructionCount - 1;
             function.CreateInstruction(OpCode.Push, r15, 0, 0, 0, false);
+            return patchIndex;
+        }
+
+
+        public void UpdateFunctionLocalVariableCount(FunctionInfo function, int patchIndex, int localVarCount)
+        {
+            function.InstructionInfoList[patchIndex].Code.Immediate.Int = localVarCount;
         }
 
 
@@ -180,6 +188,230 @@ namespace CarrotCompilerCollection.Compiler
 
         public void GenerateOperationCode(FunctionInfo function, int operationKind, ref ExpressionValue left, ref ExpressionValue right)
         {
+            var r15 = (byte)SrvmProcessor.RegisterR15Index;
+            var r14 = (byte)SrvmProcessor.RegisterR14Index;
+            var r13 = (byte)SrvmProcessor.RegisterR13Index;
+
+
+            if (left.FirstGenerate)
+            {
+                GenerateMovFromExpressionValue(function, r15, ref left);
+                left.FirstGenerate = false;
+            }
+
+
+            GenerateMovFromExpressionValue(function, r14, ref right);
+
+
+            if (left.Type == CccType.Number || right.Type == CccType.Number)
+            {
+                if (left.Type != CccType.Number)
+                {
+                    left.Type = CccType.Number;
+                    left.Number = left.Integer;
+                    function.CreateInstruction(OpCode.Movitf, r15, r15, 0, 0, false);
+                }
+
+
+                if (right.Type != CccType.Number)
+                {
+                    right.Type = CccType.Number;
+                    right.Number = right.Integer;
+                    function.CreateInstruction(OpCode.Movitf, r14, r14, 0, 0, false);
+                }
+            }
+
+
+            OpCode opCode;
+            switch (operationKind)
+            {
+                case CccTokenKind.Asterisk: // *
+                    opCode = left.Type == CccType.Int ? OpCode.Mul : OpCode.Fmul;
+                    function.CreateInstruction(opCode, r15, r15, r14, 0, false);
+                    break;
+
+
+                case CccTokenKind.Slash: // /
+                    opCode = left.Type == CccType.Int ? OpCode.Div : OpCode.Fdiv;
+                    function.CreateInstruction(opCode, r15, r15, r14, 0, false);
+                    break;
+
+
+                case CccTokenKind.Percent: // %
+                    opCode = left.Type == CccType.Int ? OpCode.Mod : OpCode.Fmod;
+                    function.CreateInstruction(opCode, r15, r15, r14, 0, false);
+                    break;
+
+
+                case CccTokenKind.PlusEqual: // +=
+                case CccTokenKind.Plus: // +
+                    opCode = left.Type == CccType.Int ? OpCode.Add : OpCode.Fadd;
+                    function.CreateInstruction(opCode, r15, r15, r14, 0, false);
+                    r14 = r15;
+                    break;
+
+
+                case CccTokenKind.MinusEqual: // +=
+                case CccTokenKind.Minus: // -
+                    opCode = left.Type == CccType.Int ? OpCode.Sub : OpCode.Fsub;
+                    function.CreateInstruction(opCode, r15, r15, r14, 0, false);
+                    r14 = r15;
+                    break;
+
+
+                case CccTokenKind.DoubleAnd: // &&
+                    function.CreateInstruction(OpCode.Modl, r13, 0, 0, 0, false);
+                    function.CreateInstruction(OpCode.Tne, r15, r15, r13, 0, false);
+                    function.CreateInstruction(OpCode.Tne, r14, r14, r13, 0, false);
+                    function.CreateInstruction(OpCode.And, r15, r15, r14, 0, false);
+                    break;
+
+
+                case CccTokenKind.DoubleVerticalbar: // ||
+                    function.CreateInstruction(OpCode.Modl, r13, 0, 0, 0, false);
+                    function.CreateInstruction(OpCode.Tne, r15, r15, r13, 0, false);
+                    function.CreateInstruction(OpCode.Tne, r14, r14, r13, 0, false);
+                    function.CreateInstruction(OpCode.Or, r15, r15, r14, 0, false);
+                    break;
+
+
+                case CccTokenKind.DoubleCloseAngle: // >>
+                    function.CreateInstruction(OpCode.Shr, r15, r15, r14, 0, false);
+                    break;
+
+
+                case CccTokenKind.DoubleOpenAngle: // <<
+                    function.CreateInstruction(OpCode.Shl, r15, r15, r14, 0, false);
+                    break;
+
+
+                case CccTokenKind.DoubleEqual: // ==
+                    function.CreateInstruction(OpCode.Teq, r15, r15, r14, 0, false);
+                    break;
+
+
+                case CccTokenKind.CloseAngle: // >
+                    function.CreateInstruction(OpCode.Tg, r15, r15, r14, 0, false);
+                    break;
+
+
+                case CccTokenKind.OpenAngle: // <
+                    function.CreateInstruction(OpCode.Tl, r15, r15, r14, 0, false);
+                    break;
+
+
+                case CccTokenKind.GreaterEqual: // >=
+                    function.CreateInstruction(OpCode.Tge, r15, r15, r14, 0, false);
+                    break;
+
+
+                case CccTokenKind.LesserEqual: // <=
+                    function.CreateInstruction(OpCode.Tle, r15, r15, r14, 0, false);
+                    break;
+            }
+
+
+            if (operationKind == CccTokenKind.Equal)
+            {
+                if (left.Type != right.Type)
+                {
+                    if (left.Type == CccType.Int)
+                    {
+                        function.CreateInstruction(OpCode.Movfti, r15, r14, 0, 0, false);
+                    }
+
+
+                    if (left.Type == CccType.Number)
+                    {
+                        function.CreateInstruction(OpCode.Movitf, r15, r14, 0, 0, false);
+                    }
+                }
+                else
+                {
+                    function.CreateInstruction(OpCode.Mov, r15, r14, 0, 0, false);
+                }
+
+
+                GenerateStr(function, r15, ref left);
+            }
+        }
+
+
+        public void GenerateMovFromExpressionValue(FunctionInfo function, byte registerNum, ref ExpressionValue value)
+        {
+            switch (value.IdentifierKind)
+            {
+                case IdentifierKind.ConstantValue:
+                    switch (value.Type)
+                    {
+                        case CccType.Int:
+                            function.CreateInstruction(OpCode.Movl, registerNum, 0, 0, value.Integer, false);
+                            return;
+
+
+                        case CccType.Number:
+                            function.CreateInstruction(OpCode.Fmovl, registerNum, 0, 0, (float)value.Number, false);
+                            return;
+
+
+                        case CccType.String:
+                            var hashCode = value.Text.GetHashCode().ToString();
+                            RegisterConstantValue(hashCode, CccType.String, 0, 0.0f, value.Text);
+                            function.CreateInstruction(OpCode.Movl, registerNum, 0, 0, GetConstant(hashCode).Address, true);
+                            return;
+                    }
+                    break;
+
+
+                case IdentifierKind.GlobalVariable:
+                    var globalVarInfo = GetVariable(value.Text);
+                    function.CreateInstruction(OpCode.Ldrl, registerNum, 0, 0, globalVarInfo.Address, true);
+                    break;
+
+
+                case IdentifierKind.ArgumentVariable:
+                    var argumentInfo = function.ArgumentTable[value.Text];
+                    var offsetAddress = function.ArgumentTable.Count - 1 - argumentInfo.Index;
+                    function.CreateInstruction(OpCode.Ldr, registerNum, SrvmProcessor.RegisterBPIndex, 0, offsetAddress, false);
+                    break;
+
+
+                case IdentifierKind.LocalVariable:
+                    var localVariableInfo = function.LocalVariableTable[value.Text];
+                    function.CreateInstruction(OpCode.Ldr, registerNum, SrvmProcessor.RegisterBPIndex, 0, localVariableInfo.Address, false);
+                    break;
+
+
+                case IdentifierKind.PeripheralFunction:
+                case IdentifierKind.StandardFunction:
+                    function.CreateInstruction(OpCode.Mov, registerNum, SrvmProcessor.RegisterAIndex, 0, 0, false);
+                    break;
+            }
+        }
+
+
+        public void GenerateStr(FunctionInfo function, byte registerNum, ref ExpressionValue value)
+        {
+            switch (value.IdentifierKind)
+            {
+                case IdentifierKind.GlobalVariable:
+                    var globalVarInfo = GetVariable(value.Text);
+                    function.CreateInstruction(OpCode.Strl, registerNum, 0, 0, globalVarInfo.Address, true);
+                    break;
+
+
+                case IdentifierKind.ArgumentVariable:
+                    var argumentInfo = function.ArgumentTable[value.Text];
+                    var offsetAddress = function.ArgumentTable.Count - 1 - argumentInfo.Index;
+                    function.CreateInstruction(OpCode.Str, registerNum, SrvmProcessor.RegisterBPIndex, 0, offsetAddress, false);
+                    break;
+
+
+                case IdentifierKind.LocalVariable:
+                    var localVariableInfo = function.LocalVariableTable[value.Text];
+                    function.CreateInstruction(OpCode.Str, registerNum, SrvmProcessor.RegisterBPIndex, 0, localVariableInfo.Address, false);
+                    break;
+            }
         }
         #endregion
 
@@ -205,9 +437,19 @@ namespace CarrotCompilerCollection.Compiler
             info.IntegerValue = integer;
             info.NumberValue = number;
             info.TextValue = text;
+            info.Address = nextVirtualAddress--;
 
 
             constantTable[name] = info;
+
+
+            symbolTable[info.Address] = new SymbolInfo()
+            {
+                Type = SymbolType.Constant,
+                Constant = info,
+                Name = info.Name,
+                VirtualAddress = info.Address,
+            };
         }
 
 
@@ -448,6 +690,7 @@ namespace CarrotCompilerCollection.Compiler
         internal class ConstantInfo
         {
             public string Name { get; set; }
+            public int Address { get; set; }
             public CccType Type { get; set; }
             public long IntegerValue { get; set; }
             public float NumberValue { get; set; }
@@ -539,7 +782,7 @@ namespace CarrotCompilerCollection.Compiler
                 LocalVariableTable = new Dictionary<string, VariableInfo>();
                 InstructionOffsetAddressTable = new Dictionary<string, int>();
                 InstructionInfoList = new List<InstructionInfo>();
-                nextLocalVariableIndex = 0;
+                nextLocalVariableIndex = -1;
             }
 
 
@@ -548,7 +791,7 @@ namespace CarrotCompilerCollection.Compiler
                 var info = new VariableInfo();
                 info.Name = name;
                 info.StorageType = VariableType.Local;
-                info.Address = nextLocalVariableIndex++;
+                info.Address = nextLocalVariableIndex--;
                 info.Unresolve = true;
                 info.Type =
                     typeKind == CccTokenKind.TypeInt ? CccType.Int :
@@ -630,6 +873,7 @@ namespace CarrotCompilerCollection.Compiler
             Unknown,
             GlobalVariable,
             GlobalFunction,
+            Constant,
         }
 
 
@@ -641,6 +885,7 @@ namespace CarrotCompilerCollection.Compiler
             public string Name { get; set; }
             public FunctionInfo Function { get; set; }
             public VariableInfo Variable { get; set; }
+            public ConstantInfo Constant { get; set; }
         }
         #endregion
 
@@ -654,6 +899,7 @@ namespace CarrotCompilerCollection.Compiler
             public long Integer;
             public double Number;
             public string Text;
+            public bool FirstGenerate;
         }
         #endregion
     }

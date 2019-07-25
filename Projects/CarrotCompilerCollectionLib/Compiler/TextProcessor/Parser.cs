@@ -404,7 +404,7 @@ namespace CarrotCompilerCollection.Compiler
 
                 // Generate function enter
                 var function = coder.GetFunction(functionName);
-                coder.GenerateFunctionEnter(function, argumentList.Count);
+                var patchIndex = coder.GenerateFunctionEnter(function);
 
 
                 currentContext.Lexer.ReadNextToken();
@@ -412,6 +412,9 @@ namespace CarrotCompilerCollection.Compiler
                 {
                     ParseBlock();
                 }
+
+
+                coder.UpdateFunctionLocalVariableCount(function, patchIndex, function.LocalVariableTable.Count);
 
 
                 // Generate function leave
@@ -783,19 +786,22 @@ namespace CarrotCompilerCollection.Compiler
         #region Expression
         private void ParseExpression()
         {
-            ParseExpression(out var val, 0);
+            var value = new CccBinaryCoder.ExpressionValue();
+            value.FirstGenerate = true;
+            ParseExpression(ref value, 0);
         }
 
 
-        private int ParseExpression(out CccBinaryCoder.ExpressionValue value, int currentOpPriority)
+        private int ParseExpression(ref CccBinaryCoder.ExpressionValue value, int currentOpPriority)
         {
+            var function = coder.GetFunction(currentParseFunctionName);
             value = default;
             ref var token = ref currentContext.Lexer.LastReadToken;
             switch (token.Kind)
             {
                 case CccTokenKind.OpenParen:
                     currentContext.Lexer.ReadNextToken();
-                    ParseExpression(out value, 0);
+                    ParseExpression(ref value, 0);
                     ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
                     break;
 
@@ -889,9 +895,11 @@ namespace CarrotCompilerCollection.Compiler
             while (OperatorPriorityTable.ContainsKey(op) && OperatorPriorityTable[op].left > currentOpPriority)
             {
                 currentContext.Lexer.ReadNextToken();
-                var nextOperator = ParseExpression(out var rightValue, OperatorPriorityTable[op].right);
-                // Generate operation code
-                // And result store code
+                var rightValue = new CccBinaryCoder.ExpressionValue();
+                rightValue.FirstGenerate = value.FirstGenerate;
+                var nextOperator = ParseExpression(ref rightValue, OperatorPriorityTable[op].right);
+                value.FirstGenerate = value.FirstGenerate ? true : rightValue.FirstGenerate;
+                coder.GenerateOperationCode(function, op, ref value, ref rightValue);
                 op = nextOperator;
             }
 
