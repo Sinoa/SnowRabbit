@@ -139,6 +139,12 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
+        public void GeneratePushR15(FunctionInfo function)
+        {
+            function.CreateInstruction(OpCode.Push, SrvmProcessor.RegisterR15Index, 0, 0, 0, false);
+        }
+
+
         public void GenerateStackPointerAdd(FunctionInfo function, int value)
         {
             // addl ra = sp, rb = sp, imm = value
@@ -183,6 +189,13 @@ namespace CarrotCompilerCollection.Compiler
 
             // calll imm = targetFunctionAddress
             function.CreateInstruction(OpCode.Calll, 0, 0, 0, targetFunction.Address, true);
+        }
+
+
+        public void GenerateSetSingleExpressionValue(FunctionInfo function, ref ExpressionValue value)
+        {
+            var r15 = (byte)SrvmProcessor.RegisterR15Index;
+            GenerateMovFromExpressionValue(function, r15, ref value);
         }
 
 

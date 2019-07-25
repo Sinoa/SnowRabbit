@@ -483,7 +483,7 @@ namespace CarrotCompilerCollection.Compiler
                 while (true)
                 {
                     ParseExpression();
-                    coder.GeneratePushRax(function);
+                    coder.GeneratePushR15(function);
                     argumentCount--;
 
 
@@ -789,6 +789,12 @@ namespace CarrotCompilerCollection.Compiler
             var value = new CccBinaryCoder.ExpressionValue();
             value.FirstGenerate = true;
             ParseExpression(ref value, 0);
+
+
+            if (value.FirstGenerate && value.Type != CccBinaryCoder.CccType.Void)
+            {
+                coder.GenerateSetSingleExpressionValue(coder.GetFunction(currentParseFunctionName), ref value);
+            }
         }
 
 
@@ -897,7 +903,7 @@ namespace CarrotCompilerCollection.Compiler
                 var rightValue = new CccBinaryCoder.ExpressionValue();
                 rightValue.FirstGenerate = value.FirstGenerate;
                 var nextOperator = ParseExpression(ref rightValue, OperatorPriorityTable[op].right);
-                value.FirstGenerate = value.FirstGenerate ? true : rightValue.FirstGenerate;
+                value.FirstGenerate = rightValue.FirstGenerate;
                 coder.GenerateOperationCode(function, op, ref value, ref rightValue);
                 op = nextOperator;
             }
