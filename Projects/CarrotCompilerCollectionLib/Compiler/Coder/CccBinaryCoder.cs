@@ -213,7 +213,10 @@ namespace CarrotCompilerCollection.Compiler
             }
 
 
-            GenerateMovFromExpressionValue(function, r14, ref right);
+            if (operationKind != CccTokenKind.Equal)
+            {
+                GenerateMovFromExpressionValue(function, r14, ref right);
+            }
 
 
             if (left.Type == CccType.Number || right.Type == CccType.Number)
@@ -326,23 +329,23 @@ namespace CarrotCompilerCollection.Compiler
 
             if (operationKind == CccTokenKind.Equal)
             {
-                if (left.Type != right.Type)
-                {
-                    if (left.Type == CccType.Int)
-                    {
-                        function.CreateInstruction(OpCode.Movfti, r15, r14, 0, 0, false);
-                    }
+                //if (left.Type != right.Type)
+                //{
+                //    if (left.Type == CccType.Int)
+                //    {
+                //        function.CreateInstruction(OpCode.Movfti, r15, r14, 0, 0, false);
+                //    }
 
 
-                    if (left.Type == CccType.Number)
-                    {
-                        function.CreateInstruction(OpCode.Movitf, r15, r14, 0, 0, false);
-                    }
-                }
-                else
-                {
-                    function.CreateInstruction(OpCode.Mov, r15, r14, 0, 0, false);
-                }
+                //    if (left.Type == CccType.Number)
+                //    {
+                //        function.CreateInstruction(OpCode.Movitf, r15, r14, 0, 0, false);
+                //    }
+                //}
+                //else
+                //{
+                //    function.CreateInstruction(OpCode.Mov, r15, r14, 0, 0, false);
+                //}
 
 
                 GenerateStr(function, r15, ref left);
