@@ -795,7 +795,6 @@ namespace CarrotCompilerCollection.Compiler
         private int ParseExpression(ref CccBinaryCoder.ExpressionValue value, int currentOpPriority)
         {
             var function = coder.GetFunction(currentParseFunctionName);
-            value = default;
             ref var token = ref currentContext.Lexer.LastReadToken;
             switch (token.Kind)
             {

@@ -65,14 +65,14 @@ namespace CarrotCompilerCollection.Compiler
         public int GenerateJumpTest(FunctionInfo function, int offsetAddress)
         {
             // movl ra = r8, imm = 0
-            // teq ra = rax, rb = rax, rc = r8
-            // bnz ra = ip, rb = rax, imm = endlabel
+            // teq ra = r15, rb = r15, rc = r8
+            // bnz ra = ip, rb = r15, imm = endlabel
             var r8 = (byte)SrvmProcessor.RegisterR8Index;
-            var rax = (byte)SrvmProcessor.RegisterAIndex;
+            var r15 = (byte)SrvmProcessor.RegisterR15Index;
             var ip = (byte)SrvmProcessor.RegisterIPIndex;
             function.CreateInstruction(OpCode.Movl, r8, 0, 0, 0, false);
-            function.CreateInstruction(OpCode.Teq, rax, rax, r8, 0, false);
-            function.CreateInstruction(OpCode.Bnz, ip, rax, 0, offsetAddress, true);
+            function.CreateInstruction(OpCode.Teq, r15, r15, r8, 0, false);
+            function.CreateInstruction(OpCode.Bnz, ip, r15, 0, offsetAddress, true);
             return function.InstructionInfoList.Count - 1;
         }
 
