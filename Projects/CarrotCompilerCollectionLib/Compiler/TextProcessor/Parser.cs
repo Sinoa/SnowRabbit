@@ -643,6 +643,10 @@ namespace CarrotCompilerCollection.Compiler
 
         private void ParseForStatement()
         {
+            var function = coder.GetFunction(currentParseFunctionName);
+
+
+
             ref var token = ref currentContext.Lexer.LastReadToken;
             ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
             currentContext.Lexer.ReadNextToken();
@@ -653,19 +657,25 @@ namespace CarrotCompilerCollection.Compiler
             }
             ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
             currentContext.Lexer.ReadNextToken();
+            var forConditionHead = function.CurrentInstructionCount;
             if (token.Kind != CccTokenKind.Semicolon)
             {
                 // condition expression
                 ParseExpression();
             }
+            var iterateSkipPatchIndex = coder.GenerateOffsetJump(function, 0);
             ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
             currentContext.Lexer.ReadNextToken();
+            var forIterateHead = function.CurrentInstructionCount;
             if (token.Kind != CccTokenKind.CloseParen)
             {
                 // iterate expression
                 ParseExpression();
             }
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
+            coder.GenerateOffsetJump(function, forConditionHead - forIterateHead);
+            var forIterateTail = function.CurrentInstructionCount;
+            coder.UpdateJumpAddress(function, iterateSkipPatchIndex, forIterateTail - iterateSkipPatchIndex);
 
 
             currentContext.Lexer.ReadNextToken();
@@ -674,6 +684,7 @@ namespace CarrotCompilerCollection.Compiler
                 ParseBlock();
             }
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
+            coder.GenerateOffsetJump(function, forIterateHead - function.CurrentInstructionCount);
 
 
             currentContext.Lexer.ReadNextToken();
