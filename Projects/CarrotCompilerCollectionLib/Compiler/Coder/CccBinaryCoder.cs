@@ -26,6 +26,8 @@ namespace CarrotCompilerCollection.Compiler
     /// </summary>
     internal class CccBinaryCoder
     {
+        private const int FunctionLeavCodeSize = 4;
+
         // メンバ変数定義
         private SrBinaryIO binaryIO;
         private Dictionary<string, FunctionInfo> functionTable;
@@ -63,8 +65,9 @@ namespace CarrotCompilerCollection.Compiler
 
             var instructionList = new List<InstructionInfo>();
             OutputStartupCode(instructionList);
-            //OutputFunctionCode();
-            //ResolveAddress();
+            OutputFunctionCode(instructionList);
+            AdjustGlobalVariable(instructionList);
+            ResolveAddress(instructionList);
         }
 
 
@@ -166,11 +169,66 @@ namespace CarrotCompilerCollection.Compiler
 
         private void OutputFunctionCode(IList<InstructionInfo> instructionList)
         {
+            foreach (var function in functionTable)
+            {
+                var name = function.Key;
+                var info = function.Value;
+
+
+                if (info.Type != FunctionType.Standard)
+                {
+                    continue;
+                }
+
+
+                info.Address = instructionList.Count;
+                foreach (var instruction in info.InstructionInfoList)
+                {
+                    instructionList.Add(instruction);
+                }
+            }
+        }
+
+
+        private void AdjustGlobalVariable(IList<InstructionInfo> instructionList)
+        {
+            var newAddress = instructionList.Count;
+            foreach (var variable in variableTable)
+            {
+                var name = variable.Key;
+                var info = variable.Value;
+
+
+                info.Address = newAddress++;
+            }
         }
 
 
         private void ResolveAddress(IList<InstructionInfo> instructionList)
         {
+            for (int i = 0; i < instructionList.Count; ++i)
+            {
+                var instruction = instructionList[i];
+
+
+                if (!instruction.UnresolveAddress)
+                {
+                    continue;
+                }
+
+
+                var virtualAddress = instruction.Code.Immediate.Int;
+                var newAddress = virtualAddress;
+                symbolTable.TryGetValue(virtualAddress, out var symbol);
+                newAddress =
+                    symbol.Type == SymbolType.GlobalFunction ? symbol.Function.Address :
+                    symbol.Type == SymbolType.GlobalVariable ? symbol.Variable.Address :
+                    symbol.Constant.Address;
+
+
+                instruction.Code.Immediate.Int = newAddress;
+                instruction.UnresolveAddress = false;
+            }
         }
         #endregion
 
@@ -928,6 +986,19 @@ namespace CarrotCompilerCollection.Compiler
                 StatementHeadAddressStack = new Stack<int>();
                 BreakPatchTargetTable = new Dictionary<int, List<int>>();
                 nextLocalVariableIndex = -1;
+            }
+
+
+            public void FixReturnAddress()
+            {
+                foreach (var instruction in InstructionInfoList)
+                {
+                    if (instruction.UnresolveAddress == true && instruction.Code.Immediate.Int == int.MaxValue)
+                    {
+                        instruction.Code.Immediate.Int = InstructionInfoList.Count;
+                        instruction.UnresolveAddress = false;
+                    }
+                }
             }
 
 

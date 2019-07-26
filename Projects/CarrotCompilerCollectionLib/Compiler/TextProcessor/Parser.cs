@@ -418,6 +418,7 @@ namespace CarrotCompilerCollection.Compiler
 
 
                 // Generate function leave
+                function.FixReturnAddress();
                 coder.GenerateFunctionLeave(function);
                 currentContext.Lexer.ReadNextToken();
             }
