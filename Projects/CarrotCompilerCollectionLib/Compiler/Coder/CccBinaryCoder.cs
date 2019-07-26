@@ -58,7 +58,121 @@ namespace CarrotCompilerCollection.Compiler
         /// </summary>
         public void OutputExecuteCode()
         {
+            SetupStringTable();
+
+
+            var instructionList = new List<InstructionInfo>();
+            OutputStartupCode(instructionList);
+            //OutputFunctionCode();
+            //ResolveAddress();
         }
+
+
+        #region final code generate function
+        private void AddInstructionInfo(IList<InstructionInfo> instructionList, OpCode opCode, byte ra, byte rb, byte rc, int imm, bool unresolveAddress)
+        {
+            var info = new InstructionInfo();
+            info.Code = new InstructionCode()
+            {
+                OpCode = opCode,
+                Ra = ra,
+                Rb = rb,
+                Rc = rc,
+            };
+            info.Code.Immediate.Int = imm;
+            info.UnresolveAddress = unresolveAddress;
+            instructionList.Add(info);
+        }
+
+
+        private void AddInstructionInfo(IList<InstructionInfo> instructionList, OpCode opCode, byte ra, byte rb, byte rc, float imm, bool unresolveAddress)
+        {
+            var info = new InstructionInfo();
+            info.Code = new InstructionCode()
+            {
+                OpCode = opCode,
+                Ra = ra,
+                Rb = rb,
+                Rc = rc,
+            };
+            info.Code.Immediate.Float = imm;
+            info.UnresolveAddress = unresolveAddress;
+            instructionList.Add(info);
+        }
+
+
+        private void SetupStringTable()
+        {
+            var newAddress = 0;
+            foreach (var constant in constantTable)
+            {
+                var name = constant.Key;
+                var info = constant.Value;
+
+
+                if (info.Type != CccType.String)
+                {
+                    continue;
+                }
+
+
+                info.Address = newAddress++;
+            }
+        }
+
+
+        private void OutputStartupCode(IList<InstructionInfo> instructionList)
+        {
+            // output peripheral initialize codes
+            var rax = (byte)SrvmProcessor.RegisterAIndex;
+            var rbx = (byte)SrvmProcessor.RegisterBIndex;
+            foreach (var function in functionTable)
+            {
+                var name = function.Key;
+                var info = function.Value;
+
+
+                if (info.Type != FunctionType.Peripheral)
+                {
+                    continue;
+                }
+
+
+                var manglingPName = ManglingPeripheralVariableName(info.PeripheralName);
+                var manglingPFName = ManglingPeripheralFunctionVariableName(info.PeripheralFunctionName);
+                var pNameAddress = constantTable[manglingPName].Address;
+                var pfNameAddresss = constantTable[manglingPFName].Address;
+                var pVarAddress = GetVariable(manglingPName).Address;
+                var pfVarAddress = GetVariable(manglingPFName).Address;
+                AddInstructionInfo(instructionList, OpCode.Gpidl, rax, 0, 0, pNameAddress, false);
+                AddInstructionInfo(instructionList, OpCode.Gpfidl, rbx, rax, 0, pfNameAddresss, false);
+                AddInstructionInfo(instructionList, OpCode.Strl, rax, 0, 0, pVarAddress, true);
+                AddInstructionInfo(instructionList, OpCode.Strl, rbx, 0, 0, pfVarAddress, true);
+            }
+
+
+            // output main function code
+            var mainFunction = GetFunction("main");
+            if (mainFunction == null)
+            {
+                throw new Exception("エントリポイント 'main' が見つかりません");
+            }
+
+
+            AddInstructionInfo(instructionList, OpCode.Calll, 0, 0, 0, mainFunction.Address, true);
+            AddInstructionInfo(instructionList, OpCode.Halt, 0, 0, 0, 0, false);
+        }
+
+
+        private void OutputFunctionCode(IList<InstructionInfo> instructionList)
+        {
+        }
+
+
+        private void ResolveAddress(IList<InstructionInfo> instructionList)
+        {
+        }
+        #endregion
 
 
         #region code generate function
@@ -536,8 +650,10 @@ namespace CarrotCompilerCollection.Compiler
             if (!variableTable.ContainsKey(peripheralVariableName))
             {
                 RegisterVariable(peripheralVariableName, CccTokenKind.TypeInt);
+                RegisterConstantValue(peripheralVariableName, CccType.String, 0, 0.0f, peripheralName);
             }
             RegisterVariable(peripheralFunctionVariableName, CccTokenKind.TypeInt);
+            RegisterConstantValue(peripheralFunctionVariableName, CccType.String, 0, 0.0f, peripheralFunctionName);
         }
 
 
