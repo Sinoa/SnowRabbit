@@ -894,13 +894,17 @@ namespace CarrotCompilerCollection.Compiler
 
                         case CccBinaryCoder.IdentifierKind.PeripheralFunction:
                             ParsePeripheralFunctionCall();
-                            value.Type = coder.GetFunction(identifierName).ReturnType;
+                            var perFunction = coder.GetFunction(identifierName);
+                            value.Type = perFunction.ReturnType;
+                            value.Text = perFunction.Name;
                             break;
 
 
                         case CccBinaryCoder.IdentifierKind.StandardFunction:
                             ParseFunctionCall();
-                            value.Type = coder.GetFunction(identifierName).ReturnType;
+                            var stdFunction = coder.GetFunction(identifierName);
+                            value.Type = stdFunction.ReturnType;
+                            value.Text = stdFunction.Name;
                             break;
 
 
@@ -949,6 +953,10 @@ namespace CarrotCompilerCollection.Compiler
                 rightValue.FirstGenerate = value.FirstGenerate;
                 var nextOperator = ParseExpression(ref rightValue, OperatorPriorityTable[op].right);
                 value.FirstGenerate = rightValue.FirstGenerate;
+                if (value.Type == CccBinaryCoder.CccType.Void && op == CccTokenKind.Equal)
+                {
+                    ThrowExceptionIfNotAssignableTarget(value.Text);
+                }
                 coder.GenerateOperationCode(function, op, ref value, ref rightValue);
                 op = nextOperator;
             }
