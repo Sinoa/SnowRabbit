@@ -617,6 +617,14 @@ namespace CarrotCompilerCollection.Compiler
                     break;
 
 
+                case CccTokenKind.Return:
+                    currentContext.Lexer.ReadNextToken();
+                    ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
+                    currentContext.Lexer.ReadNextToken();
+                    // ParseReturnStatement
+                    break;
+
+
                 default:
                     ParseExpression();
                     break;
