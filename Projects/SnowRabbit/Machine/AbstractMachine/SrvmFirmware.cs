@@ -29,8 +29,8 @@ namespace SnowRabbit.Machine
         // 定数定義
         private const int ReadBufferSize = 1 << 10;
         private const byte CarrotObjectFormatSignature0 = 0xCC;
-        private const byte CarrotObjectFormatSignature1 = 0x00;
-        private const byte CarrotObjectFormatSignature2 = 0xBB;
+        private const byte CarrotObjectFormatSignature1 = 0xEE;
+        private const byte CarrotObjectFormatSignature2 = 0x11;
         private const byte CarrotObjectFormatSignature3 = 0xFF;
 
         // メンバ変数定義
