@@ -1,8 +1,8 @@
 {
     "name": "CarrotCompilerCollectionLib",
     "references": [
-        "GUID:6e7ab43067dcdb742b5e55340036e582",
-        "GUID:85807fcc0ee31e245b5d382874bc2ede"
+        "SnowRabbit",
+        "TextProcessorLib"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
