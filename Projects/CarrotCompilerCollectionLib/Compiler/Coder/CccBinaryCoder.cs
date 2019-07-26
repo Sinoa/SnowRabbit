@@ -133,6 +133,15 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
+        public void GenerateFunctionReturnCode(FunctionInfo function)
+        {
+            var rax = (byte)SrvmProcessor.RegisterAIndex;
+            var r15 = (byte)SrvmProcessor.RegisterR15Index;
+            function.CreateInstruction(OpCode.Mov, rax, r15, 0, 0, false);
+            function.CreateInstruction(OpCode.Brl, 0, 0, 0, int.MaxValue, true);
+        }
+
+
         public void GeneratePushRax(FunctionInfo function)
         {
             function.CreateInstruction(OpCode.Push, SrvmProcessor.RegisterAIndex, 0, 0, 0, false);

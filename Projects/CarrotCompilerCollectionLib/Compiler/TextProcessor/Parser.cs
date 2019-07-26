@@ -611,17 +611,13 @@ namespace CarrotCompilerCollection.Compiler
 
                 case CccTokenKind.Break:
                     currentContext.Lexer.ReadNextToken();
-                    ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
-                    currentContext.Lexer.ReadNextToken();
-                    // ParseBreakStatement
+                    ParseBreakStatement();
                     break;
 
 
                 case CccTokenKind.Return:
                     currentContext.Lexer.ReadNextToken();
-                    ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
-                    currentContext.Lexer.ReadNextToken();
-                    // ParseReturnStatement
+                    ParseReturnStatement();
                     break;
 
 
@@ -629,6 +625,47 @@ namespace CarrotCompilerCollection.Compiler
                     ParseExpression();
                     break;
             }
+        }
+
+
+        private void ParseBreakStatement()
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
+            currentContext.Lexer.ReadNextToken();
+        }
+
+
+        private void ParseReturnStatement()
+        {
+            ref var token = ref currentContext.Lexer.LastReadToken;
+            var function = coder.GetFunction(currentParseFunctionName);
+
+
+            if (token.Kind == CccTokenKind.Semicolon)
+            {
+                if (function.ReturnType != CccBinaryCoder.CccType.Void)
+                {
+                    ThrowExceptionFunctionNeedReturnExpression(function.Name);
+                    return;
+                }
+            }
+            else
+            {
+                if (function.ReturnType == CccBinaryCoder.CccType.Void)
+                {
+                    ThrowExceptionFunctionNotReturnExpression(function.Name);
+                    return;
+                }
+
+
+                ParseExpression();
+                coder.GenerateFunctionReturnCode(function);
+            }
+
+
+            ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
+            currentContext.Lexer.ReadNextToken();
         }
 
 
@@ -963,6 +1000,18 @@ namespace CarrotCompilerCollection.Compiler
             {
                 ThrowExceptionCompileError($"コンパイルするスクリプト名 '{token.Text}' が正しくありません", 0);
             }
+        }
+
+
+        private void ThrowExceptionFunctionNotReturnExpression(string functionName)
+        {
+            ThrowExceptionCompileError($"関数 '{functionName}' は値を返すことはできません", 0);
+        }
+
+
+        private void ThrowExceptionFunctionNeedReturnExpression(string functionName)
+        {
+            ThrowExceptionCompileError($"関数 '{functionName}' は値を返す式が必要です", 0);
         }
 
 
