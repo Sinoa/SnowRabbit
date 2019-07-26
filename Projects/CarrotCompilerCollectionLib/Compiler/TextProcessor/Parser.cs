@@ -129,7 +129,8 @@ namespace CarrotCompilerCollection.Compiler
         private void Compile()
         {
             ParseCompileUnit();
-            contextStack.Pop();
+            var context = contextStack.Pop();
+            context.Lexer.Dispose();
 
 
             if (contextStack.Count > 0)
