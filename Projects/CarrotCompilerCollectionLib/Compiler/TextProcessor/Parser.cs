@@ -630,8 +630,11 @@ namespace CarrotCompilerCollection.Compiler
 
         private void ParseBreakStatement()
         {
+            var function = coder.GetFunction(currentParseFunctionName);
             ref var token = ref currentContext.Lexer.LastReadToken;
             ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
+            var patchAddress = coder.GenerateOffsetJump(function, 0);
+            function.RegisterBreakInstruction(patchAddress);
             currentContext.Lexer.ReadNextToken();
         }
 
@@ -695,7 +698,6 @@ namespace CarrotCompilerCollection.Compiler
             var function = coder.GetFunction(currentParseFunctionName);
 
 
-
             ref var token = ref currentContext.Lexer.LastReadToken;
             ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
             currentContext.Lexer.ReadNextToken();
@@ -707,12 +709,13 @@ namespace CarrotCompilerCollection.Compiler
             ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
             currentContext.Lexer.ReadNextToken();
             var forConditionHead = function.CurrentInstructionCount;
+            function.StatementHeadAddressStack.Push(forConditionHead);
             if (token.Kind != CccTokenKind.Semicolon)
             {
                 // condition expression
                 ParseExpression();
             }
-            var iterateSkipPatchIndex = coder.GenerateOffsetJump(function, 0);
+            var iterateSkipPatchIndex = coder.GenerateJumpTest(function, 0);
             ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
             currentContext.Lexer.ReadNextToken();
             var forIterateHead = function.CurrentInstructionCount;
@@ -736,14 +739,17 @@ namespace CarrotCompilerCollection.Compiler
             coder.GenerateOffsetJump(function, forIterateHead - function.CurrentInstructionCount);
 
 
+            function.StatementHeadAddressStack.Pop();
+            function.PatchBreakInstruction(forConditionHead, function.CurrentInstructionCount);
             currentContext.Lexer.ReadNextToken();
         }
 
 
         private void ParseWhileStatement()
         {
-            var targetFunction = coder.GetFunction(currentParseFunctionName);
-            var whileHeadAddress = targetFunction.CurrentInstructionCount;
+            var function = coder.GetFunction(currentParseFunctionName);
+            var whileHeadAddress = function.CurrentInstructionCount;
+            function.StatementHeadAddressStack.Push(whileHeadAddress);
 
 
             ref var token = ref currentContext.Lexer.LastReadToken;
@@ -754,7 +760,7 @@ namespace CarrotCompilerCollection.Compiler
 
 
 
-            var patchTargetIndex = coder.GenerateJumpTest(targetFunction, 0);
+            var patchTargetIndex = coder.GenerateJumpTest(function, 0);
 
 
 
@@ -766,11 +772,13 @@ namespace CarrotCompilerCollection.Compiler
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
 
 
-            coder.GenerateOffsetJump(targetFunction, -(targetFunction.CurrentInstructionCount - whileHeadAddress));
-            var whileTailAddress = targetFunction.CurrentInstructionCount - patchTargetIndex;
-            coder.UpdateJumpAddress(targetFunction, patchTargetIndex, whileTailAddress);
+            coder.GenerateOffsetJump(function, -(function.CurrentInstructionCount - whileHeadAddress));
+            var whileTailAddress = function.CurrentInstructionCount - patchTargetIndex;
+            coder.UpdateJumpAddress(function, patchTargetIndex, whileTailAddress);
 
 
+            function.StatementHeadAddressStack.Pop();
+            function.PatchBreakInstruction(whileHeadAddress, function.CurrentInstructionCount);
             currentContext.Lexer.ReadNextToken();
         }
 

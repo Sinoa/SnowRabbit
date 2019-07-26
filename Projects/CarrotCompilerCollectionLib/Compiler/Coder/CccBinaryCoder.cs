@@ -795,6 +795,8 @@ namespace CarrotCompilerCollection.Compiler
             public Dictionary<string, int> InstructionOffsetAddressTable { get; set; }
             public List<InstructionInfo> InstructionInfoList { get; set; }
             public int CurrentInstructionCount => InstructionInfoList.Count;
+            public Dictionary<int, List<int>> BreakPatchTargetTable { get; set; }
+            public Stack<int> StatementHeadAddressStack { get; set; }
 
 
             private int nextLocalVariableIndex;
@@ -807,7 +809,40 @@ namespace CarrotCompilerCollection.Compiler
                 LocalVariableTable = new Dictionary<string, VariableInfo>();
                 InstructionOffsetAddressTable = new Dictionary<string, int>();
                 InstructionInfoList = new List<InstructionInfo>();
+                StatementHeadAddressStack = new Stack<int>();
+                BreakPatchTargetTable = new Dictionary<int, List<int>>();
                 nextLocalVariableIndex = -1;
+            }
+
+
+            public void RegisterBreakInstruction(int index)
+            {
+                if (!BreakPatchTargetTable.TryGetValue(StatementHeadAddressStack.Peek(), out var list))
+                {
+                    list = new List<int>();
+                    BreakPatchTargetTable[StatementHeadAddressStack.Peek()] = list;
+                }
+
+                list.Add(index);
+            }
+
+
+            public void PatchBreakInstruction(int headIndex, int patchAddress)
+            {
+                if (!BreakPatchTargetTable.TryGetValue(headIndex, out var list))
+                {
+                    return;
+                }
+
+
+                foreach (var targetIndex in list)
+                {
+                    var fixAddress = patchAddress - targetIndex;
+                    InstructionInfoList[targetIndex].Code.Immediate.Int = fixAddress;
+                }
+
+
+                BreakPatchTargetTable.Remove(headIndex);
             }
 
 
