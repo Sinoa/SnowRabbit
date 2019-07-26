@@ -510,7 +510,7 @@ namespace CarrotCompilerCollection.Compiler
 
 
             // generate peripheral function call
-            coder.GeneratePeripheralFunctionCall(function, token.Text);
+            coder.GeneratePeripheralFunctionCall(function, peripheralFunction.Name);
             coder.GenerateStackPointerAdd(function, peripheralFunction.ArgumentTable.Count);
 
 
