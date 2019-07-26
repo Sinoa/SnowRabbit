@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using SnowRabbit.Machine;
 using SnowRabbit.Runtime;
 
@@ -68,7 +69,59 @@ namespace CarrotCompilerCollection.Compiler
             OutputFunctionCode(instructionList);
             AdjustGlobalVariable(instructionList);
             ResolveAddress(instructionList);
+
+
+            WriteHeader(instructionList.Count, variableTable.Count, GetConstantStringCount());
+            WriteProgramCode(instructionList);
+            WriteStringTable();
         }
+
+
+        #region Write runctime code function
+        private void WriteHeader(int instructionCount, int globalVariableCount, int constStringCount)
+        {
+            binaryIO.Write((byte)0xCC);
+            binaryIO.Write((byte)0xEE);
+            binaryIO.Write((byte)0x11);
+            binaryIO.Write((byte)0xFF);
+
+
+            binaryIO.Write(instructionCount);
+            binaryIO.Write(globalVariableCount * 8);
+            binaryIO.Write(0);
+            binaryIO.Write(constStringCount);
+        }
+
+
+        private unsafe void WriteProgramCode(IList<InstructionInfo> instructionList)
+        {
+            foreach (var instruction in instructionList)
+            {
+                SrValue value;
+                value.Instruction = instruction.Code;
+                binaryIO.Write(value.Value.Ulong[0]);
+            }
+        }
+
+
+        private void WriteStringTable()
+        {
+            var encode = new UTF8Encoding(false);
+            foreach (var constant in constantTable)
+            {
+                if (constant.Value.Type != CccType.String)
+                {
+                    continue;
+                }
+
+
+                var buffer = encode.GetBytes(constant.Value.TextValue);
+                binaryIO.Write(buffer.Length);
+                binaryIO.Write(constant.Value.Address);
+                binaryIO.BaseStream.Write(buffer, 0, buffer.Length);
+            }
+        }
+        #endregion
 
 
         #region final code generate function
@@ -894,6 +947,22 @@ namespace CarrotCompilerCollection.Compiler
             public long IntegerValue { get; set; }
             public float NumberValue { get; set; }
             public string TextValue { get; set; }
+        }
+
+
+        public int GetConstantStringCount()
+        {
+            int count = 0;
+            foreach (var constant in constantTable)
+            {
+                if (constant.Value.Type == CccType.String)
+                {
+                    count++;
+                }
+            }
+
+
+            return count;
         }
         #endregion
 
