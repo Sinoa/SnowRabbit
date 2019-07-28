@@ -153,7 +153,12 @@ namespace SnowRabbit.Machine
         }
 
 
-        public SrvmPeripheral GetPeripheral()
+        /// <summary>
+        /// 指定された周辺機器名のインスタンスを取得します。
+        /// </summary>
+        /// <param name="peripheralName">取得する周辺機器名</param>
+        /// <returns>指定された周辺機器のインスタンスが取得された場合は参照を返しますが、見つからない場合は null を返します</returns>
+        public SrvmPeripheral GetPeripheral(string peripheralName)
         {
             throw new NotImplementedException();
         }
