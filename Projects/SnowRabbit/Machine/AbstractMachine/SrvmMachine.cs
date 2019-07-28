@@ -25,7 +25,6 @@ namespace SnowRabbit.Machine
     {
         // メンバ変数定義
         private bool disposed;
-        private int nextProcessID;
 
 
 
@@ -138,7 +137,8 @@ namespace SnowRabbit.Machine
         /// <exception cref="ArgumentException">指定された周辺機器は同名の周辺機器が接続済みです</exception>
         public void AttachPeripheral(SrvmPeripheral peripheral)
         {
-            throw new NotImplementedException();
+            // ファームウェアに周辺機器を追加する
+            Firmware.AddPeripheral(peripheral ?? throw new ArgumentNullException(nameof(peripheral)));
         }
 
 
@@ -146,10 +146,11 @@ namespace SnowRabbit.Machine
         /// 仮想マシンから周辺機器装置を外します。
         /// 外した場合は渡されたインスタンスのDisposeは呼び出しません。
         /// </summary>
-        /// <param name="peripheral">外す周辺機器装置</param>
-        public void DetachPeripheral(SrvmPeripheral peripheral)
+        /// <param name="peripheralName">外す周辺機器装置名</param>
+        public void DetachPeripheral(string peripheralName)
         {
-            throw new NotImplementedException();
+            // ファームウェアに周辺機器を外してもらう
+            Firmware.RemovePeripheral(peripheralName);
         }
 
 
@@ -158,9 +159,20 @@ namespace SnowRabbit.Machine
         /// </summary>
         /// <param name="peripheralName">取得する周辺機器名</param>
         /// <returns>指定された周辺機器のインスタンスが取得された場合は参照を返しますが、見つからない場合は null を返します</returns>
+        /// <exception cref="ArgumentException">peripheralName が null または 空文字列 です</exception>
         public SrvmPeripheral GetPeripheral(string peripheralName)
         {
-            throw new NotImplementedException();
+            // 周辺機器名が不正なら
+            if (string.IsNullOrWhiteSpace(peripheralName))
+            {
+                // 無効な引数であることを例外で吐く
+                throw new ArgumentException($"{nameof(peripheralName)} が null または 空文字列 です");
+            }
+
+
+            // 周辺機器IDを取得してから実体を取得する
+            var peripheralID = Firmware.GetPeripheralID(peripheralName);
+            return peripheralID != -1 ? Firmware.GetPeripheral(peripheralID) : null;
         }
         #endregion
 
@@ -175,14 +187,8 @@ namespace SnowRabbit.Machine
         /// <exception cref="SrProgramNotFoundException">指定されたパス '{path}' のプログラムを見つけられませんでした</exception>
         public void CreateProcess(string programPath, out SrProcess process)
         {
-            // プロセスの既定初期化をしてからファームウェアにプログラムのロードをしてもらう
-            process = default;
-            Firmware.LoadProgram(programPath ?? throw new ArgumentNullException(nameof(programPath)), ref process);
-            Processor.InitializeContext(ref process);
-
-
-            // プロセスIDをインクリメントして振る
-            process.ProcessID = ++nextProcessID;
+            // ファームウェアでプロセスを生成する
+            Firmware.CreateProcess(programPath, out process);
         }
 
 
@@ -192,7 +198,8 @@ namespace SnowRabbit.Machine
         /// <param name="process">終了させるプロセス</param>
         public void TerminateProcess(ref SrProcess process)
         {
-            throw new NotImplementedException();
+            // ファームウェアでプロセスを終了させる
+            Firmware.TerminateProcess(ref process);
         }
 
 

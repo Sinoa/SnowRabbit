@@ -32,6 +32,7 @@ namespace SnowRabbit.Machine
         private const byte CarrotObjectFormatSignature1 = 0xEE;
         private const byte CarrotObjectFormatSignature2 = 0x11;
         private const byte CarrotObjectFormatSignature3 = 0xFF;
+        private const int InvalidProcessID = -1;
 
         // メンバ変数定義
         private bool disposed;
@@ -118,12 +119,39 @@ namespace SnowRabbit.Machine
         /// <param name="process">生成されたプロセスを設定する</param>
         internal void CreateProcess(string programPath, out SrProcess process)
         {
-            throw new NotImplementedException();
+            // プロセスの既定初期化をしてからファームウェアにプログラムのロードをしてもらう
+            process = default;
+            LoadProgram(programPath ?? throw new ArgumentNullException(nameof(programPath)), ref process);
+            Machine.Processor.InitializeContext(ref process);
+
+
+            // プロセスIDを設定する
+            process.ProcessID = nextProcessID++;
         }
 
 
+        /// <summary>
+        /// 指定されたプロセスのリソースを解放して終了します
+        /// </summary>
+        /// <param name="process">終了させるプロセスの参照</param>
         internal void TerminateProcess(ref SrProcess process)
         {
+            // 既に無効なプロセスIDなら
+            if (process.ProcessID == InvalidProcessID)
+            {
+                // 何もせず終了
+                return;
+            }
+
+
+            // プロセスに紐付いているメモリの開放をする
+            Machine.Memory.DeallocateObject(process.ObjectMemory);
+            Machine.Memory.DeallocateValue(process.ProcessMemory);
+            Machine.Memory.DeallocateValue(process.ProcessorContext);
+
+
+            // プロセスIDを無効なプロセスIDに設定する
+            process.ProcessID = InvalidProcessID;
         }
 
 
@@ -320,6 +348,7 @@ namespace SnowRabbit.Machine
         /// <param name="peripheral">追加する周辺機器のインスタンス</param>
         /// <exception cref="ArgumentNullException">peripheral が null です</exception>
         /// <exception cref="ArgumentException">追加しようとした周辺機器の名前が null または 空白 です</exception>
+        /// <exception cref="ArgumentException">指定された周辺機器は同名の周辺機器が接続済みです</exception>
         internal void AddPeripheral(SrvmPeripheral peripheral)
         {
             // null を渡されたら
@@ -338,11 +367,48 @@ namespace SnowRabbit.Machine
             }
 
 
+            // 既に同じ名前の周辺機器が存在するなら
+            if (peripheralIDTable.ContainsKey(peripheral.PeripheralName))
+            {
+                // 既に接続済み例外を吐く
+                throw new ArgumentException($"指定された周辺機器は同名 '{peripheral.PeripheralName}' の周辺機器が接続済みです");
+            }
+
+
             // 周辺機器IDを作って周辺機器テーブルに追加
             var peripheralName = peripheral.PeripheralName;
             var peripheralId = nextPeripheralID++;
             peripheralIDTable[peripheralName] = peripheralId;
             peripheralTable[peripheralId] = peripheral;
+
+
+            // 周辺機器の関数登録初期化を呼ぶ
+            peripheral.InitializeFunctionTable();
+        }
+
+
+        /// <summary>
+        /// 周辺機器装置をファームウェアから削除します。削除された周辺機器は、このインスタンスが解放される時でも、Disposeは呼び出されません。
+        /// </summary>
+        /// <param name="peripheralName">削除する周辺機器名</param>
+        /// <exception cref="ArgumentException">指定された周辺機器名が無効です</exception>
+        internal void RemovePeripheral(string peripheralName)
+        {
+            // 無効な名前を渡されたら
+            if (string.IsNullOrWhiteSpace(peripheralName))
+            {
+                // 例外を吐く
+                throw new ArgumentException("指定された周辺機器名が無効です");
+            }
+
+
+            // IDを取得して削除する
+            if (peripheralIDTable.TryGetValue(peripheralName, out var id))
+            {
+                // IDを元に実体の削除をしてIDテーブルからも削除
+                peripheralTable.Remove(id);
+                peripheralIDTable.Remove(peripheralName);
+            }
         }
 
 
