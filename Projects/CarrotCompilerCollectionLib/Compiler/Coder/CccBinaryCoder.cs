@@ -504,9 +504,10 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        public void GenerateFunctionLeave(FunctionInfo function)
+        public void GenerateFunctionLeave(FunctionInfo function, int localVarCount)
         {
             // pop ra = r15
+            // addl ra = rsp, rb = rsp, imm = localVarCount
             // mov ra = rsp, rb = rbp
             // pop ra = rbp
             // ret
@@ -514,6 +515,7 @@ namespace CarrotCompilerCollection.Compiler
             var rbp = (byte)SrvmProcessor.RegisterBPIndex;
             var r15 = (byte)SrvmProcessor.RegisterR15Index;
             function.CreateInstruction(OpCode.Pop, r15, 0, 0, 0, false);
+            function.CreateInstruction(OpCode.Addl, rsp, rsp, 0, localVarCount, false);
             function.CreateInstruction(OpCode.Mov, rsp, rbp, 0, 0, false);
             function.CreateInstruction(OpCode.Pop, rbp, 0, 0, 0, false);
             function.CreateInstruction(OpCode.Ret, 0, 0, 0, 0, false);

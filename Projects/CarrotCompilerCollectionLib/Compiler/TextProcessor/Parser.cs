@@ -425,7 +425,7 @@ namespace CarrotCompilerCollection.Compiler
 
                 // Generate function leave
                 function.FixReturnAddress();
-                coder.GenerateFunctionLeave(function);
+                coder.GenerateFunctionLeave(function, function.LocalVariableTable.Count);
                 currentContext.Lexer.ReadNextToken();
             }
         }
@@ -541,7 +541,7 @@ namespace CarrotCompilerCollection.Compiler
                 while (true)
                 {
                     ParseExpression();
-                    coder.GeneratePushRax(function);
+                    coder.GeneratePushR15(function);
                     argumentCount--;
 
 
