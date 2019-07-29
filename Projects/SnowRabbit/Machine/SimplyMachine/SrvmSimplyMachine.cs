@@ -23,13 +23,14 @@ namespace SnowRabbit.Machine
         // 定数定義
         private const int DefaultValueMemoryReservedSize = 8 << 20;
         private const int DefaultObjectMemoryReservedSize = 8 << 20;
+        private const string CurrentDirectoryPath = "./";
 
 
 
         /// <summary>
         /// SrvmSimplyMachine クラスのインスタンスを初期化します
         /// </summary>
-        public SrvmSimplyMachine() : this(DefaultValueMemoryReservedSize, DefaultObjectMemoryReservedSize, string.Empty)
+        public SrvmSimplyMachine() : this(DefaultValueMemoryReservedSize, DefaultObjectMemoryReservedSize, CurrentDirectoryPath)
         {
         }
 
