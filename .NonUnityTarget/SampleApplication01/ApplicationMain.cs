@@ -13,9 +13,11 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System.IO;
+using CarrotCompilerCollection.Compiler;
+using CarrotCompilerCollection.IO;
+using CarrotCompilerCollection.Utility;
 using SnowRabbit.Machine;
-using SnowRabbit.Runtime;
-using CarrotAssemblerLib;
 
 namespace SampleApplication01
 {
@@ -30,6 +32,25 @@ namespace SampleApplication01
         /// <param name="args">アプリケーションのコマンドライン引数</param>
         private static void Main(string[] args)
         {
+            // コンパイラの起動準備をする
+            var consoleCompilerLogger = new CccConsoleParserLogger();
+            var fileSystemStorage = new FileSystemScriptStorage();
+            var compiler = new CccParser(fileSystemStorage, consoleCompilerLogger);
+
+
+            // 仮想マシンの起動準備をする
+            var machine = new SrvmSimplyMachine();
+
+
+            // コンパイルされた実行コードを受け取るメモリストリームを生成する
+            using (var programStream = new MemoryStream())
+            {
+                // コンパイルしてストリーム位置を先頭に移動してからプロセスを生成して実行
+                compiler.Compile("Assets/Sample.csf", programStream);
+                programStream.Seek(0, SeekOrigin.Begin);
+                machine.CreateProcess(programStream, out var process);
+                machine.ExecuteProcess(ref process);
+            }
         }
     }
 }

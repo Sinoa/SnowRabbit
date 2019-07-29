@@ -13,8 +13,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Projects\CarrotAssemblerLib\CarrotAssemblerLib.csproj" />
+    <ProjectReference Include="..\..\Projects\CarrotCompilerCollectionLib\CarrotCompilerCollectionLib.csproj" />
     <ProjectReference Include="..\..\Projects\SnowRabbit\SnowRabbit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\Sample.csf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
