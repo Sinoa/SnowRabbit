@@ -97,9 +97,11 @@ namespace CarrotCompilerCollection.Compiler
         {
             foreach (var instruction in instructionList)
             {
-                SrValue value;
-                value.Instruction = instruction.Code;
-                binaryIO.Write(value.Value.Ulong[0]);
+                binaryIO.Write((byte)instruction.Code.OpCode);
+                binaryIO.Write(instruction.Code.Ra);
+                binaryIO.Write(instruction.Code.Rb);
+                binaryIO.Write(instruction.Code.Rc);
+                binaryIO.Write(instruction.Code.Immediate.Uint);
             }
         }
 
