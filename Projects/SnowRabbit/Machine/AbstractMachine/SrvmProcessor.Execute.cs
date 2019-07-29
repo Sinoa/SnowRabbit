@@ -102,7 +102,7 @@ namespace SnowRabbit.Machine
                     case OpCode.Pop:
                         sp = context[RegisterSPIndex].Value.Long[0];
                         context[regANumber].Value.Long[0] = memory[(int)sp].Value.Long[0];
-                        context[RegisterSPIndex].Value.Long[0] = sp - 1;
+                        context[RegisterSPIndex].Value.Long[0] = sp + 1;
                         break;
 
 
@@ -395,7 +395,7 @@ namespace SnowRabbit.Machine
                     case OpCode.Ret:
                         sp = context[RegisterSPIndex].Value.Long[0];
                         nextInstructionPointer = memory[(int)sp].Value.Long[0];
-                        context[RegisterSPIndex].Value.Long[0] = sp - 1;
+                        context[RegisterSPIndex].Value.Long[0] = sp + 1;
                         break;
                     #endregion
 
