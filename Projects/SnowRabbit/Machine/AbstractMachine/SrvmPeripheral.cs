@@ -28,7 +28,7 @@ namespace SnowRabbit.Machine
         private bool disposed;
         private int nextFunctionID;
         private Dictionary<string, int> functionIDTable;
-        private Dictionary<int, Action<SrStackFrame>> functionTable;
+        private Dictionary<int, Func<SrStackFrame, HostFunctionResult>> functionTable;
 
 
 
@@ -47,7 +47,7 @@ namespace SnowRabbit.Machine
             // 必要なフィールドの初期化をする
             nextFunctionID = 0;
             functionIDTable = new Dictionary<string, int>();
-            functionTable = new Dictionary<int, Action<SrStackFrame>>();
+            functionTable = new Dictionary<int, Func<SrStackFrame, HostFunctionResult>>();
         }
 
 
@@ -87,7 +87,7 @@ namespace SnowRabbit.Machine
         /// 周辺機器装置が提供する関数をセットアップします
         /// </summary>
         /// <param name="registryHandler">関数を登録する関数が渡されます</param>
-        protected abstract void SetupFunction(Action<string, Action<SrStackFrame>> registryHandler);
+        protected abstract void SetupFunction(Action<string, Func<SrStackFrame, HostFunctionResult>> registryHandler);
 
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace SnowRabbit.Machine
         /// </summary>
         /// <param name="id">取得したい関数のID</param>
         /// <returns>指定されたIDに該当する関数が取得された場合その関数を返しますが、取得できなかった場合は null を返します</returns>
-        internal Action<SrStackFrame> GetFunction(int id)
+        internal Func<SrStackFrame, HostFunctionResult> GetFunction(int id)
         {
             // 指定されたIDで関数取得を試みて、成功したら返して、駄目だったら null を返す
             return functionTable.TryGetValue(id, out var function) ? function : null;
@@ -130,7 +130,7 @@ namespace SnowRabbit.Machine
         /// <param name="name">登録する関数の名前</param>
         /// <param name="hostFunction">登録する関数の実体</param>
         /// <exception cref="ArgumentException">name が null か 空白のみ です。必ず有効な名前である必要があります</exception>
-        private void AddFunction(string name, Action<SrStackFrame> hostFunction)
+        private void AddFunction(string name, Func<SrStackFrame, HostFunctionResult> hostFunction)
         {
             // もし取り扱えない名前なら
             if (string.IsNullOrWhiteSpace(name))
