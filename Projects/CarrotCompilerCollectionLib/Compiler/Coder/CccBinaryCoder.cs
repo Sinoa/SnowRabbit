@@ -41,6 +41,7 @@ namespace CarrotCompilerCollection.Compiler
 
 
 
+        #region Constructor
         static CccBinaryCoder()
         {
             RegisterNameList = new string[]
@@ -140,29 +141,10 @@ namespace CarrotCompilerCollection.Compiler
             symbolTable = new Dictionary<int, SymbolInfo>();
             nextVirtualAddress = -1;
         }
+        #endregion
 
 
-        /// <summary>
-        /// 現在の状態から実行コードを出力します
-        /// </summary>
-        public void OutputExecuteCode()
-        {
-            SetupStringTable();
-
-
-            var instructionList = new List<InstructionInfo>();
-            OutputStartupCode(instructionList);
-            OutputFunctionCode(instructionList);
-            AdjustGlobalVariable(instructionList);
-            ResolveAddress(instructionList);
-
-
-            WriteHeader(instructionList.Count, variableTable.Count, GetConstantStringCount());
-            WriteProgramCode(instructionList);
-            WriteStringTable();
-        }
-
-
+        #region Disassemble runtime code function
         /// <summary>
         /// 指定された実行コードを読み取れるストリームからディスアンセブルします
         /// </summary>
@@ -226,7 +208,6 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        #region Read runtime code function
         private string ConvertInstructionTo(InstructionCode code)
         {
             var textFormat = OpCodeTextTable[code.OpCode];
@@ -285,6 +266,27 @@ namespace CarrotCompilerCollection.Compiler
 
 
         #region final code generate function
+        /// <summary>
+        /// 現在の状態から実行コードを出力します
+        /// </summary>
+        public void OutputExecuteCode()
+        {
+            SetupStringTable();
+
+
+            var instructionList = new List<InstructionInfo>();
+            OutputStartupCode(instructionList);
+            OutputFunctionCode(instructionList);
+            AdjustGlobalVariable(instructionList);
+            ResolveAddress(instructionList);
+
+
+            WriteHeader(instructionList.Count, variableTable.Count, GetConstantStringCount());
+            WriteProgramCode(instructionList);
+            WriteStringTable();
+        }
+
+
         private void AddInstructionInfo(IList<InstructionInfo> instructionList, OpCode opCode, byte ra, byte rb, byte rc, int imm, bool unresolveAddress)
         {
             var info = new InstructionInfo();
@@ -755,7 +757,7 @@ namespace CarrotCompilerCollection.Compiler
                     switch (value.Type)
                     {
                         case CccType.Int:
-                            function.CreateInstruction(OpCode.Movl, registerNum, 0, 0, value.Integer, false);
+                            function.CreateInstruction(OpCode.Movl, registerNum, 0, 0, (int)value.Integer, false);
                             return;
 
 
