@@ -116,15 +116,53 @@ namespace SnowRabbit.Machine
         /// 指定されたプログラムパスからプロセスを生成します
         /// </summary>
         /// <param name="programPath">プロセスを生成する元になるプログラムのパス</param>
-        /// <param name="process">生成されたプロセスを設定する</param>
+        /// <param name="process">生成されたプロセスを設定します</param>
         internal void CreateProcess(string programPath, out SrProcess process)
         {
             // プロセスの既定初期化をしてからファームウェアにプログラムのロードをしてもらう
             process = default;
             LoadProgram(programPath ?? throw new ArgumentNullException(nameof(programPath)), ref process);
             Machine.Processor.InitializeContext(ref process);
+            SetProcessID(ref process);
+        }
 
 
+        /// <summary>
+        /// 指定されたプログラムコードからプロセスを生成します
+        /// </summary>
+        /// <param name="programData">実行プログラムが設定されているバイト配列</param>
+        /// <param name="process">生成されたプロセスを設定します</param>
+        internal void CreateProcess(byte[] programData, out SrProcess process)
+        {
+            // バイト配列からプログラムをロードする
+            process = default;
+            LoadProgram(programData, ref process);
+            Machine.Processor.InitializeContext(ref process);
+            SetProcessID(ref process);
+        }
+
+
+        /// <summary>
+        /// 指定されたプログラムストリームからプロセスを生成します
+        /// </summary>
+        /// <param name="programStream">実行プログラムが読み取れるストリーム</param>
+        /// <param name="process">生成されたプロセスを設定します</param>
+        internal void CreateProcess(Stream programStream, out SrProcess process)
+        {
+            // ストリームからプログラムをロードする
+            process = default;
+            LoadProgram(programStream, ref process);
+            Machine.Processor.InitializeContext(ref process);
+            SetProcessID(ref process);
+        }
+
+
+        /// <summary>
+        /// 指定されたプロセスにプロセスIDを設定します
+        /// </summary>
+        /// <param name="process">設定するプロセス</param>
+        private void SetProcessID(ref SrProcess process)
+        {
             // プロセスIDを設定する
             process.ProcessID = nextProcessID++;
         }

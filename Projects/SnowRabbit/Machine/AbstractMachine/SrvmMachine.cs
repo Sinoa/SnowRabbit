@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.IO;
 using SnowRabbit.Runtime;
 
 namespace SnowRabbit.Machine
@@ -189,6 +190,32 @@ namespace SnowRabbit.Machine
         {
             // ファームウェアでプロセスを生成する
             Firmware.CreateProcess(programPath, out process);
+        }
+
+
+        /// <summary>
+        /// 仮想マシンに実行してもらうプログラムデータを指定してプロセスを生成します
+        /// </summary>
+        /// <param name="programData">実行するプログラムデータ</param>
+        /// <param name="process">プログラムを実行するプロセスを出力します</param>
+        /// <exception cref="ArgumentNullException">programData が null です</exception>
+        public void CreateProcess(byte[] programData, out SrProcess process)
+        {
+            // ファームウェアでプロセスを生成する
+            Firmware.CreateProcess(programData ?? throw new ArgumentNullException(nameof(programData)), out process);
+        }
+
+
+        /// <summary>
+        /// 仮想マシンに実行してもらうプログラムストリームを指定してプロセスを生成します
+        /// </summary>
+        /// <param name="programStream">実行するプログラムを読み取れるストリーム</param>
+        /// <param name="process">プログラムを実行するプロセスを出力します</param>
+        /// <exception cref="ArgumentNullException">programStream が null です</exception>
+        public void CreateProcess(Stream programStream, out SrProcess process)
+        {
+            // ファームウェアでプロセスを生成する
+            Firmware.CreateProcess(programStream ?? throw new ArgumentNullException(nameof(programStream)), out process);
         }
 
 

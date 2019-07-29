@@ -20,6 +20,20 @@ namespace SnowRabbit.Machine
     /// </summary>
     public class SrvmSimplyMachine : SrvmMachine
     {
+        // 定数定義
+        private const int DefaultValueMemoryReservedSize = 8 << 20;
+        private const int DefaultObjectMemoryReservedSize = 8 << 20;
+
+
+
+        /// <summary>
+        /// SrvmSimplyMachine クラスのインスタンスを初期化します
+        /// </summary>
+        public SrvmSimplyMachine() : this(DefaultValueMemoryReservedSize, DefaultObjectMemoryReservedSize, string.Empty)
+        {
+        }
+
+
         /// <summary>
         /// SrvmSimplyMachine クラスのインスタンスを初期化します
         /// </summary>
