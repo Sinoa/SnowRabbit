@@ -45,8 +45,16 @@ namespace SampleApplication01
             // コンパイルされた実行コードを受け取るメモリストリームを生成する
             using (var programStream = new MemoryStream())
             {
-                // コンパイルしてストリーム位置を先頭に移動してからプロセスを生成して実行
+                // コンパイルする
                 compiler.Compile("Assets/Sample.csf", programStream);
+
+
+                // ストリーム位置を先頭に移動してディスアセンブル
+                programStream.Seek(0, SeekOrigin.Begin);
+                System.Console.Write(compiler.Disassemble(programStream));
+
+
+                // ストリームの先頭に移動して実行
                 programStream.Seek(0, SeekOrigin.Begin);
                 machine.CreateProcess(programStream, out var process);
                 machine.ExecuteProcess(ref process);
