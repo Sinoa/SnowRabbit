@@ -214,7 +214,7 @@ namespace CarrotCompilerCollection.Compiler
                     var buffer = new byte[dataSize];
                     inputStream.BaseStream.Read(buffer, 0, dataSize);
                     var text = encode.GetString(buffer);
-                    resultStringBuffer.AppendLine($"[{index.ToString().PadLeft(4)}]{text}");
+                    resultStringBuffer.AppendLine($"[{index.ToString().PadLeft(4)}] {text}");
                 }
 
 
