@@ -27,9 +27,6 @@ namespace CarrotCompilerCollection.Compiler
     /// </summary>
     public class CccParser
     {
-        // 定数定義
-        private int UnaryOperationPriority = 20;
-
         // クラス変数定義
         private static readonly Dictionary<int, (int left, int right)> OperatorPriorityTable;
 
