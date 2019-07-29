@@ -13,11 +13,13 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
 using System.IO;
 using CarrotCompilerCollection.Compiler;
 using CarrotCompilerCollection.IO;
 using CarrotCompilerCollection.Utility;
 using SnowRabbit.Machine;
+using SnowRabbit.Runtime;
 
 namespace SampleApplication01
 {
@@ -40,6 +42,7 @@ namespace SampleApplication01
 
             // 仮想マシンの起動準備をする
             var machine = new SrvmSimplyMachine();
+            machine.AttachPeripheral(new SamplePeripheral());
 
 
             // コンパイルされた実行コードを受け取るメモリストリームを生成する
@@ -59,6 +62,57 @@ namespace SampleApplication01
                 machine.CreateProcess(programStream, out var process);
                 machine.ExecuteProcess(ref process);
             }
+        }
+    }
+
+
+
+    /// <summary>
+    /// 非常にシンプルな周辺機器クラスです
+    /// </summary>
+    internal class SamplePeripheral : SrvmPeripheral
+    {
+        /// <summary>
+        /// 周辺機器名
+        /// </summary>
+        public override string PeripheralName => "Sample";
+
+
+
+        /// <summary>
+        /// この周辺機器が提供する関数をセットアップします
+        /// </summary>
+        /// <param name="registryHandler">関数を登録する関数</param>
+        protected override void SetupFunction(Action<string, Func<SrStackFrame, HostFunctionResult>> registryHandler)
+        {
+            // 関数の登録をしていく
+            registryHandler(nameof(ConsoleWriteLine), ConsoleWriteLine);
+            registryHandler(nameof(Stop), Stop);
+        }
+
+
+        /// <summary>
+        /// スクリプトから文字列を受け取ってコンソールに書き込みます
+        /// </summary>
+        /// <param name="stackFrame">この関数用のスタックフレーム</param>
+        /// <returns>継続を返します</returns>
+        private HostFunctionResult ConsoleWriteLine(SrStackFrame stackFrame)
+        {
+            // 第一引数の文字列を出す
+            Console.WriteLine((string)stackFrame.GetObject(0));
+            return HostFunctionResult.Continue;
+        }
+
+
+        /// <summary>
+        /// スクリプトの動作を停止させます
+        /// </summary>
+        /// <param name="stackFrame">この関数用のスタックフレーム</param>
+        /// <returns>停止を返します</returns>
+        private HostFunctionResult Stop(SrStackFrame stackFrame)
+        {
+            // 停止を要求する
+            return HostFunctionResult.Pause;
         }
     }
 }

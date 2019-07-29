@@ -1,3 +1,23 @@
-﻿function void main()
+﻿// 定数定義
+#const MESSAGE "定数定義による文字列の出力"
+
+// 以下の周辺装置の関数を使用する
+using WriteLine = void Sample.ConsoleWriteLine(string);
+
+
+// グローバル変数宣言（かといってC#側に見えるわけではない）
+global int g_ValA;
+global int g_ValB;
+global number g_ValC;
+global string g_ValD;
+
+
+// エントリポイント
+// 実行可能コードの生成の場合は必ず必要
+// リンク前提実行コードなら不要（逆に存在するとエラー）
+function void main()
+
+	WriteLine("コンソールログの文字列出力");
+	WriteLine(MESSAGE);
 
 end
