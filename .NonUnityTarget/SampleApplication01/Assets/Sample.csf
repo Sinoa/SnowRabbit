@@ -3,6 +3,7 @@
 
 // 以下の周辺装置の関数を使用する
 using WriteLine = void Sample.ConsoleWriteLine(string);
+using Stop = void Sample.Stop();
 
 
 // グローバル変数宣言（かといってC#側に見えるわけではない）
@@ -19,5 +20,8 @@ function void main()
 
 	WriteLine("コンソールログの文字列出力");
 	WriteLine(MESSAGE);
+
+	local int hoge;
+	hoge = 1 + 2 + 3 + 4;
 
 end
