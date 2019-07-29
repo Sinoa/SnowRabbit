@@ -155,7 +155,7 @@ namespace CarrotCompilerCollection.Compiler
             var resultStringBuffer = new StringBuilder();
 
 
-            using (var inputStream = new SrBinaryIO(stream))
+            using (var inputStream = new SrBinaryIO(stream, true))
             {
                 inputStream.BaseStream.Seek(4, SeekOrigin.Current);
                 var instructionCount = inputStream.ReadInt();
