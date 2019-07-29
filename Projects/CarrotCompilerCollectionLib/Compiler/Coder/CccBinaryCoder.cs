@@ -62,7 +62,7 @@ namespace CarrotCompilerCollection.Compiler
                 { OpCode.Strl,      "strl    {0}, [{3}]" },
                 { OpCode.Push,      "push    {0}" },
                 { OpCode.Pushl,     "pushl   {3}" },
-                { OpCode.Pop,       "pop" },
+                { OpCode.Pop,       "pop     {0}" },
                 { OpCode.Fmovl,     "fmovl   {0}, {3}" },
                 { OpCode.Fpushl,    "fpushl  {3}" },
                 { OpCode.Movfti,    "movfti  {0}, {1}" },
