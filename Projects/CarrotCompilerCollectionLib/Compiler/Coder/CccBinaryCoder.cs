@@ -28,6 +28,8 @@ namespace CarrotCompilerCollection.Compiler
     internal class CccBinaryCoder
     {
         private const int FunctionLeavCodeSize = 4;
+        private static readonly Dictionary<OpCode, string> OpCodeTextTable;
+        private static readonly string[] RegisterNameList;
 
         // メンバ変数定義
         private SrBinaryIO binaryIO;
@@ -37,6 +39,90 @@ namespace CarrotCompilerCollection.Compiler
         private Dictionary<int, SymbolInfo> symbolTable;
         private int nextVirtualAddress;
 
+
+
+        static CccBinaryCoder()
+        {
+            RegisterNameList = new string[]
+            {
+                "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp",
+                "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "ip"
+            };
+
+
+            OpCodeTextTable = new Dictionary<OpCode, string>()
+            {
+                { OpCode.Halt,      "halt" },
+                { OpCode.Mov,       "mov     {0}, {1}" },
+                { OpCode.Movl,      "movl    {0}, {3}" },
+                { OpCode.Ldr,       "ldr     {0}, [{1} + {3}]" },
+                { OpCode.Ldrl,      "ldrl    {0}, [{3}]" },
+                { OpCode.Str,       "str     {0}, [{1} + {3}]" },
+                { OpCode.Strl,      "strl    {0}, [{3}]" },
+                { OpCode.Push,      "push    {0}" },
+                { OpCode.Pushl,     "pushl   {3}" },
+                { OpCode.Pop,       "pop" },
+                { OpCode.Fmovl,     "fmovl   {0}, {3}" },
+                { OpCode.Fpushl,    "fpushl  {3}" },
+                { OpCode.Movfti,    "movfti  {0}, {1}" },
+                { OpCode.Movitf,    "movitf  {0}, {1}" },
+                { OpCode.Add,       "add     {0}, {1}, {2}" },
+                { OpCode.Addl,      "addl    {0}, {1}, {3}" },
+                { OpCode.Sub,       "sub     {0}, {1}, {2}" },
+                { OpCode.Subl,      "subl    {0}, {1}, {3}" },
+                { OpCode.Mul,       "mul     {0}, {1}, {2}" },
+                { OpCode.Mull,      "mull    {0}, {1}, {3}" },
+                { OpCode.Div,       "div     {0}, {1}, {2}" },
+                { OpCode.Divl,      "divl    {0}, {1}, {3}" },
+                { OpCode.Mod,       "mod     {0}, {1}, {2}" },
+                { OpCode.Modl,      "modl    {0}, {1}, {3}" },
+                { OpCode.Pow,       "pow     {0}, {1}, {2}" },
+                { OpCode.Powl,      "powl    {0}, {1}, {3}" },
+                { OpCode.Neg,       "neg     {0}, {1}" },
+                { OpCode.Negl,      "negl    {0}, {3}" },
+                { OpCode.Or,        "or      {0}, {1}, {2}" },
+                { OpCode.Xor,       "xor     {0}, {1}, {2}" },
+                { OpCode.And,       "and     {0}, {1}, {2}" },
+                { OpCode.Not,       "not     {0}" },
+                { OpCode.Shl,       "shl     {0}, {1}, {2}" },
+                { OpCode.Shr,       "shr     {0}, {1}, {2}" },
+                { OpCode.Teq,       "teq     {0}, {1}, {2}" },
+                { OpCode.Tne,       "tne     {0}, {1}, {2}" },
+                { OpCode.Tg,        "tg      {0}, {1}, {2}" },
+                { OpCode.Tge,       "tge     {0}, {1}, {2}" },
+                { OpCode.Tl,        "tl      {0}, {1}, {2}" },
+                { OpCode.Tle,       "tle     {0}, {1}, {2}" },
+                { OpCode.Fadd,      "fadd    {0}, {1}, {2}" },
+                { OpCode.Faddl,     "faddl   {0}, {1}, {3}" },
+                { OpCode.Fsub,      "fsub    {0}, {1}, {2}" },
+                { OpCode.Fsubl,     "fsubl   {0}, {1}, {3}" },
+                { OpCode.Fmul,      "fmul    {0}, {1}, {2}" },
+                { OpCode.Fmull,     "fmull   {0}, {1}, {3}" },
+                { OpCode.Fdiv,      "fdiv    {0}, {1}, {2}" },
+                { OpCode.Fdivl,     "fdivl   {0}, {1}, {3}" },
+                { OpCode.Fmod,      "fmod    {0}, {1}, {2}" },
+                { OpCode.Fmodl,     "fmodl   {0}, {1}, {3}" },
+                { OpCode.Fpow,      "fpow    {0}, {1}, {2}" },
+                { OpCode.Fpowl,     "fpowl   {0}, {1}, {3}" },
+                { OpCode.Fneg,      "fneg    {0}, {1}" },
+                { OpCode.Fnegl,     "fnegl   {0}, {1}" },
+                { OpCode.Br,        "br      {0}, {3}"},
+                { OpCode.Brl,       "brl     {3}"},
+                { OpCode.Bnz,       "bnz     {0}, {1}, {3}"},
+                { OpCode.Bnzl,      "bnzl    {1}, {3}"},
+                { OpCode.Call,      "call    {0}, {3}"},
+                { OpCode.Calll,     "calll   {3}" },
+                { OpCode.Callnz,    "callnz  {0}, {1}, {3}" },
+                { OpCode.Callnzl,   "callnzl {1}, {3}" },
+                { OpCode.Ret,       "ret" },
+                { OpCode.Cpf,       "cpf     {0}, {1}, {2}" },
+                { OpCode.Cpfl,      "cpfl    {0}, {1}, {3}" },
+                { OpCode.Gpid,      "gpid    {0}, {1}" },
+                { OpCode.Gpidl,     "gpidl   {0}, {3}" },
+                { OpCode.Gpfid,     "gpfid   {0}, {1}, {2}" },
+                { OpCode.Gpfidl,    "gpfidl  {0}, {1}, {3}" },
+            };
+        }
 
 
         /// <summary>
@@ -77,7 +163,79 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        #region Write runctime code function
+        /// <summary>
+        /// 指定された実行コードを読み取れるストリームからディスアンセブルします
+        /// </summary>
+        /// <param name="stream">実行コードを読み取れるストリーム</param>
+        /// <returns>ディスアセンブルした結果を返します</returns>
+        public string DisassembleExecuteCode(Stream stream)
+        {
+            var resultStringBuffer = new StringBuilder();
+
+
+            using (var inputStream = new SrBinaryIO(stream))
+            {
+                inputStream.BaseStream.Seek(4, SeekOrigin.Current);
+                var instructionCount = inputStream.ReadInt();
+                var globalVarCount = inputStream.ReadInt();
+                var minimumObjectNumber = inputStream.ReadInt();
+                var constantStringCount = inputStream.ReadInt();
+
+
+                resultStringBuffer.AppendLine($"Instruction code count : {instructionCount}");
+                resultStringBuffer.AppendLine($"Global var count : {globalVarCount}");
+                resultStringBuffer.AppendLine($"Minimum object number : {minimumObjectNumber}");
+                resultStringBuffer.AppendLine($"Constant string count : {constantStringCount}");
+
+
+                resultStringBuffer.AppendLine("");
+                resultStringBuffer.AppendLine("");
+                resultStringBuffer.AppendLine("========== Instruction Code List ==========");
+                var instruction = default(InstructionCode);
+                for (int i = 0; i < instructionCount; ++i)
+                {
+                    instruction.OpCode = (OpCode)inputStream.ReadByte();
+                    instruction.Ra = inputStream.ReadByte();
+                    instruction.Rb = inputStream.ReadByte();
+                    instruction.Rc = inputStream.ReadByte();
+                    instruction.Immediate.Uint = inputStream.ReadUInt();
+                    resultStringBuffer.AppendLine($"[{i.ToString().PadLeft(6, '0')}] {ConvertInstructionTo(instruction)}");
+                }
+
+
+                resultStringBuffer.AppendLine("");
+                resultStringBuffer.AppendLine("");
+                resultStringBuffer.AppendLine("========== String Table ==========");
+                var encode = new UTF8Encoding(false);
+                for (int i = 0; i < constantStringCount; ++i)
+                {
+                    var dataSize = inputStream.ReadInt();
+                    var index = inputStream.ReadInt();
+                    var buffer = new byte[dataSize];
+                    inputStream.BaseStream.Read(buffer, 0, dataSize);
+                    var text = encode.GetString(buffer);
+                    resultStringBuffer.AppendLine($"[{index.ToString().PadLeft(4)}]{text}");
+                }
+
+
+                resultStringBuffer.AppendLine("");
+            }
+
+
+            return resultStringBuffer.ToString();
+        }
+
+
+        #region Read runtime code function
+        private string ConvertInstructionTo(InstructionCode code)
+        {
+            var textFormat = OpCodeTextTable[code.OpCode];
+            return string.Format(textFormat, RegisterNameList[code.Ra], RegisterNameList[code.Rb], RegisterNameList[code.Rc], code.Immediate.Int);
+        }
+        #endregion
+
+
+        #region Write runtime code function
         private void WriteHeader(int instructionCount, int globalVariableCount, int constStringCount)
         {
             binaryIO.Write((byte)0xCC);

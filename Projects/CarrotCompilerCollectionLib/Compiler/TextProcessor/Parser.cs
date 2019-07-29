@@ -142,6 +142,14 @@ namespace CarrotCompilerCollection.Compiler
         #endregion
 
 
+        #region Disassemble function
+        public string Disassemble(Stream programStream)
+        {
+            return coder.DisassembleExecuteCode(programStream);
+        }
+        #endregion
+
+
         #region Parse
         /// <summary>
         /// コンパイル単位のルートになる構文解析関数です
