@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Machine;
+
 namespace SnowRabbit.Runtime
 {
     /// <summary>
@@ -20,6 +22,11 @@ namespace SnowRabbit.Runtime
     /// </summary>
     public struct SrProcess
     {
+        /// <summary>
+        /// このプロセスを持つマシンへの参照
+        /// </summary>
+        internal SrvmMachine Machine;
+
         /// <summary>
         /// このプロセスのID。負の値の場合は無効なプロセスIDとなる。
         /// </summary>
@@ -39,5 +46,26 @@ namespace SnowRabbit.Runtime
         /// このプロセスが持つプロセス空間のオブジェクトメモリブロック
         /// </summary>
         internal MemoryBlock<SrObject> ObjectMemory;
+
+
+
+        /// <summary>
+        /// このプロセスを実行します
+        /// </summary>
+        public void Run()
+        {
+            // 仮想マシンに実行を要求する
+            Machine.ExecuteProcess(ref this);
+        }
+
+
+        /// <summary>
+        /// このプロセスを終了します
+        /// </summary>
+        public void Terminate()
+        {
+            // 仮想マシンに終了を要求する
+            Machine.TerminateProcess(ref this);
+        }
     }
 }

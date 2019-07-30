@@ -122,8 +122,7 @@ namespace SnowRabbit.Machine
             // プロセスの既定初期化をしてからファームウェアにプログラムのロードをしてもらう
             process = default;
             LoadProgram(programPath ?? throw new ArgumentNullException(nameof(programPath)), ref process);
-            Machine.Processor.InitializeContext(ref process);
-            SetProcessID(ref process);
+            StartupProcess(ref process);
         }
 
 
@@ -136,9 +135,8 @@ namespace SnowRabbit.Machine
         {
             // バイト配列からプログラムをロードする
             process = default;
-            LoadProgram(programData, ref process);
-            Machine.Processor.InitializeContext(ref process);
-            SetProcessID(ref process);
+            LoadProgram(programData ?? throw new ArgumentNullException(nameof(programData)), ref process);
+            StartupProcess(ref process);
         }
 
 
@@ -151,19 +149,20 @@ namespace SnowRabbit.Machine
         {
             // ストリームからプログラムをロードする
             process = default;
-            LoadProgram(programStream, ref process);
-            Machine.Processor.InitializeContext(ref process);
-            SetProcessID(ref process);
+            LoadProgram(programStream ?? throw new ArgumentNullException(nameof(programStream)), ref process);
+            StartupProcess(ref process);
         }
 
 
         /// <summary>
-        /// 指定されたプロセスにプロセスIDを設定します
+        /// 指定されたプロセスにプロセスの起動を開始します
         /// </summary>
-        /// <param name="process">設定するプロセス</param>
-        private void SetProcessID(ref SrProcess process)
+        /// <param name="process">起動開始するプロセス</param>
+        private void StartupProcess(ref SrProcess process)
         {
-            // プロセスIDを設定する
+            // プロセスの初期化をする
+            Machine.Processor.InitializeContext(ref process);
+            process.Machine = Machine;
             process.ProcessID = nextProcessID++;
         }
 

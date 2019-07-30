@@ -54,13 +54,14 @@ namespace SampleApplication01
 
                 // ストリーム位置を先頭に移動してディスアセンブル
                 programStream.Seek(0, SeekOrigin.Begin);
-                System.Console.Write(compiler.Disassemble(programStream));
+                Console.Write(compiler.Disassemble(programStream));
 
 
                 // ストリームの先頭に移動して実行
                 programStream.Seek(0, SeekOrigin.Begin);
                 machine.CreateProcess(programStream, out var process);
-                machine.ExecuteProcess(ref process);
+                process.Run();
+                process.Terminate();
             }
         }
     }
