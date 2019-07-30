@@ -21,9 +21,9 @@ namespace SnowRabbit.Machine
     public class SrvmSimplyMachine : SrvmMachine
     {
         // 定数定義
-        private const int DefaultValueMemoryReservedSize = 8 << 20;
-        private const int DefaultObjectMemoryReservedSize = 8 << 20;
-        private const string CurrentDirectoryPath = "./";
+        public const int DefaultValueMemoryReservedSize = 8 << 20;
+        public const int DefaultObjectMemoryReservedSize = 8 << 20;
+        public const string CurrentDirectoryPath = "./";
 
 
 
