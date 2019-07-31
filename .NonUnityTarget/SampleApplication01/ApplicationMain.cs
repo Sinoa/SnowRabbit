@@ -54,7 +54,7 @@ namespace SampleApplication01
 
                 // ストリーム位置を先頭に移動してディスアセンブル
                 programStream.Seek(0, SeekOrigin.Begin);
-                Console.Write(compiler.Disassemble(programStream));
+                Console.Write(CccParser.Disassemble(programStream));
 
 
                 // ストリームの先頭に移動して実行
@@ -76,7 +76,7 @@ namespace SampleApplication01
         /// <summary>
         /// 周辺機器名
         /// </summary>
-        public override string PeripheralName => "Sample";
+        public override string Name => "Sample";
 
 
 
