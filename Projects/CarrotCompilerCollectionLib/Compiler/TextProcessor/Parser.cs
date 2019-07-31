@@ -143,9 +143,9 @@ namespace CarrotCompilerCollection.Compiler
 
 
         #region Disassemble function
-        public string Disassemble(Stream programStream)
+        public static string Disassemble(Stream programStream)
         {
-            return coder.DisassembleExecuteCode(programStream);
+            return CccBinaryCoder.DisassembleExecuteCode(programStream);
         }
         #endregion
 

@@ -150,7 +150,7 @@ namespace CarrotCompilerCollection.Compiler
         /// </summary>
         /// <param name="stream">実行コードを読み取れるストリーム</param>
         /// <returns>ディスアセンブルした結果を返します</returns>
-        public string DisassembleExecuteCode(Stream stream)
+        public static string DisassembleExecuteCode(Stream stream)
         {
             var resultStringBuffer = new StringBuilder();
 
@@ -208,7 +208,7 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
-        private string ConvertInstructionTo(InstructionCode code)
+        private static string ConvertInstructionTo(InstructionCode code)
         {
             var textFormat = OpCodeTextTable[code.OpCode];
             return string.Format(textFormat, RegisterNameList[code.Ra], RegisterNameList[code.Rb], RegisterNameList[code.Rc], code.Immediate.Int);
