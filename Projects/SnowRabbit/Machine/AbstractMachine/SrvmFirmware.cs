@@ -397,7 +397,7 @@ namespace SnowRabbit.Machine
 
 
             // 追加する周辺機器名がnullだったり空白のみである場合は
-            if (string.IsNullOrWhiteSpace(peripheral.PeripheralName))
+            if (string.IsNullOrWhiteSpace(peripheral.Name))
             {
                 // 周辺機器名が正しくない
                 throw new ArgumentException("追加しようとした周辺機器の名前が null または 空白 です", nameof(peripheral));
@@ -405,15 +405,15 @@ namespace SnowRabbit.Machine
 
 
             // 既に同じ名前の周辺機器が存在するなら
-            if (peripheralIDTable.ContainsKey(peripheral.PeripheralName))
+            if (peripheralIDTable.ContainsKey(peripheral.Name))
             {
                 // 既に接続済み例外を吐く
-                throw new ArgumentException($"指定された周辺機器は同名 '{peripheral.PeripheralName}' の周辺機器が接続済みです");
+                throw new ArgumentException($"指定された周辺機器は同名 '{peripheral.Name}' の周辺機器が接続済みです");
             }
 
 
             // 周辺機器IDを作って周辺機器テーブルに追加
-            var peripheralName = peripheral.PeripheralName;
+            var peripheralName = peripheral.Name;
             var peripheralId = nextPeripheralID++;
             peripheralIDTable[peripheralName] = peripheralId;
             peripheralTable[peripheralId] = peripheral;

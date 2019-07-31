@@ -35,7 +35,7 @@ namespace SnowRabbit.Machine
         /// <summary>
         /// 周辺機器名を取得します
         /// </summary>
-        public abstract string PeripheralName { get; }
+        public abstract string Name { get; }
 
 
 
