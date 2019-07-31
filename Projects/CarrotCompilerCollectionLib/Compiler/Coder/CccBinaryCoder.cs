@@ -379,6 +379,7 @@ namespace CarrotCompilerCollection.Compiler
 
             AddInstructionInfo(instructionList, OpCode.Calll, 0, 0, 0, mainFunction.Address, true);
             AddInstructionInfo(instructionList, OpCode.Halt, 0, 0, 0, 0, false);
+            AddInstructionInfo(instructionList, OpCode.Brl, 0, 0, 0, instructionList.Count - 1, false);
         }
 
 
