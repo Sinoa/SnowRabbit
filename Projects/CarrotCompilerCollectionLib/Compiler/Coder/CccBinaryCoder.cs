@@ -846,6 +846,12 @@ namespace CarrotCompilerCollection.Compiler
 
         public void RegisterConstantValue(string name, CccType type, long integer, float number, string text)
         {
+            if (constantTable.ContainsKey(name))
+            {
+                return;
+            }
+
+
             var info = new ConstantInfo();
             info.Name = name;
             info.Type = type;
@@ -882,6 +888,12 @@ namespace CarrotCompilerCollection.Compiler
 
         public void RegisterPeripheralFunction(string functionName, int returnType, IList<int> argumentList, string peripheralName, string peripheralFunctionName)
         {
+            if (functionTable.ContainsKey(functionName))
+            {
+                return;
+            }
+
+
             var info = new FunctionInfo();
             info.Name = functionName;
             info.PeripheralName = peripheralName;
@@ -935,6 +947,12 @@ namespace CarrotCompilerCollection.Compiler
 
         public void RegisterFunction(string functionName, int returnType, List<CccArgumentInfo> argumentList)
         {
+            if (functionTable.ContainsKey(functionName))
+            {
+                return;
+            }
+
+
             var info = new FunctionInfo();
             info.Name = functionName;
             info.PeripheralName = string.Empty;
@@ -982,6 +1000,12 @@ namespace CarrotCompilerCollection.Compiler
 
         public void RegisterVariable(string name, int typeKind)
         {
+            if (variableTable.ContainsKey(name))
+            {
+                return;
+            }
+
+
             var info = new VariableInfo();
             info.Name = name;
             info.StorageType = VariableType.Global;
