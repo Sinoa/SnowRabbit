@@ -1212,11 +1212,22 @@ namespace CarrotCompilerCollection.Compiler
         /// <param name="message">スローするメッセージ</param>
         private void ThrowExceptionCompileError(string message, uint errorCode)
         {
-            // 現在のコンテキストから必要な情報を取り出してロガーにエラーを書き込んで例外を吐く
+            // 現在のコンテキストから必要な情報を取り出してロガーにエラーを書き込む
             var scriptName = currentContext.ScriptName;
             var lexer = currentContext.Lexer;
             ref var token = ref lexer.LastReadToken;
             logger.Write(CccParserLogType.Error, scriptName, token.LineNumber, token.ColumnNumber, errorCode, message);
+
+
+            // すべてのコンテキストを破棄する
+            while (contextStack.Count > 0)
+            {
+                // コンテキストをポップして破棄
+                contextStack.Pop().Lexer.Dispose();
+            }
+
+
+            // 例外を吐く
             throw new SyntaxErrorException(message);
         }
         #endregion
