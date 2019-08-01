@@ -37,7 +37,7 @@ namespace SnowRabbit.Machine
             while (execution)
             {
                 FetchInstruction(ref process, out var instruction, out var instructionPointer);
-                FetchRegisterInfo(ref instruction, out var regANumber, out var regBNumber, out var regCNumber, out var regAType, out var regBType, out var regCType);
+                FetchRegisterInfo(ref instruction, out var regANumber, out var regBNumber, out var regCNumber);
                 var nextInstructionPointer = instructionPointer + 1;
                 var immediate = instruction.Immediate.Int;
                 var immediateF = instruction.Immediate.Float;

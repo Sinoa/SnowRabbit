@@ -779,7 +779,7 @@ namespace CarrotCompilerCollection.Compiler
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
 
 
-            coder.GenerateOffsetJump(function, -(function.CurrentInstructionCount - whileHeadAddress));
+            coder.GenerateOffsetJump(function, whileHeadAddress - function.CurrentInstructionCount);
             var whileTailAddress = function.CurrentInstructionCount - patchTargetIndex;
             coder.UpdateJumpAddress(function, patchTargetIndex, whileTailAddress);
 

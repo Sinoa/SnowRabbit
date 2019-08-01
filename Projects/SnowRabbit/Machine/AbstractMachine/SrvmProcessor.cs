@@ -95,14 +95,12 @@ namespace SnowRabbit.Machine
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void FetchRegisterInfo(ref InstructionCode instruction, out int regANumber, out int regBNumber, out int regCNumber, out SrRegisterType regAType, out SrRegisterType regBType, out SrRegisterType regCType)
+        private static void FetchRegisterInfo(ref InstructionCode instruction, out int regANumber, out int regBNumber, out int regCNumber)
         {
-            regAType = (SrRegisterType)(instruction.Ra & 0xF0);
-            regBType = (SrRegisterType)(instruction.Rb & 0xF0);
-            regCType = (SrRegisterType)(instruction.Rc & 0xF0);
-            regANumber = (instruction.Ra & 0x0F) + (regAType == SrRegisterType.SpecialRegister ? 16 : 0);
-            regBNumber = (instruction.Rb & 0x0F) + (regBType == SrRegisterType.SpecialRegister ? 16 : 0);
-            regCNumber = (instruction.Rc & 0x0F) + (regCType == SrRegisterType.SpecialRegister ? 16 : 0);
+            // レジスタの構造タイプを指定する意味が殆どなくなったためそのまま受け取る
+            regANumber = instruction.Ra;
+            regBNumber = instruction.Rb;
+            regCNumber = instruction.Rc;
         }
     }
 }
