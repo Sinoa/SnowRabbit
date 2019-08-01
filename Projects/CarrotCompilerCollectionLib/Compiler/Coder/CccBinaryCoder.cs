@@ -607,7 +607,16 @@ namespace CarrotCompilerCollection.Compiler
 
             if (left.FirstGenerate)
             {
-                GenerateMovFromExpressionValue(function, r15, ref left);
+                if (operationKind == CccTokenKind.Equal)
+                {
+                    GenerateMovFromExpressionValue(function, r15, ref right);
+                }
+                else
+                {
+                    GenerateMovFromExpressionValue(function, r15, ref left);
+                }
+
+
                 left.FirstGenerate = false;
             }
 
