@@ -662,15 +662,13 @@ namespace CarrotCompilerCollection.Compiler
                 case CccTokenKind.Plus: // +
                     opCode = left.Type == CccType.Int ? OpCode.Add : OpCode.Fadd;
                     function.CreateInstruction(opCode, r15, r15, r14, 0, false);
-                    r14 = r15;
                     break;
 
 
-                case CccTokenKind.MinusEqual: // +=
+                case CccTokenKind.MinusEqual: // -=
                 case CccTokenKind.Minus: // -
                     opCode = left.Type == CccType.Int ? OpCode.Sub : OpCode.Fsub;
                     function.CreateInstruction(opCode, r15, r15, r14, 0, false);
-                    r14 = r15;
                     break;
 
 
@@ -723,31 +721,11 @@ namespace CarrotCompilerCollection.Compiler
                 case CccTokenKind.LesserEqual: // <=
                     function.CreateInstruction(OpCode.Tle, r15, r15, r14, 0, false);
                     break;
-            }
 
 
-            if (operationKind == CccTokenKind.Equal)
-            {
-                //if (left.Type != right.Type)
-                //{
-                //    if (left.Type == CccType.Int)
-                //    {
-                //        function.CreateInstruction(OpCode.Movfti, r15, r14, 0, 0, false);
-                //    }
-
-
-                //    if (left.Type == CccType.Number)
-                //    {
-                //        function.CreateInstruction(OpCode.Movitf, r15, r14, 0, 0, false);
-                //    }
-                //}
-                //else
-                //{
-                //    function.CreateInstruction(OpCode.Mov, r15, r14, 0, 0, false);
-                //}
-
-
-                GenerateStr(function, r15, ref left);
+                case CccTokenKind.Equal: // =
+                    GenerateStr(function, r15, ref left);
+                    break;
             }
         }
 
