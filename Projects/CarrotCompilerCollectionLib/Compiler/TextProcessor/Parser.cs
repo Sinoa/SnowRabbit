@@ -902,6 +902,7 @@ namespace CarrotCompilerCollection.Compiler
                             value.Integer = constantInfo.IntegerValue;
                             value.Number = constantInfo.NumberValue;
                             value.Text = constantInfo.TextValue;
+                            currentContext.Lexer.ReadNextToken();
                             break;
 
 
@@ -926,6 +927,7 @@ namespace CarrotCompilerCollection.Compiler
                             value.Type = argumentInfo.Type;
                             value.Integer = argumentInfo.Index;
                             value.Text = argumentInfo.Name;
+                            currentContext.Lexer.ReadNextToken();
                             break;
 
 
@@ -934,6 +936,7 @@ namespace CarrotCompilerCollection.Compiler
                             value.Type = variableInfo.Type;
                             value.Integer = variableInfo.Address;
                             value.Text = variableInfo.Name;
+                            currentContext.Lexer.ReadNextToken();
                             break;
 
 
@@ -942,6 +945,7 @@ namespace CarrotCompilerCollection.Compiler
                             value.Type = globalVariableInfo.Type;
                             value.Integer = globalVariableInfo.Address;
                             value.Text = globalVariableInfo.Name;
+                            currentContext.Lexer.ReadNextToken();
                             break;
 
 
@@ -957,7 +961,6 @@ namespace CarrotCompilerCollection.Compiler
             }
 
 
-            currentContext.Lexer.ReadNextToken();
             var op = token.Kind;
             while (OperatorPriorityTable.ContainsKey(op) && OperatorPriorityTable[op].left > currentOpPriority)
             {
