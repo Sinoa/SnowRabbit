@@ -159,15 +159,15 @@ namespace CarrotCompilerCollection.Compiler
             {
                 inputStream.BaseStream.Seek(4, SeekOrigin.Current);
                 var instructionCount = inputStream.ReadInt();
-                var globalVarCount = inputStream.ReadInt();
+                var globalVarSize = inputStream.ReadInt();
                 var minimumObjectNumber = inputStream.ReadInt();
                 var constantStringCount = inputStream.ReadInt();
 
 
-                resultStringBuffer.AppendLine($"Instruction code count : {instructionCount}");
-                resultStringBuffer.AppendLine($"Global var count : {globalVarCount}");
-                resultStringBuffer.AppendLine($"Minimum object number : {minimumObjectNumber}");
-                resultStringBuffer.AppendLine($"Constant string count : {constantStringCount}");
+                resultStringBuffer.AppendLine($"Instruction code count : {instructionCount.ToString("N0")} ({(instructionCount * 8).ToString("N0")} byte)");
+                resultStringBuffer.AppendLine($"Global var count : {(globalVarSize / 8).ToString("N0")} ({globalVarSize.ToString("N0")} byte)");
+                resultStringBuffer.AppendLine($"Minimum object number : {minimumObjectNumber.ToString("N0")}");
+                resultStringBuffer.AppendLine($"Constant string count : {constantStringCount.ToString("N0")}");
 
 
                 resultStringBuffer.AppendLine("");
