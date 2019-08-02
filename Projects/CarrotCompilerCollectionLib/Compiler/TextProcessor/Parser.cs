@@ -157,16 +157,13 @@ namespace CarrotCompilerCollection.Compiler
         private void ParseCompileUnit()
         {
             currentContext.Lexer.ReadNextToken();
-
-
-            ParseDirective();
-            ParsePeripheralDeclare();
-            ParseGlobalVariableDeclare();
-            ParseFunctionDeclare();
-
-
-            ref var token = ref currentContext.Lexer.LastReadToken;
-            ThrowExceptionIfUnknownToken(ref token, CccTokenKind.EndOfToken);
+            while (!currentContext.Lexer.EndOfToken)
+            {
+                ParseDirective();
+                ParsePeripheralDeclare();
+                ParseGlobalVariableDeclare();
+                ParseFunctionDeclare();
+            }
         }
 
 
