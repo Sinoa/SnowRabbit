@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Machine;
+
 namespace SnowRabbit.Runtime
 {
     /// <summary>
@@ -20,6 +22,11 @@ namespace SnowRabbit.Runtime
     /// </summary>
     public struct SrStackFrame
     {
+        /// <summary>
+        /// プロセスのコンテキスト
+        /// </summary>
+        private MemoryBlock<SrValue> context;
+
         /// <summary>
         /// ホストマシンへ提供するスタックフレーム。リターンアドレスは含まれません。
         /// </summary>
@@ -29,16 +36,6 @@ namespace SnowRabbit.Runtime
         /// 仮想マシンのプロセスが持っているオブジェクトメモリ
         /// </summary>
         private MemoryBlock<SrObject> objectMemory;
-
-        /// <summary>
-        /// ホストマシンからの値型としての戻り値を保持します。
-        /// </summary>
-        private SrValue resultValue;
-
-        /// <summary>
-        /// ホストマシンからの参照型としての戻り値を保持します。
-        /// </summary>
-        private SrObject resultObject;
 
 
 
@@ -52,15 +49,15 @@ namespace SnowRabbit.Runtime
         /// <summary>
         /// SrStackFrame 構造体のインスタンスを初期化します
         /// </summary>
+        /// <param name="context">このスタックフレームを提供するプロセスコンテキスト</param>
         /// <param name="stack">スタックフレームとして切り出されたメモリブロック</param>
         /// <param name="objectMemory">仮想マシンのオブジェクトメモリ本体</param>
-        public SrStackFrame(MemoryBlock<SrValue> stack, MemoryBlock<SrObject> objectMemory)
+        public SrStackFrame(MemoryBlock<SrValue> context, MemoryBlock<SrValue> stack, MemoryBlock<SrObject> objectMemory)
         {
             // メンバ変数の初期化をする
+            this.context = context;
             this.stack = stack;
             this.objectMemory = objectMemory;
-            resultValue = default;
-            resultObject = default;
         }
 
 
@@ -104,70 +101,96 @@ namespace SnowRabbit.Runtime
 
         #region スタックフレームに関数の戻り値を設定する関数群
         /// <summary>
-        /// 仮想マシンに対して返すための関数の戻り値を、スタックフレームに設定します
+        /// 仮想マシンのAレジスタに値を設定します
         /// </summary>
         /// <param name="value">スタックフレームに設定する値</param>
-        public unsafe void SetResultInteger(long value)
+        public unsafe void SetResult(long value)
         {
-            // 受け取った値をそのまま設定
-            resultValue.Value.Long[0] = value;
+            // Aレジスタに値を設定する
+            SetResult(value, SrvmProcessor.RegisterAIndex);
         }
 
 
         /// <summary>
-        /// 仮想マシンに対して返すための関数の戻り値を、スタックフレームに設定します
+        /// 仮想マシンの指定レジスタに値を設定します
         /// </summary>
-        /// <param name="value">スタックフレームに設定する値</param>
-        public unsafe void SetResultNumber(float value)
+        /// <param name="value">設定する値</param>
+        /// <param name="registerIndex">設定する対象のレジスタインデックス</param>
+        public unsafe void SetResult(long value, int registerIndex)
         {
-            // 受け取った値をそのまま設定
-            resultValue.Value.Float[0] = value;
+            // 指定インデックスに値を設定する
+            context[registerIndex].Value.Long[0] = value;
         }
 
 
         /// <summary>
-        /// 仮想マシンに対して返すための関数の戻り値を、スタックフレームに設定します
+        /// 仮想マシンのAレジスタに値を設定します
         /// </summary>
         /// <param name="value">スタックフレームに設定する値</param>
-        public unsafe void SetResultObject(object value)
+        public unsafe void SetResult(float value)
         {
-            // 受け取った値をそのまま設定
-            resultObject.Value = value;
+            // Aレジスタに値を設定する
+            SetResult(value, SrvmProcessor.RegisterAIndex);
+        }
+
+
+        /// <summary>
+        /// 仮想マシンの指定レジスタに値を設定します
+        /// </summary>
+        /// <param name="value">設定する値</param>
+        /// <param name="registerIndex">設定する対象のレジスタインデックス</param>
+        public unsafe void SetResult(float value, int registerIndex)
+        {
+            // 指定インデックスに値を設定する
+            context[registerIndex].Value.Float[0] = value;
         }
         #endregion
 
 
         #region スタックフレームから関数の戻り値を取得する関数群
         /// <summary>
-        /// スタックフレームに設定した関数の戻り値を取得します
+        /// 仮想マシンのAレジスタに設定されている値を取得します
         /// </summary>
-        /// <returns>設定された関数の戻り値を返します</returns>
+        /// <returns>Aレジスタの値を返します</returns>
         public unsafe long GetResultInteger()
         {
             // どんな値が入っていようとそのまま返す
-            return resultValue.Value.Long[0];
+            return GetResultInteger(SrvmProcessor.RegisterAIndex);
         }
 
 
         /// <summary>
-        /// スタックフレームに設定した関数の戻り値を取得します
+        /// 仮想マシンの指定されたレジスタから値を取得します
         /// </summary>
-        /// <returns>設定された関数の戻り値を返します</returns>
+        /// <param name="registerIndex">値を取得するレジスタインデックス</param>
+        /// <returns>指定されたレジスタの値を返します</returns>
+        public unsafe long GetResultInteger(int registerIndex)
+        {
+            // どんな値が入っていようとそのまま返す
+            return context[registerIndex].Value.Long[0];
+        }
+
+
+        /// <summary>
+        /// 仮想マシンのAレジスタに設定されている値を取得します
+        /// </summary>
+        /// <returns>Aレジスタの値を返します</returns>
         public unsafe float GetResultNumber()
         {
             // どんな値が入っていようとそのまま返す
-            return resultValue.Value.Float[0];
+            return GetResultNumber(SrvmProcessor.RegisterAIndex);
         }
 
 
         /// <summary>
-        /// スタックフレームに設定した関数の戻り値を取得します
+        /// 仮想マシンの指定されたレジスタから値を取得します
         /// </summary>
-        /// <returns>設定された関数の戻り値を返します</returns>
-        public unsafe object GetResultObject()
+        /// <param name="registerIndex">値を取得するレジスタインデックス</param>
+        /// <returns>指定されたレジスタの値を返します</returns>
+        public unsafe float GetResultNumber(int registerIndex)
         {
             // どんな値が入っていようとそのまま返す
-            return resultObject.Value;
+            return context[registerIndex].Value.Float[0];
         }
         #endregion
     }

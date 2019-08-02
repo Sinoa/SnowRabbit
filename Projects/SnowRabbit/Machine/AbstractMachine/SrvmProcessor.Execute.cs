@@ -405,7 +405,7 @@ namespace SnowRabbit.Machine
                         var peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
                         var function = peripheral.GetFunction((int)context[regBNumber].Value.Long[0]);
                         var stackFrame = memory.Slice((int)context[RegisterSPIndex].Value.Long[0], (int)context[regCNumber].Value.Long[0]);
-                        var result = function(new SrStackFrame(stackFrame, process.ObjectMemory));
+                        var result = function(new SrStackFrame(context, stackFrame, process.ObjectMemory));
                         if (result == HostFunctionResult.Pause)
                         {
                             execution = false;
@@ -417,7 +417,7 @@ namespace SnowRabbit.Machine
                         peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
                         function = peripheral.GetFunction((int)context[regBNumber].Value.Long[0]);
                         stackFrame = memory.Slice((int)context[RegisterSPIndex].Value.Long[0], immediate);
-                        result = function(new SrStackFrame(stackFrame, process.ObjectMemory));
+                        result = function(new SrStackFrame(context, stackFrame, process.ObjectMemory));
                         if (result == HostFunctionResult.Pause)
                         {
                             execution = false;

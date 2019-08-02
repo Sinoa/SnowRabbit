@@ -42,8 +42,8 @@ namespace SnowRabbit.Machine
         public const int RegisterR15Index = 15; // FullGeneral Register (x8)[Rx => R8 - R15]
         public const int RegisterIPIndex = 16; // InstructionPointer Register (SpecialRegister index 0)[IP]
         // Register Information
-        public const int RegisterTotalCount = RegisterIPIndex + 1;
-        public const int ProcessorContextSize = RegisterTotalCount * 8;
+        private const int RegisterTotalCount = RegisterIPIndex + 1;
+        private const int ProcessorContextSize = RegisterTotalCount * 8;
 
 
 
