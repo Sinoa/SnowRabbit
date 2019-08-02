@@ -144,6 +144,32 @@ namespace SnowRabbit.Runtime
             // 指定インデックスに値を設定する
             context[registerIndex].Value.Float[0] = value;
         }
+
+
+        /// <summary>
+        /// 仮想マシンのオブジェクトメモリに値を設定し、そのアドレスをAレジスタに設定します
+        /// </summary>
+        /// <param name="value">オブジェクトメモリに設定する値</param>
+        /// <param name="objectMemoryAddress">設定する値のオブジェクトメモリのアドレス</param>
+        public unsafe void SetResult(object value, int objectMemoryAddress)
+        {
+            // Aレジスタに値を設定する
+            SetResult(value, objectMemoryAddress, SrvmProcessor.RegisterAIndex);
+        }
+
+
+        /// <summary>
+        /// 仮想マシンのオブジェクトメモリに値を設定し、そのアドレスを指定レジスタに設定します
+        /// </summary>
+        /// <param name="value">オブジェクトメモリに設定する値</param>
+        /// <param name="objectMemoryAddress">設定する値のオブジェクトメモリのアドレス</param>
+        /// <param name="registerIndex">設定する対象のレジスタインデックス</param>
+        public unsafe void SetResult(object value, int objectMemoryAddress, int registerIndex)
+        {
+            // オブジェクトメモリの指定場所に値を設定して、レジスタにはその場所を設定する
+            objectMemory[objectMemoryAddress].Value = value;
+            context[registerIndex].Value.Long[0] = objectMemoryAddress;
+        }
         #endregion
 
 
@@ -191,6 +217,28 @@ namespace SnowRabbit.Runtime
         {
             // どんな値が入っていようとそのまま返す
             return context[registerIndex].Value.Float[0];
+        }
+
+
+        /// <summary>
+        /// 仮想マシンのAレジスタに設定されいるオブジェクトメモリアドレスからオブジェクトメモリの内容を取得します
+        /// </summary>
+        /// <returns>Aレジスタが指しているオブジェクトメモリアドレスの位置のオブジェクトを返します</returns>
+        public unsafe object GetResultObject()
+        {
+            // どんな値が入っていようとそのまま返す
+            return GetResultObject(SrvmProcessor.RegisterAIndex);
+        }
+
+
+        /// <summary>
+        /// 仮想マシンの指定されたレジスタに設定されいるオブジェクトメモリアドレスからオブジェクトメモリの内容を取得します
+        /// </summary>
+        /// <returns>指定されたレジスタが指しているオブジェクトメモリアドレスの位置のオブジェクトを返します</returns>
+        public unsafe object GetResultObject(int registerIndex)
+        {
+            // どんな値が入っていようとそのまま返す
+            return objectMemory[(int)context[registerIndex].Value.Long[0]].Value;
         }
         #endregion
     }

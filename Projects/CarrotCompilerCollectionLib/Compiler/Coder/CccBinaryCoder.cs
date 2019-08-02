@@ -321,7 +321,7 @@ namespace CarrotCompilerCollection.Compiler
 
         private void SetupStringTable()
         {
-            var newAddress = 0;
+            var newAddress = 10; // reserved 10 size the object memory.
             foreach (var constant in constantTable)
             {
                 var name = constant.Key;
