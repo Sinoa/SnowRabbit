@@ -722,7 +722,8 @@ namespace CarrotCompilerCollection.Compiler
                 // condition expression
                 ParseExpression();
             }
-            var iterateSkipPatchIndex = coder.GenerateJumpTest(function, 0);
+            var forEndPatchIndex = coder.GenerateJumpTest(function, 0);
+            var iterateSkipPatchIndex = coder.GenerateOffsetJump(function, 0);
             ThrowExceptionIfUnknownToken(ref token, CccTokenKind.Semicolon);
             currentContext.Lexer.ReadNextToken();
             var forIterateHead = function.CurrentInstructionCount;
@@ -732,9 +733,8 @@ namespace CarrotCompilerCollection.Compiler
                 ParseExpression();
             }
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
-            coder.GenerateOffsetJump(function, forConditionHead - forIterateHead);
-            var forIterateTail = function.CurrentInstructionCount;
-            coder.UpdateJumpAddress(function, iterateSkipPatchIndex, forIterateTail - iterateSkipPatchIndex);
+            coder.GenerateOffsetJump(function, forConditionHead - function.CurrentInstructionCount);
+            coder.UpdateJumpAddress(function, iterateSkipPatchIndex, function.CurrentInstructionCount - iterateSkipPatchIndex);
 
 
             currentContext.Lexer.ReadNextToken();
@@ -744,6 +744,7 @@ namespace CarrotCompilerCollection.Compiler
             }
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
             coder.GenerateOffsetJump(function, forIterateHead - function.CurrentInstructionCount);
+            coder.UpdateJumpAddress(function, forEndPatchIndex, function.CurrentInstructionCount - forEndPatchIndex);
 
 
             function.StatementHeadAddressStack.Pop();

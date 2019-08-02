@@ -452,6 +452,7 @@ namespace CarrotCompilerCollection.Compiler
         #region code generate function
         public int GenerateJumpTest(FunctionInfo function, int offsetAddress)
         {
+            // if (false) goto offsetAddress.
             // movl ra = r8, imm = 0
             // teq ra = r15, rb = r15, rc = r8
             // bnz ra = ip, rb = r15, imm = endlabel
@@ -667,14 +668,14 @@ namespace CarrotCompilerCollection.Compiler
                     break;
 
 
-                case CccTokenKind.PlusEqual: // +=
+                case CccTokenKind.PlusEqual: // += (current not supported)
                 case CccTokenKind.Plus: // +
                     opCode = left.Type == CccType.Int ? OpCode.Add : OpCode.Fadd;
                     function.CreateInstruction(opCode, r15, r15, r14, 0, false);
                     break;
 
 
-                case CccTokenKind.MinusEqual: // -=
+                case CccTokenKind.MinusEqual: // -= (current not supported)
                 case CccTokenKind.Minus: // -
                     opCode = left.Type == CccType.Int ? OpCode.Sub : OpCode.Fsub;
                     function.CreateInstruction(opCode, r15, r15, r14, 0, false);
