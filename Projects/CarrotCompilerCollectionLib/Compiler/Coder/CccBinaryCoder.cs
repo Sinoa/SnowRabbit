@@ -712,6 +712,11 @@ namespace CarrotCompilerCollection.Compiler
                     break;
 
 
+                case CccTokenKind.NotEqual: // !=
+                    function.CreateInstruction(OpCode.Tne, r15, r15, r14, 0, false);
+                    break;
+
+
                 case CccTokenKind.CloseAngle: // >
                     function.CreateInstruction(OpCode.Tg, r15, r15, r14, 0, false);
                     break;

@@ -55,9 +55,9 @@ namespace CarrotCompilerCollection.Compiler
                 { CccTokenKind.DoubleAnd, (10, 10) }, { CccTokenKind.DoubleVerticalbar, (10, 10) },                             // '&&', '||'
                 { CccTokenKind.DoubleCloseAngle, (7, 6) }, { CccTokenKind.DoubleOpenAngle, (7, 6) },                            // '>>', '<<'
                 { CccTokenKind.DoubleEqual, (5, 5) }, { CccTokenKind.CloseAngle, (5, 5) }, { CccTokenKind.OpenAngle, (5, 5) },  // '==', '>', '<'
-                { CccTokenKind.GreaterEqual, (5, 5) }, { CccTokenKind.LesserEqual, (5, 5) },                                    // '>=', '<='
+                { CccTokenKind.GreaterEqual, (5, 5) }, { CccTokenKind.LesserEqual, (5, 5) }, { CccTokenKind.NotEqual, (5, 5) }, // '>=', '<=', '!='
                 { CccTokenKind.PlusEqual, (2, 1) }, { CccTokenKind.MinusEqual, (2, 1) },                                        // '+=', '-='
-                { CccTokenKind.Equal, (2, 1) }                                                                                  // '='
+                { CccTokenKind.Equal, (2, 1) } ,                                                                                // '='
             };
         }
 
