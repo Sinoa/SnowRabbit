@@ -873,6 +873,7 @@ namespace CarrotCompilerCollection.Compiler
                     value.IdentifierKind = CccBinaryCoder.IdentifierKind.ConstantValue;
                     value.Type = CccBinaryCoder.CccType.Int;
                     value.Integer = token.Integer;
+                    currentContext.Lexer.ReadNextToken();
                     break;
 
 
@@ -880,6 +881,7 @@ namespace CarrotCompilerCollection.Compiler
                     value.IdentifierKind = CccBinaryCoder.IdentifierKind.ConstantValue;
                     value.Type = CccBinaryCoder.CccType.Number;
                     value.Number = token.Number;
+                    currentContext.Lexer.ReadNextToken();
                     break;
 
 
@@ -887,6 +889,7 @@ namespace CarrotCompilerCollection.Compiler
                     value.IdentifierKind = CccBinaryCoder.IdentifierKind.ConstantValue;
                     value.Type = CccBinaryCoder.CccType.String;
                     value.Text = token.Text;
+                    currentContext.Lexer.ReadNextToken();
                     break;
 
 
