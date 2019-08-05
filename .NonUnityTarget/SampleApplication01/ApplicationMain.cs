@@ -89,6 +89,7 @@ namespace SampleApplication01
             // 関数の登録をしていく
             registryHandler(nameof(ConsoleWriteLine), ConsoleWriteLine);
             registryHandler(nameof(Stop), Stop);
+            registryHandler(nameof(Input), Input);
         }
 
 
@@ -114,6 +115,14 @@ namespace SampleApplication01
         {
             // 停止を要求する
             return HostFunctionResult.Pause;
+        }
+
+
+        private HostFunctionResult Input(SrStackFrame stackFrame)
+        {
+            var result = Console.ReadLine();
+            stackFrame.SetResult(long.Parse(result));
+            return HostFunctionResult.Continue;
         }
     }
 }

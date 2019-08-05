@@ -790,7 +790,7 @@ namespace CarrotCompilerCollection.Compiler
 
         private void ParseIfStatement()
         {
-            var targetFunction = coder.GetFunction(currentParseFunctionName);
+            var function = coder.GetFunction(currentParseFunctionName);
             ref var token = ref currentContext.Lexer.LastReadToken;
             ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
             currentContext.Lexer.ReadNextToken();
@@ -798,10 +798,10 @@ namespace CarrotCompilerCollection.Compiler
             ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
 
 
-            var patchTargetIndex = coder.GenerateJumpTest(targetFunction, 0);
+            var endPatchTargetList = new List<int>();
+            var patchTargetIndex = coder.GenerateJumpTest(function, 0);
 
 
-            bool existsElse = false;
             currentContext.Lexer.ReadNextToken();
             while (token.Kind != CccTokenKind.End)
             {
@@ -810,29 +810,32 @@ namespace CarrotCompilerCollection.Compiler
 
                 if (token.Kind == CccTokenKind.ElseIf)
                 {
-                    coder.UpdateJumpAddress(targetFunction, patchTargetIndex, targetFunction.CurrentInstructionCount - patchTargetIndex);
+                    coder.UpdateJumpAddress(function, patchTargetIndex, function.CurrentInstructionCount - patchTargetIndex);
                     currentContext.Lexer.ReadNextToken();
                     ThrowExceptionNotStartOpenSymbol(ref token, CccTokenKind.OpenParen, "(");
                     currentContext.Lexer.ReadNextToken();
                     ParseExpression();
                     ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.CloseParen, ")");
-
-
-                    patchTargetIndex = coder.GenerateJumpTest(targetFunction, 0);
+                    patchTargetIndex = coder.GenerateJumpTest(function, 0);
+                    endPatchTargetList.Add(coder.GenerateOffsetJump(function, 0));
+                    currentContext.Lexer.ReadNextToken();
                 }
 
 
                 if (token.Kind == CccTokenKind.Else)
                 {
-                    existsElse = true;
-                    coder.UpdateJumpAddress(targetFunction, patchTargetIndex, targetFunction.CurrentInstructionCount - patchTargetIndex);
+                    var nextPatchIndex = coder.GenerateOffsetJump(function, 0);
+                    coder.UpdateJumpAddress(function, patchTargetIndex, function.CurrentInstructionCount - patchTargetIndex);
+                    patchTargetIndex = nextPatchIndex;
+                    currentContext.Lexer.ReadNextToken();
                 }
             }
-            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
 
-            if (!existsElse)
+            ThrowExceptionNotEndCloseSymbol(ref token, CccTokenKind.End, "end");
+            coder.UpdateJumpAddress(function, patchTargetIndex, function.CurrentInstructionCount - patchTargetIndex);
+            foreach (var endPatchTarget in endPatchTargetList)
             {
-                coder.UpdateJumpAddress(targetFunction, patchTargetIndex, targetFunction.CurrentInstructionCount - patchTargetIndex);
+                coder.UpdateJumpAddress(function, endPatchTarget, function.CurrentInstructionCount - endPatchTarget);
             }
 
 
