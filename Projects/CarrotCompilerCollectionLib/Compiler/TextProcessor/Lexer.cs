@@ -85,11 +85,6 @@ namespace CarrotCompilerCollection.Compiler
         public const int Else = KeywordOffset + 50;
 
         /// <summary>
-        /// elseif
-        /// </summary>
-        public const int ElseIf = KeywordOffset + 55;
-
-        /// <summary>
         /// for
         /// </summary>
         public const int For = KeywordOffset + 60;
@@ -152,7 +147,6 @@ namespace CarrotCompilerCollection.Compiler
             tokenTable["local"] = CccTokenKind.Local;
             tokenTable["if"] = CccTokenKind.If;
             tokenTable["else"] = CccTokenKind.Else;
-            tokenTable["elseif"] = CccTokenKind.ElseIf;
             tokenTable["for"] = CccTokenKind.For;
             tokenTable["while"] = CccTokenKind.While;
             tokenTable["link"] = CccTokenKind.Link;
