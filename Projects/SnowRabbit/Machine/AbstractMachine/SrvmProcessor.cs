@@ -102,5 +102,20 @@ namespace SnowRabbit.Machine
             regBNumber = instruction.Rb;
             regCNumber = instruction.Rc;
         }
+
+
+        internal static void DoWakeupProcess(ref SrProcess process)
+        {
+            // プロセスが停止または未起動なら
+            if (process.ProcessStatus == SrProcessStatus.Stopped || process.ProcessStatus == SrProcessStatus.Unstarted)
+            {
+                // プロセスは起こせない
+                return;
+            }
+
+
+            // プロセスを起こす
+            process.ProcessStatus = SrProcessStatus.Running;
+        }
     }
 }

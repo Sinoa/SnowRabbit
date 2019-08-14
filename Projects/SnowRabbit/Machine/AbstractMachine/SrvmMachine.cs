@@ -239,6 +239,17 @@ namespace SnowRabbit.Machine
             // プロセッサにそのまま実行してもらう
             Processor.Execute(ref process);
         }
+
+
+        /// <summary>
+        /// 停止中のプロセスを起床させてプロセスが実行出来る状態にします
+        /// </summary>
+        /// <param name="process">起床させるプロセス</param>
+        public void DoWakeupProcess(ref SrProcess process)
+        {
+            // プロセッサにプロセスを起こしてもらう
+            SrvmProcessor.DoWakeupProcess(ref process);
+        }
         #endregion
     }
 }

@@ -26,6 +26,22 @@ namespace SnowRabbit.Machine
         /// <param name="process">実行するプロセスへの参照</param>
         internal unsafe void Execute(ref SrProcess process)
         {
+            // プロセスが停止中または一時停止中なら
+            if (process.ProcessStatus == SrProcessStatus.Stopped || process.ProcessStatus == SrProcessStatus.Suspended)
+            {
+                // 何もせず終了
+                return;
+            }
+
+
+            // プロセスが未起動なら
+            if (process.ProcessStatus == SrProcessStatus.Unstarted)
+            {
+                // 起動する
+                process.ProcessStatus = SrProcessStatus.Running;
+            }
+
+
             // プロセスの各種フィールドへの参照を取得しておく
             ref var context = ref process.ProcessorContext;
             ref var memory = ref process.ProcessMemory;
@@ -48,6 +64,7 @@ namespace SnowRabbit.Machine
                     #region CPU Control
                     case OpCode.Halt:
                         execution = false;
+                        process.ProcessStatus = SrProcessStatus.Stopped;
                         break;
                     #endregion
 
@@ -409,6 +426,7 @@ namespace SnowRabbit.Machine
                         if (result == HostFunctionResult.Pause)
                         {
                             execution = false;
+                            process.ProcessStatus = SrProcessStatus.Suspended;
                         }
                         break;
 
@@ -421,6 +439,7 @@ namespace SnowRabbit.Machine
                         if (result == HostFunctionResult.Pause)
                         {
                             execution = false;
+                            process.ProcessStatus = SrProcessStatus.Suspended;
                         }
                         break;
 

@@ -33,6 +33,11 @@ namespace SnowRabbit.Runtime
         internal int ProcessID;
 
         /// <summary>
+        /// このプロセスの状態
+        /// </summary>
+        internal SrProcessStatus ProcessStatus;
+
+        /// <summary>
         /// このプロセスを実行するプロセッサコンテキストのメモリブロック
         /// </summary>
         internal MemoryBlock<SrValue> ProcessorContext;
@@ -46,6 +51,19 @@ namespace SnowRabbit.Runtime
         /// このプロセスが持つプロセス空間のオブジェクトメモリブロック
         /// </summary>
         internal MemoryBlock<SrObject> ObjectMemory;
+
+
+
+        /// <summary>
+        /// このプロセスの状態を取得します
+        /// </summary>
+        public SrProcessStatus Status => ProcessStatus;
+
+
+        /// <summary>
+        /// このプロセスが停止しているかどうか
+        /// </summary>
+        public bool IsStopped => ProcessStatus == SrProcessStatus.Stopped;
 
 
 
@@ -66,6 +84,16 @@ namespace SnowRabbit.Runtime
         {
             // 仮想マシンに終了を要求する
             Machine.TerminateProcess(ref this);
+        }
+
+
+        /// <summary>
+        /// このプロセスを起床させます
+        /// </summary>
+        public void DoWakeup()
+        {
+            // 仮想マシンに起床を要求する
+            Machine.DoWakeupProcess(ref this);
         }
     }
 }

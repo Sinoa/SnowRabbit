@@ -164,6 +164,7 @@ namespace SnowRabbit.Machine
             Machine.Processor.InitializeContext(ref process);
             process.Machine = Machine;
             process.ProcessID = nextProcessID++;
+            process.ProcessStatus = SrProcessStatus.Unstarted;
         }
 
 
