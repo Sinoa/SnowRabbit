@@ -182,6 +182,15 @@ namespace SnowRabbit.Machine
             }
 
 
+            // プロセスの状態を停止状態にしてオブジェクトメモリの参照を全てnullにする
+            process.ProcessStatus = SrProcessStatus.Stopped;
+            for (int i = 0; i < process.ObjectMemory.Length; ++i)
+            {
+                // 参照を殺す
+                process.ObjectMemory[0].Value = null;
+            }
+
+
             // プロセスに紐付いているメモリの開放をする
             Machine.Memory.DeallocateObject(process.ObjectMemory);
             Machine.Memory.DeallocateValue(process.ProcessMemory);
