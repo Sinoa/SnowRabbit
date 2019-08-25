@@ -37,6 +37,17 @@ namespace SnowRabbit.Runtime
         /// </summary>
         private MemoryBlock<SrObject> objectMemory;
 
+        /// <summary>
+        /// このスタックフレームを持つプロセスのID
+        /// </summary>
+        private readonly int processID;
+
+
+
+        /// <summary>
+        /// このスタックフレームの提供するプロセスID
+        /// </summary>
+        public int ProcessID => processID;
 
 
         /// <summary>
@@ -49,12 +60,14 @@ namespace SnowRabbit.Runtime
         /// <summary>
         /// SrStackFrame 構造体のインスタンスを初期化します
         /// </summary>
+        /// <param name="processID">このスタックフレームを提供するプロセスのID</param>
         /// <param name="context">このスタックフレームを提供するプロセスコンテキスト</param>
         /// <param name="stack">スタックフレームとして切り出されたメモリブロック</param>
         /// <param name="objectMemory">仮想マシンのオブジェクトメモリ本体</param>
-        public SrStackFrame(MemoryBlock<SrValue> context, MemoryBlock<SrValue> stack, MemoryBlock<SrObject> objectMemory)
+        public SrStackFrame(int processID, MemoryBlock<SrValue> context, MemoryBlock<SrValue> stack, MemoryBlock<SrObject> objectMemory)
         {
             // メンバ変数の初期化をする
+            this.processID = processID;
             this.context = context;
             this.stack = stack;
             this.objectMemory = objectMemory;

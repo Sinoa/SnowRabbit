@@ -55,6 +55,12 @@ namespace SnowRabbit.Runtime
 
 
         /// <summary>
+        /// このプロセスのIDを取得します。負の値の場合は無効なプロセスとなります。
+        /// </summary>
+        public int ID => ProcessID;
+
+
+        /// <summary>
         /// このプロセスの状態を取得します
         /// </summary>
         public SrProcessStatus Status => ProcessStatus;
