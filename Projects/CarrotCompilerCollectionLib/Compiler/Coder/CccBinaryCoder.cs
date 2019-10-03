@@ -779,7 +779,7 @@ namespace CarrotCompilerCollection.Compiler
 
                 case IdentifierKind.ArgumentVariable:
                     var argumentInfo = function.ArgumentTable[value.Text];
-                    var offsetAddress = function.ArgumentTable.Count - 1 - argumentInfo.Index;
+                    var offsetAddress = function.ArgumentTable.Count + 1 - argumentInfo.Index;
                     function.CreateInstruction(OpCode.Ldr, registerNum, SrvmProcessor.RegisterBPIndex, 0, offsetAddress, false);
                     break;
 
