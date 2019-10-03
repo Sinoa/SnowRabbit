@@ -160,6 +160,17 @@ namespace SnowRabbit.Runtime
 
 
         /// <summary>
+        /// 仮想マシンのオブジェクトメモリのアドレス0に値を設定し、そのアドレスをAレジスタに設定します
+        /// </summary>
+        /// <param name="value">オブジェクトメモリに設定する値</param>
+        public unsafe void SetResult(object value)
+        {
+            // アドレス0に値を入れてAレジスタに値を設定する
+            SetResult(value, 0, SrvmProcessor.RegisterAIndex);
+        }
+
+
+        /// <summary>
         /// 仮想マシンのオブジェクトメモリに値を設定し、そのアドレスをAレジスタに設定します
         /// </summary>
         /// <param name="value">オブジェクトメモリに設定する値</param>
