@@ -5,7 +5,7 @@
     <Copyright>Copyright(c) 2019 Sinoa</Copyright>
     <Description>Pure CSharp host script engine</Description>
     <Version>0.0.1</Version>
-    <PackageLicenseExpression>zlib/libpng</PackageLicenseExpression>
+    <PackageLicenseExpression>Zlib</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Sinoa/SnowRabbit</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
     <PackageProjectUrl>https://github.com/Sinoa/SnowRabbit</PackageProjectUrl>
