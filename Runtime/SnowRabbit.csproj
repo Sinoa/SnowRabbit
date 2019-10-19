@@ -4,6 +4,13 @@
     <Authors>Sinoa</Authors>
     <Copyright>Copyright(c) 2019 Sinoa</Copyright>
     <Description>Pure CSharp host script engine</Description>
+    <Version>0.0.1</Version>
+    <PackageLicenseExpression>zlib/libpng</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Sinoa/SnowRabbit</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <PackageProjectUrl>https://github.com/Sinoa/SnowRabbit</PackageProjectUrl>
+    <PackageTags>ScriptEngine</PackageTags>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
