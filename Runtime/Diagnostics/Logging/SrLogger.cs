@@ -24,7 +24,14 @@ namespace SnowRabbit.Diagnostics.Logging
     public static class SrLogger
     {
         // クラス変数宣言
-        private static ISrLogHandler logHandler;
+        private static ISrLogHandler logHandler = SrConsoleLogHandler.Instance;
+
+
+
+        /// <summary>
+        /// 実際のログ操作を行うハンドラ
+        /// </summary>
+        public static ISrLogHandler LogHandler { get => logHandler; set => logHandler = value ?? SrNullLogHandler.Instance; }
 
 
 
@@ -98,10 +105,11 @@ namespace SnowRabbit.Diagnostics.Logging
         /// <param name="tag">ログに紐付けるタグ。null を渡された場合は、空文字列として扱われます。</param>
         /// <param name="message">ログに出力するメッセージ。null を渡された場合は、空文字列として扱われます。</param>
         /// <param name="exception">致命的な問題となった原因の例外</param>
+        /// <exception cref="ArgumentNullException">exception が null です</exception>
         public static void Fatal(string tag, string message, Exception exception)
         {
             // ハンドラの対応する出力を行う
-            logHandler.Fatal(tag ?? string.Empty, message ?? string.Empty, exception);
+            logHandler.Fatal(tag ?? string.Empty, message ?? string.Empty, exception ?? throw new ArgumentNullException(nameof(exception)));
         }
     }
 }

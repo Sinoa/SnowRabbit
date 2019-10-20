@@ -109,6 +109,8 @@ namespace SnowRabbit.Diagnostics.Logging
         /// <param name="message">ログに出力するメッセージ</param>
         public void Trace(string tag, string message)
         {
+            // テキストをフォーマットして書き込む
+            Write($"{tag}:{message}", TraceBackgroundColor, TraceForegroundColor);
         }
 
 
@@ -119,6 +121,8 @@ namespace SnowRabbit.Diagnostics.Logging
         /// <param name="message">ログに出力するメッセージ</param>
         public void Debug(string tag, string message)
         {
+            // テキストをフォーマットして書き込む
+            Write($"{tag}:{message}", DebugBackgroundColor, DebugForegroundColor);
         }
 
 
@@ -129,6 +133,8 @@ namespace SnowRabbit.Diagnostics.Logging
         /// <param name="message">ログに出力するメッセージ</param>
         public void Info(string tag, string message)
         {
+            // テキストをフォーマットして書き込む
+            Write($"{tag}:{message}", InfoBackgroundColor, InfoForegroundColor);
         }
 
 
@@ -139,6 +145,8 @@ namespace SnowRabbit.Diagnostics.Logging
         /// <param name="message">ログに出力するメッセージ</param>
         public void Warning(string tag, string message)
         {
+            // テキストをフォーマットして書き込む
+            Write($"{tag}:{message}", WarningBackgroundColor, WarningForegroundColor);
         }
 
 
@@ -149,6 +157,8 @@ namespace SnowRabbit.Diagnostics.Logging
         /// <param name="message">ログに出力するメッセージ</param>
         public void Error(string tag, string message)
         {
+            // テキストをフォーマットして書き込む
+            Write($"{tag}:{message}", ErrorBackgroundColor, ErrorForegroundColor);
         }
 
 
@@ -160,6 +170,27 @@ namespace SnowRabbit.Diagnostics.Logging
         /// <param name="exception">致命的な問題となった原因の例外</param>
         public void Fatal(string tag, string message, Exception exception)
         {
+            // テキストをフォーマットして書き込む
+            Write($"{tag}:{message}\n  [{exception.Message}]", FatalBackgroundColor, FatalForegroundColor);
+        }
+
+
+        /// <summary>
+        /// 指定されたテキストと色を使ってコンソールに書き込みます
+        /// </summary>
+        /// <param name="text">出力するテキスト</param>
+        /// <param name="background">出力するテキストの背景色</param>
+        /// <param name="foreground">出力するテキストの前景色</param>
+        private void Write(string text, ConsoleColor background, ConsoleColor foreground)
+        {
+            // 指定された色を設定してログを出す
+            var backgroundColor = Console.BackgroundColor;
+            var foregroundColor = Console.ForegroundColor;
+            Console.BackgroundColor = background;
+            Console.ForegroundColor = foreground;
+            Console.WriteLine(text);
+            Console.BackgroundColor = backgroundColor;
+            Console.ForegroundColor = foregroundColor;
         }
     }
 }
