@@ -15,7 +15,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace SnowRabbit
+namespace SnowRabbit.Basic
 {
     /// <summary>
     /// 仮想マシンが使用するプリミティブ型として表現する構造体です
