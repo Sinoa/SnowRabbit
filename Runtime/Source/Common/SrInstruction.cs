@@ -131,6 +131,8 @@ namespace SnowRabbit
         private void SetCommon(OpCode opCode, byte r1, byte r2, byte r3)
         {
             // オペコードとレジスタ値を設定して予約領域はゼロクリア
+            // 16bit変数の内訳として、5bit長のレジスタ指定値が3つ入る
+            // MSB[1bit:Reserved, 5bit:R1, 5bit:R2, 5bit:R3]LSB
             OpCode = opCode;
             Reserved = 0;
             Register = 0;
@@ -148,6 +150,8 @@ namespace SnowRabbit
         /// <param name="r3">レジスタ指定引数3</param>
         public void GetRegisterNumber(out byte r1, out byte r2, out byte r3)
         {
+            // 16bit変数の内訳として、5bit長のレジスタ指定値が3つ入る
+            // MSB[1bit:Reserved, 5bit:R1, 5bit:R2, 5bit:R3]LSB
             r1 = (byte)((Register >> 10) & 0x1F);
             r2 = (byte)((Register >> 5) & 0x1F);
             r3 = (byte)((Register >> 0) & 0x1F);
