@@ -21,7 +21,7 @@ namespace SnowRabbit.Diagnostics.Profiling
     /// <summary>
     /// 単一スレッドのプロファイリング状態を保持するプロファイルコンテキストクラスです
     /// </summary>
-    internal class SrProfileContext
+    internal class SrProfilerContext
     {
         // メンバ変数定義
         private Stopwatch stopwatch = new Stopwatch();
@@ -51,12 +51,12 @@ namespace SnowRabbit.Diagnostics.Profiling
         }
 
 
-        public void HandleValue(string valueName, Func<long, long> handler)
+        public void HandleCounterValue(string valueName, Func<long, long> handler)
         {
         }
 
 
-        public void HandleGlobalValue(string valueName, Func<long, long> handler)
+        public void HandleThreadValue(string valueName, Func<long, long> handler)
         {
         }
     }
