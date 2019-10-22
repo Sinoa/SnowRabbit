@@ -35,7 +35,7 @@ namespace SnowRabbit.Diagnostics.Profiling
         /// <summary>
         /// 現在のスレッドにおけるパフォーマンスプロファイリングを開始します
         /// </summary>
-        [Conditional("SR_PROFILING")]
+        [Conditional(InternalString.Conditional.PROFILING)]
         public static void Begin()
         {
             // 自身のスレッドに紐付くプロファイラコンテキストを開始する
@@ -46,7 +46,7 @@ namespace SnowRabbit.Diagnostics.Profiling
         /// <summary>
         /// 現在のスレッドにおけるパフォーマンスプロファイリングを終了します
         /// </summary>
-        [Conditional("SR_PROFILING")]
+        [Conditional(InternalString.Conditional.PROFILING)]
         public static void End()
         {
             // 自身のスレッドに紐付くプロファイラコンテキストを終了する
@@ -59,7 +59,7 @@ namespace SnowRabbit.Diagnostics.Profiling
         /// ネストから脱出するためには Exit() 関数を呼び出してください。
         /// </summary>
         /// <param name="counterName">突入するカウンター名</param>
-        [Conditional("SR_PROFILING")]
+        [Conditional(InternalString.Conditional.PROFILING)]
         public static void Enter(string counterName)
         {
             // 自身のスレッドに紐付くカウンターに突入する
@@ -70,7 +70,7 @@ namespace SnowRabbit.Diagnostics.Profiling
         /// <summary>
         /// 現在のカウンターから脱出します。
         /// </summary>
-        [Conditional("SR_PROFILING")]
+        [Conditional(InternalString.Conditional.PROFILING)]
         public static void Exit()
         {
             // 自身のスレッドに紐付くカウンターから脱出する
@@ -83,11 +83,14 @@ namespace SnowRabbit.Diagnostics.Profiling
         /// </summary>
         /// <param name="valueName">操作するプロファイル値の名前</param>
         /// <param name="handler">指定されたプロファイル値の操作関数</param>
-        [Conditional("SR_PROFILING")]
+        /// <exception cref="ArgumentException">プロファイル値名が null または 空文字列 です</exception>
+        /// <exception cref="ArgumentNullException">handler が null です</exception>
+        [Conditional(InternalString.Conditional.PROFILING)]
         public static void HandleCounterValue(string valueName, Func<long, long> handler)
         {
             // 自身のスレッドに紐付くカウンターのプロファイル値を操作する
-            context.Value.HandleCounterValue(valueName, handler);
+            ThrowExceptionIfInvalidValueName(valueName);
+            context.Value.HandleCounterValue(valueName, handler ?? throw new ArgumentNullException(nameof(handler)));
         }
 
 
@@ -96,11 +99,14 @@ namespace SnowRabbit.Diagnostics.Profiling
         /// </summary>
         /// <param name="valueName">操作するプロファイル値の名前</param>
         /// <param name="handler">指定されたプロファイル値の操作関数</param>
-        [Conditional("SR_PROFILING")]
+        /// <exception cref="ArgumentException">プロファイル値名が null または 空文字列 です</exception>
+        /// <exception cref="ArgumentNullException">handler が null です</exception>
+        [Conditional(InternalString.Conditional.PROFILING)]
         public static void HandleThreadValue(string valueName, Func<long, long> handler)
         {
             // 自身のスレッドに紐付くプロファイラコンテキストのプロファイル値を操作する
-            context.Value.HandleThreadValue(valueName, handler);
+            ThrowExceptionIfInvalidValueName(valueName);
+            context.Value.HandleThreadValue(valueName, handler ?? throw new ArgumentNullException(nameof(handler)));
         }
 
 
@@ -109,11 +115,30 @@ namespace SnowRabbit.Diagnostics.Profiling
         /// </summary>
         /// <param name="valueName">操作するプロファイル値の名前</param>
         /// <param name="handler">指定されたプロファイル値の操作関数</param>
-        [Conditional("SR_PROFILING")]
+        /// <exception cref="ArgumentException">プロファイル値名が null または 空文字列 です</exception>
+        /// <exception cref="ArgumentNullException">handler が null です</exception>
+        [Conditional(InternalString.Conditional.PROFILING)]
         public static void HandleGlobalValue(string valueName, Func<long, long> handler)
         {
             // プロファイル値テーブルをロックして値を操作する
-            lock (valueTable) valueTable[valueName] = handler(valueTable[valueName]);
+            ThrowExceptionIfInvalidValueName(valueName);
+            lock (valueTable) valueTable[valueName] = (handler ?? throw new ArgumentNullException(nameof(handler))).Invoke(valueTable[valueName]);
+        }
+
+
+        /// <summary>
+        /// プロファイル値名に無効な値が渡された場合に例外をスローします
+        /// </summary>
+        /// <param name="valueName">確認するプロファイル値名</param>
+        /// <exception cref="ArgumentException">プロファイル値名が null または 空文字列 です</exception>
+        private static void ThrowExceptionIfInvalidValueName(string valueName)
+        {
+            // null または 空文字列 なら
+            if (string.IsNullOrWhiteSpace(valueName))
+            {
+                // 例外を吐く
+                throw new ArgumentException(InternalString.ExceptionMessage.Profiler.INVALID_VALUE_NAME);
+            }
         }
     }
 }

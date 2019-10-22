@@ -47,7 +47,7 @@ namespace SnowRabbit.Diagnostics.Logging
         /// トレースログフィルタに出力を許可するタグを設定します。この関数は "TRACE" コンパイル定数を定義しない限り呼び出しは消去されます。
         /// </summary>
         /// <param name="traceTag">許可するタグ。null を渡された場合は、空文字列として扱われます。</param>
-        [Conditional("TRACE")]
+        [Conditional(InternalString.Conditional.TRACE)]
         public static void SetFilterTraceTag(string traceTag)
         {
             // フィルターセットに追加
@@ -59,7 +59,7 @@ namespace SnowRabbit.Diagnostics.Logging
         /// トレースログフィルタに設定されたタグを外します。この関数は "TRACE" コンパイル定数を定義しない限り呼び出しは消去されます。
         /// </summary>
         /// <param name="traceTag">外すタグ。null を渡された場合は、空文字列として扱われます。</param>
-        [Conditional("TRACE")]
+        [Conditional(InternalString.Conditional.TRACE)]
         public static void UnsetFilterTraceTag(string traceTag)
         {
             // フィルターセットから削除
@@ -70,7 +70,7 @@ namespace SnowRabbit.Diagnostics.Logging
         /// <summary>
         /// トレースログフィルタに設定されたすべてのタグを削除します
         /// </summary>
-        [Conditional("TRACE")]
+        [Conditional(InternalString.Conditional.TRACE)]
         public static void ClearFilterTraceTag()
         {
             // フィルターセットをクリア
@@ -85,7 +85,7 @@ namespace SnowRabbit.Diagnostics.Logging
         /// </summary>
         /// <param name="tag">ログに紐付けるタグ。null を渡された場合は、空文字列として扱われます。</param>
         /// <param name="message">ログに出力するメッセージ。null を渡された場合は、空文字列として扱われます。</param>
-        [Conditional("TRACE")]
+        [Conditional(InternalString.Conditional.TRACE)]
         public static void Trace(string tag, string message)
         {
             // トレースタグフィルタが有効 かつ トレースタグフィルタセットにタグが含まれていなければ
@@ -107,7 +107,7 @@ namespace SnowRabbit.Diagnostics.Logging
         /// </summary>
         /// <param name="tag">ログに紐付けるタグ。null を渡された場合は、空文字列として扱われます。</param>
         /// <param name="message">ログに出力するメッセージ。null を渡された場合は、空文字列として扱われます。</param>
-        [Conditional("DEBUG")]
+        [Conditional(InternalString.Conditional.DEBUG)]
         public static void Debug(string tag, string message)
         {
             // ハンドラの対応する出力を行う
