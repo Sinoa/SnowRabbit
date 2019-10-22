@@ -13,22 +13,41 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-namespace SnowRabbit.Basic
+using System.Runtime.InteropServices;
+
+namespace SnowRabbit.RuntimeEngine
 {
     /// <summary>
-    /// 仮想マシンが使用する値の最小単位を表現した構造体です
+    /// 仮想マシンが使用するプリミティブ型として表現する構造体です
     /// </summary>
-    public struct SrValue
+    [StructLayout(LayoutKind.Explicit)]
+    public struct SrPrimitive
     {
         /// <summary>
-        /// プリミティブ型としての値
+        /// 符号付き64bit整数
         /// </summary>
-        public SrPrimitive Primitive;
+        [FieldOffset(0)]
+        public long Long;
 
 
         /// <summary>
-        /// 参照型としての値
+        /// 符号なし64bit整数
         /// </summary>
-        public object Object;
+        [FieldOffset(0)]
+        public ulong Ulong;
+
+
+        /// <summary>
+        /// 64bit浮動小数点
+        /// </summary>
+        [FieldOffset(0)]
+        public double Double;
+
+
+        /// <summary>
+        /// 仮想マシンの命令
+        /// </summary>
+        [FieldOffset(0)]
+        public SrInstruction Instruction;
     }
 }

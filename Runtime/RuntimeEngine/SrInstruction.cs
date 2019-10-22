@@ -15,7 +15,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace SnowRabbit.Basic
+namespace SnowRabbit.RuntimeEngine
 {
     /// <summary>
     /// 仮想マシンが実行する命令の構造を表現した構造体です。また構造はリトルエンディアンを前提としています。
