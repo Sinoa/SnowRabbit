@@ -85,8 +85,14 @@ namespace SnowRabbit.Diagnostics.Profiling
         }
 
 
+        /// <summary>
+        /// カウンターの起動を開始します
+        /// </summary>
+        /// <param name="startTick">開始したタイマーのチックカウント値</param>
         public void Start(long startTick)
         {
+            // 開始タイマー刻みを覚える
+            this.startTick = startTick;
         }
 
 
