@@ -25,8 +25,8 @@ namespace SnowRabbit.Diagnostics.Logging
     public static class SrLogger
     {
         // クラス変数宣言
+        private static readonly HashSet<string> traceTagFilterSet = new HashSet<string>();
         private static ISrLogHandler logHandler = SrConsoleLogHandler.Instance;
-        private static HashSet<string> traceTagFilterSet = new HashSet<string>();
 
 
 
