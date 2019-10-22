@@ -12,7 +12,7 @@ Unityプロジェクトにパッケージとして .NET Core プロジェクト�
 <Project>
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
-    <OutputPath>.bin\</OutputPath>
-    <BaseIntermediateOutputPath>.obj\</BaseIntermediateOutputPath>
+    <OutputPath>.bin\$(Configuration)\</OutputPath>
+    <BaseIntermediateOutputPath>.obj\$(Configuration)\</BaseIntermediateOutputPath>
   </PropertyGroup>
 </Project>
