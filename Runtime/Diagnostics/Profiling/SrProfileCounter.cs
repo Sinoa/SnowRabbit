@@ -21,14 +21,10 @@ namespace SnowRabbit.Diagnostics.Profiling
     /// <summary>
     /// プロファイリングする最小単位として特定区間のパフォーマンスを保持するクラスです
     /// </summary>
-    public class SrProfileCounter
+    internal class SrProfileCounter
     {
-        // 定数定義
-        public const string RootCounterName = "ROOT_COUNTER";
-
         // メンバ変数定義
         private Dictionary<string, SrProfileCounter> childTable = new Dictionary<string, SrProfileCounter>();
-        private Dictionary<string, long> countTable = new Dictionary<string, long>();
         private long startTick = 0;
 
 
@@ -40,9 +36,9 @@ namespace SnowRabbit.Diagnostics.Profiling
 
 
         /// <summary>
-        /// このカウンターが生成された順番
+        /// このカウンターの親。null の場合はルートのカウンターであることを意味します。
         /// </summary>
-        public int Order { get; private set; }
+        public SrProfileCounter Parent { get; private set; }
 
 
         /// <summary>
@@ -54,7 +50,7 @@ namespace SnowRabbit.Diagnostics.Profiling
         /// <summary>
         /// このカウンターに滞在したタイマー刻みカウント
         /// </summary>
-        public ulong ElapsedTick { get; private set; }
+        public long ElapsedTick { get; private set; }
 
 
 
@@ -67,6 +63,7 @@ namespace SnowRabbit.Diagnostics.Profiling
         {
             // 名前を設定して状態リセットをする
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            Parent = null;
             Reset();
         }
 
@@ -78,7 +75,6 @@ namespace SnowRabbit.Diagnostics.Profiling
         {
             // テーブルのクリアとカウント値のクリア
             childTable.Clear();
-            countTable.Clear();
             startTick = 0;
             EnterCount = 0;
             ElapsedTick = 0;
@@ -91,13 +87,43 @@ namespace SnowRabbit.Diagnostics.Profiling
         /// <param name="startTick">開始したタイマーのチックカウント値</param>
         public void Start(long startTick)
         {
-            // 開始タイマー刻みを覚える
+            // 開始タイマー刻みを覚えて突入カウントをインクリメント
             this.startTick = startTick;
+            ++EnterCount;
         }
 
 
-        public void End()
+        /// <summary>
+        /// カウンターの停止して処理時間を計算します
+        /// </summary>
+        /// <param name="endTick">停止したタイマーのチックカウント値</param>
+        public void End(long endTick)
         {
+            // 自身の処理時間を設定する
+            ElapsedTick += endTick - startTick;
+        }
+
+
+        /// <summary>
+        /// カウンターの子を取得または生成します
+        /// </summary>
+        /// <param name="name">取得または生成する名前</param>
+        /// <returns>取得または生成したカウンターの子を返します</returns>
+        public SrProfileCounter GetOrCreateChild(string name)
+        {
+            // 名前からカウンターの取得ができるかを試みる
+            if (childTable.TryGetValue(name, out var counter))
+            {
+                // 取得できたカウンターを返す
+                return counter;
+            }
+
+
+            // 取得できなかったら新しく生成して返す
+            counter = new SrProfileCounter(name);
+            counter.Parent = this;
+            childTable[name] = counter;
+            return counter;
         }
     }
 }

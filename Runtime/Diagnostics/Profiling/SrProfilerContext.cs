@@ -27,8 +27,7 @@ namespace SnowRabbit.Diagnostics.Profiling
         // メンバ変数定義
         private bool contextReady = false;
         private Stopwatch stopwatch = new Stopwatch();
-        private SrProfileCounter rootCounter = new SrProfileCounter(SrProfileCounter.RootCounterName);
-        private SrProfileCounter previousCounter = null;
+        private SrProfileCounter rootCounter = new SrProfileCounter("ROOT_COUNTER");
         private SrProfileCounter currentCounter = null;
 
 
@@ -47,11 +46,15 @@ namespace SnowRabbit.Diagnostics.Profiling
             }
 
 
-            // ルートカウンタのリセット、カウンタ参照のクリアをしてストップウォッチを再起動する
+            // ルートカウンタのリセット、ストップウォッチを再起動する
             rootCounter.Reset();
-            previousCounter = null;
             currentCounter = rootCounter;
             stopwatch.Restart();
+
+
+            // コンテキスト準備完了状態にしてルートカウンタの開始
+            contextReady = true;
+            rootCounter.Start(stopwatch.ElapsedTicks);
         }
 
 
@@ -91,30 +94,6 @@ namespace SnowRabbit.Diagnostics.Profiling
 
 
         public void Exit()
-        {
-            // 状態の準備が出来ていないなら
-            if (!contextReady)
-            {
-                // 終了する
-                SrLogger.Warning(InternalString.LogTag.PROFILER, InternalString.LogMessage.Profiler.NOT_READY);
-                return;
-            }
-        }
-
-
-        public void HandleCounterValue(string valueName, Func<long, long> handler)
-        {
-            // 状態の準備が出来ていないなら
-            if (!contextReady)
-            {
-                // 終了する
-                SrLogger.Warning(InternalString.LogTag.PROFILER, InternalString.LogMessage.Profiler.NOT_READY);
-                return;
-            }
-        }
-
-
-        public void HandleThreadValue(string valueName, Func<long, long> handler)
         {
             // 状態の準備が出来ていないなら
             if (!contextReady)

@@ -79,38 +79,6 @@ namespace SnowRabbit.Diagnostics.Profiling
 
 
         /// <summary>
-        /// 現在突入しているカウンターのプロファイル値を操作します
-        /// </summary>
-        /// <param name="valueName">操作するプロファイル値の名前</param>
-        /// <param name="handler">指定されたプロファイル値の操作関数</param>
-        /// <exception cref="ArgumentException">プロファイル値名が null または 空文字列 です</exception>
-        /// <exception cref="ArgumentNullException">handler が null です</exception>
-        [Conditional(InternalString.Conditional.PROFILING)]
-        public static void HandleCounterValue(string valueName, Func<long, long> handler)
-        {
-            // 自身のスレッドに紐付くカウンターのプロファイル値を操作する
-            ThrowExceptionIfInvalidValueName(valueName);
-            context.Value.HandleCounterValue(valueName, handler ?? throw new ArgumentNullException(nameof(handler)));
-        }
-
-
-        /// <summary>
-        /// 現在のスレッドに対してのプロファイル値を操作します
-        /// </summary>
-        /// <param name="valueName">操作するプロファイル値の名前</param>
-        /// <param name="handler">指定されたプロファイル値の操作関数</param>
-        /// <exception cref="ArgumentException">プロファイル値名が null または 空文字列 です</exception>
-        /// <exception cref="ArgumentNullException">handler が null です</exception>
-        [Conditional(InternalString.Conditional.PROFILING)]
-        public static void HandleThreadValue(string valueName, Func<long, long> handler)
-        {
-            // 自身のスレッドに紐付くプロファイラコンテキストのプロファイル値を操作する
-            ThrowExceptionIfInvalidValueName(valueName);
-            context.Value.HandleThreadValue(valueName, handler ?? throw new ArgumentNullException(nameof(handler)));
-        }
-
-
-        /// <summary>
         /// プロファイラー全体に対してのプロファイル値を操作します
         /// </summary>
         /// <param name="valueName">操作するプロファイル値の名前</param>
