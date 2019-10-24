@@ -41,12 +41,6 @@ namespace SnowRabbit
             /// TRACE コンパイル定数
             /// </summary>
             public const string TRACE = "TRACE";
-
-
-            /// <summary>
-            /// SR_PROFILING コンパイル定数
-            /// </summary>
-            public const string PROFILING = "SR_PROFILING";
         }
 
 
@@ -56,10 +50,6 @@ namespace SnowRabbit
         /// </summary>
         public static class LogTag
         {
-            /// <summary>
-            /// プロファイラに設定されたログのタグ文字列
-            /// </summary>
-            public const string PROFILER = "Profiler";
         }
 
 
@@ -69,22 +59,6 @@ namespace SnowRabbit
         /// </summary>
         public static class LogMessage
         {
-            /// <summary>
-            /// プロファイラ関連のログメッセージを保持したクラスです
-            /// </summary>
-            public static class Profiler
-            {
-                /// <summary>
-                /// まだ準備が出来ていないログメッセージ
-                /// </summary>
-                public const string NOT_READY = "プロファイラの準備が出来ていません";
-
-
-                /// <summary>
-                /// 既に準備が出来ているログメッセージ
-                /// </summary>
-                public const string ALREADY_READY = "プロファイラは既に準備が出来ています";
-            }
         }
 
 
@@ -94,16 +68,6 @@ namespace SnowRabbit
         /// </summary>
         public static class ExceptionMessage
         {
-            /// <summary>
-            /// プロファイラ関連の例外メッセージを保持したクラスです
-            /// </summary>
-            public static class Profiler
-            {
-                /// <summary>
-                /// プロファイル値名が無効な時の例外メッセージ
-                /// </summary>
-                public const string INVALID_VALUE_NAME = "プロファイル値名が null または 空文字列 です";
-            }
         }
     }
 }
