@@ -599,6 +599,32 @@ namespace CarrotCompilerCollection.Compiler
         }
 
 
+        public void GenerateUnaryOperationCode(FunctionInfo function, int operationKind, ref ExpressionValue value)
+        {
+            var r15 = (byte)SrvmProcessor.RegisterR15Index;
+            switch (operationKind)
+            {
+                case CccTokenKind.Plus:
+                    break;
+
+
+                case CccTokenKind.Minus:
+                    function.CreateInstruction(OpCode.Neg, r15, r15, 0, 0, false);
+                    break;
+
+
+                case CccTokenKind.DoublePlus:
+                    function.CreateInstruction(OpCode.Addl, r15, r15, 0, 1, false);
+                    break;
+
+
+                case CccTokenKind.DoubleMinus:
+                    function.CreateInstruction(OpCode.Subl, r15, r15, 0, 1, false);
+                    break;
+            }
+        }
+
+
         public void GenerateOperationCode(FunctionInfo function, int operationKind, ref ExpressionValue left, ref ExpressionValue right)
         {
             var r15 = (byte)SrvmProcessor.RegisterR15Index;

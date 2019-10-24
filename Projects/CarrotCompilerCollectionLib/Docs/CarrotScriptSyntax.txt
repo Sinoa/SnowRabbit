@@ -14,7 +14,7 @@ directive
 directives
     : 'link' link-object-name
     | 'compile' script-name
-    | 'const' constant-var-name constant-value
+    | 'const' constant-var-name constant-def
 
 link-object-name
     : <string>
@@ -25,10 +25,18 @@ script-name
 constant-var-name
     : <identifier>
 
+constant-def
+    : '-' constant-number-value
+    | constant-value
+
 constant-value
     : <integer>
     | <number>
     | <string>
+
+constant-number-value
+    : <integer>
+    | <number>
 
 **************************************************
 
