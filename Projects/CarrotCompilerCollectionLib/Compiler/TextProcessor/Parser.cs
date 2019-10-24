@@ -240,22 +240,41 @@ namespace CarrotCompilerCollection.Compiler
 
 
             currentContext.Lexer.ReadNextToken();
-            ThrowExceptionIfInvalidConstantValue(ref token);
-            switch (token.Kind)
+            if (token.Kind == CccTokenKind.Minus)
             {
-                case CccTokenKind.Integer:
-                    coder.RegisterConstantValue(name, CccBinaryCoder.CccType.Int, token.Integer, 0.0f, null);
-                    break;
+                currentContext.Lexer.ReadNextToken();
+                ThrowExceptionIfInvalidConstantNumberValue(ref token);
+                switch (token.Kind)
+                {
+                    case CccTokenKind.Integer:
+                        coder.RegisterConstantValue(name, CccBinaryCoder.CccType.Int, -token.Integer, 0.0f, null);
+                        break;
 
 
-                case CccTokenKind.Number:
-                    coder.RegisterConstantValue(name, CccBinaryCoder.CccType.Number, 0, (float)token.Number, null);
-                    break;
+                    case CccTokenKind.Number:
+                        coder.RegisterConstantValue(name, CccBinaryCoder.CccType.Number, 0, -(float)token.Number, null);
+                        break;
+                }
+            }
+            else
+            {
+                ThrowExceptionIfInvalidConstantValue(ref token);
+                switch (token.Kind)
+                {
+                    case CccTokenKind.Integer:
+                        coder.RegisterConstantValue(name, CccBinaryCoder.CccType.Int, token.Integer, 0.0f, null);
+                        break;
 
 
-                case CccTokenKind.String:
-                    coder.RegisterConstantValue(name, CccBinaryCoder.CccType.String, 0, 0.0f, token.Text);
-                    break;
+                    case CccTokenKind.Number:
+                        coder.RegisterConstantValue(name, CccBinaryCoder.CccType.Number, 0, (float)token.Number, null);
+                        break;
+
+
+                    case CccTokenKind.String:
+                        coder.RegisterConstantValue(name, CccBinaryCoder.CccType.String, 0, 0.0f, token.Text);
+                        break;
+                }
             }
 
 
@@ -1070,6 +1089,18 @@ namespace CarrotCompilerCollection.Compiler
             {
                 ThrowExceptionCompileError($"無効な定数名 '{token.Text}' です", 0);
             }
+        }
+
+
+        private void ThrowExceptionIfInvalidConstantNumberValue(ref Token token)
+        {
+            if (token.Kind == CccTokenKind.Integer || token.Kind == CccTokenKind.Number)
+            {
+                return;
+            }
+
+
+            ThrowExceptionCompileError("負の定数が使えるのは int型 または number型 のみです", 0);
         }
 
 
