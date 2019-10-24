@@ -29,6 +29,7 @@ namespace CarrotCompilerCollection.Compiler
     {
         // クラス変数定義
         private static readonly Dictionary<int, (int left, int right)> OperatorPriorityTable;
+        private static readonly int UnaryOperatorPriority = 20;
 
         // メンバ変数定義
         private CccBinaryCoder coder;
@@ -870,6 +871,19 @@ namespace CarrotCompilerCollection.Compiler
             ref var token = ref currentContext.Lexer.LastReadToken;
             switch (token.Kind)
             {
+                case CccTokenKind.DoubleMinus:
+                case CccTokenKind.DoublePlus:
+                case CccTokenKind.Plus:
+                case CccTokenKind.Minus:
+                    var unaryOp = token.Kind;
+                    currentContext.Lexer.ReadNextToken();
+                    ParseExpression(ref value, UnaryOperatorPriority);
+                    coder.GenerateSetSingleExpressionValue(function, ref value);
+                    coder.GenerateUnaryOperationCode(function, unaryOp, ref value);
+                    value.FirstGenerate = false;
+                    break;
+
+
                 case CccTokenKind.OpenParen:
                     currentContext.Lexer.ReadNextToken();
                     ParseExpression(ref value, 0);

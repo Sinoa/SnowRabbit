@@ -29,7 +29,7 @@ function void main()
 
 
     MyFunction();
-    test = Add(10, 20);
+    test = Add(-10, 20);
 
 
     // 無限ループ
