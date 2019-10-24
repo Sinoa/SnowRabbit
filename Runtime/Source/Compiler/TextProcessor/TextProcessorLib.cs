@@ -394,7 +394,7 @@ namespace TextProcessorLib
         /// ダブルプラス
         /// ++
         /// </summary>
-        public const int DoublePlush = -613;
+        public const int DoublePlus = -613;
 
         /// <summary>
         /// ダブルマイナス
@@ -640,7 +640,7 @@ namespace TextProcessorLib
                 { "->", TokenKind.RightArrow }, { "<-", TokenKind.LeftArrow },
                 { "&&", TokenKind.DoubleAnd }, { "||", TokenKind.DoubleVerticalbar },
                 { "<<", TokenKind.DoubleOpenAngle }, { ">>", TokenKind.DoubleCloseAngle },
-                { "++", TokenKind.DoublePlush }, { "--", TokenKind.DoubleMinus },
+                { "++", TokenKind.DoublePlus }, { "--", TokenKind.DoubleMinus },
             };
         }
 
