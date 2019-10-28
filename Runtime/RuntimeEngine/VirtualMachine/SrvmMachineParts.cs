@@ -20,7 +20,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
     /// <summary>
     /// 各種仮想マシンの部品クラスを定義する為の仮想マシンパーツ抽象クラスです
     /// </summary>
-    internal abstract class SrvmMachineParts : IDisposable
+    public abstract class SrvmMachineParts : IDisposable
     {
         /// <summary>
         /// 確保したリソースを解放します
