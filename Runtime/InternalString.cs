@@ -23,24 +23,24 @@ namespace SnowRabbit
         /// <summary>
         /// Conditional 属性に設定する文字列を保持したクラスです
         /// </summary>
-        public static class Conditional
+        internal static class Conditional
         {
             /// <summary>
             /// RELEASE コンパイル定数
             /// </summary>
-            public const string RELEASE = "RELEASE";
+            internal const string RELEASE = "RELEASE";
 
 
             /// <summary>
             /// DEBUG コンパイル定数
             /// </summary>
-            public const string DEBUG = "DEBUG";
+            internal const string DEBUG = "DEBUG";
 
 
             /// <summary>
             /// TRACE コンパイル定数
             /// </summary>
-            public const string TRACE = "TRACE";
+            internal const string TRACE = "TRACE";
         }
 
 
@@ -48,7 +48,7 @@ namespace SnowRabbit
         /// <summary>
         /// ロガーに渡すタグ文字列を保持したクラスです
         /// </summary>
-        public static class LogTag
+        internal static class LogTag
         {
         }
 
@@ -57,7 +57,7 @@ namespace SnowRabbit
         /// <summary>
         /// ロガーに渡すメッセージ文字列を保持したクラスです
         /// </summary>
-        public static class LogMessage
+        internal static class LogMessage
         {
         }
 
@@ -66,7 +66,7 @@ namespace SnowRabbit
         /// <summary>
         /// 例外メッセージ文字列を保持したクラスです
         /// </summary>
-        public static class ExceptionMessage
+        internal static class ExceptionMessage
         {
         }
     }
