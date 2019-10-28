@@ -13,6 +13,50 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+/*
+
+命令コードは、64bit固定長で内訳は以下の様に定義されます。
+
+MSB                                                   LSB
++--------+----------+----------+------------------------+
+|  8bit  |   8bit   |  16bit   |         32bit          |
++-------------------------------------------------------+
+| OpCode | Reserved | Register | Immediate or Parameter |
++--------+----------+----------+------------------------+
+
+各種要素の内容は以下の通りです。
+- OpCode
+  - SnowRabbit.RuntimeEngine.OpeCode 列挙型の値を持ちます。ここにどんな命令を実行するべきかを格納します。
+- Reserved
+  - 未定義の予約領域です。必ず 0 クリアされていなければなりません。
+- Register
+  - 命令で使用されるオペランドで、どのレジスタを使用するかを 5bit で 3つ 持つことが出来ます。より詳細な内訳は後述します。
+- Immediate or Parameter
+  - 命令で使用されるオペランドで、32bit長の即値や OpCode によって特別な使い方をする領域です。未使用の場合は 0 であるべきです。
+
+
+
+
+Register のより詳細な内訳は以下の様に定義されます。
+
+MSB                           LSB
++----------+------+------+------+
+|   1bit   | 5bit | 5bit | 5bit |
++-------------------------------+
+| Reserved |  R1  |  R2  |  R3  |
++----------+------+------+-------
+
+- Reserved
+  - 未定義の予約領域です。必ず 0 クリアされていなければなりません。
+- R1
+  - オペランド引数1のレジスタ指定番号です。
+- R2
+  - オペランド引数2のレジスタ指定番号です。
+- R3
+  - オペランド引数3のレジスタ指定番号です。
+
+*/
+
 using System.Runtime.InteropServices;
 
 namespace SnowRabbit.RuntimeEngine
