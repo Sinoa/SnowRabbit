@@ -74,6 +74,60 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
+        /// 命令を設定します
+        /// </summary>
+        /// <param name="opCode">実行するオペコード</param>
+        public void Set(OpCode opCode)
+        {
+            // 共通設定関数を使用して即値は0にする
+            SetCommon(opCode, 0, 0, 0);
+            Uint = 0U;
+        }
+
+
+        /// <summary>
+        /// 指定された値をもとに命令を設定します
+        /// </summary>
+        /// <param name="opCode">実行するオペコード</param>
+        /// <param name="r1">オペランドで使用するレジスタ指定引数1</param>
+        public void Set(OpCode opCode, byte r1)
+        {
+            // 共通設定関数を使用して即値は0にする
+            SetCommon(opCode, r1, 0, 0);
+            Uint = 0U;
+        }
+
+
+        /// <summary>
+        /// 指定された値をもとに命令を設定します
+        /// </summary>
+        /// <param name="opCode">実行するオペコード</param>
+        /// <param name="r1">オペランドで使用するレジスタ指定引数1</param>
+        /// <param name="r2">オペランドで使用するレジスタ指定引数2</param>
+        public void Set(OpCode opCode, byte r1, byte r2)
+        {
+            // 共通設定関数を使用して即値は0にする
+            SetCommon(opCode, r1, r2, 0);
+            Uint = 0U;
+        }
+
+
+        /// <summary>
+        /// 指定された値をもとに命令を設定します
+        /// </summary>
+        /// <param name="opCode">実行するオペコード</param>
+        /// <param name="r1">オペランドで使用するレジスタ指定引数1</param>
+        /// <param name="r2">オペランドで使用するレジスタ指定引数2</param>
+        /// <param name="r3">オペランドで使用するレジスタ指定引数3</param>
+        public void Set(OpCode opCode, byte r1, byte r2, byte r3)
+        {
+            // 共通設定関数を使用して即値は0にする
+            SetCommon(opCode, r1, r2, r3);
+            Uint = 0U;
+        }
+
+
+        /// <summary>
         /// 指定された値をもとに命令を設定します
         /// </summary>
         /// <param name="opCode">実行するオペコード</param>
