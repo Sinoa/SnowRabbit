@@ -20,5 +20,25 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
     /// </summary>
     public class SrvmProcessor : SrvmMachineParts
     {
+        // 定数定義
+        public const int RegisterAIndex = 0; // General Accumulator Register[A]
+        public const int RegisterBIndex = 1; // General Base Register[B]
+        public const int RegisterCIndex = 2; // General Counter Register[C]
+        public const int RegisterDIndex = 3; // General Data Register[D]
+        public const int RegisterSIIndex = 4; // General SourceIndex Register[SI]
+        public const int RegisterDIIndex = 5; // General DestinationIndex Register[DI]
+        public const int RegisterBPIndex = 6; // General BasePointer Register[BP]
+        public const int RegisterSPIndex = 7; // General StackPointer Register[SP]
+        public const int RegisterR8Index = 8; // FullGeneral Register[R8]
+        public const int RegisterR9Index = 9; // FullGeneral Register[R9]
+        public const int RegisterR10Index = 10; // FullGeneral Register[R10]
+        public const int RegisterR11Index = 11; // FullGeneral Register[R11]
+        public const int RegisterR12Index = 12; // FullGeneral Register[R12]
+        public const int RegisterR13Index = 13; // FullGeneral Register[R13]
+        public const int RegisterR14Index = 14; // FullGeneral Register[R14]
+        public const int RegisterR15Index = 15; // FullGeneral Register[R15]
+        public const int RegisterIPIndex = 30; // InstructionPointer Register[IP]
+        public const int RegisterZeroIndex = 31; // Zero Register[ZERO]
+        public const int RegisterInvalidIndex = 31; // Invalid Register[INVALID]
     }
 }
