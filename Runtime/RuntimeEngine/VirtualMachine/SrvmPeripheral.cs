@@ -16,9 +16,9 @@
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
 {
     /// <summary>
-    /// SnowRabbit が実装する仮想マシンクラスです
+    /// SnowRabbit が実装する仮想マシン周辺機器抽象クラスです
     /// </summary>
-    public class SrvmMachine : SrvmMachineParts
+    public abstract class SrvmPeripheral : SrvmMachineParts
     {
     }
 }
