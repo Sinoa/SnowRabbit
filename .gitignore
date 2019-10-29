@@ -1,6 +1,6 @@
 # General Directories and Files
 /.vs/
-/Runtime/.bin/
-/Runtime/.obj/
+/Runtime/.*/
+/.NativeTest/.*/
 
 *.meta

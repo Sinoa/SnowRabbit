@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+
+    <Authors>Sinoa</Authors>
+
+    <Description>SnowRabbit test project.</Description>
+
+    <Copyright>Copyright(c) 2019 Sinoa</Copyright>
+
+    <PackageLicenseExpression>Zlib</PackageLicenseExpression>
+
+    <PackageProjectUrl>https://github.com/Sinoa/SnowRabbit</PackageProjectUrl>
+
+    <RepositoryUrl>https://github.com/Sinoa/SnowRabbit</RepositoryUrl>
+
+    <RepositoryType>GitHub</RepositoryType>
+
+    <PackageTags>Test</PackageTags>
+
+    <Configurations>Debug;Release;Trace</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants></DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>DEBUG</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Trace|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="nunit" Version="3.12.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+  </ItemGroup>
+
+</Project>
