@@ -68,6 +68,16 @@ namespace SnowRabbit
         /// </summary>
         internal static class ExceptionMessage
         {
+            /// <summary>
+            /// SrPeripheralAttribute クラスの例外メッセージ
+            /// </summary>
+            internal static class SrPeripheralAttribute
+            {
+                /// <summary>
+                /// 無効な周辺機器名を使用した例外メッセージ
+                /// </summary>
+                internal const string INVALID_PERIPHERAL_NAME = "周辺機器名に null または 空文字列 または 空白 を設定することは出来ません。";
+            }
         }
     }
 }
