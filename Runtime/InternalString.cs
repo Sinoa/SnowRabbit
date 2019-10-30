@@ -50,6 +50,10 @@ namespace SnowRabbit
         /// </summary>
         internal static class LogTag
         {
+            /// <summary>
+            /// 仮想マシンタグ
+            /// </summary>
+            internal const string VIRTUAL_MACHINE = "VirtualMachine";
         }
 
 
@@ -59,6 +63,16 @@ namespace SnowRabbit
         /// </summary>
         internal static class LogMessage
         {
+            /// <summary>
+            /// 仮想マシンのログメッセージを保持したクラスです
+            /// </summary>
+            internal static class VirtualMachine
+            {
+                /// <summary>
+                /// SnowRabbit.RuntimeEngine.VirtualMachine.SrvmMachineParts.Dispose(bool) が呼び出されたときのログメッセージ
+                /// </summary>
+                internal const string EMPTY_DISPOSE_CALL = "Called SnowRabbit.RuntimeEngine.VirtualMachine.SrvmMachineParts.Dispose(bool)";
+            }
         }
 
 
