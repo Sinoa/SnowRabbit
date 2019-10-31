@@ -92,6 +92,19 @@ namespace SnowRabbit
                 /// </summary>
                 internal const string INVALID_PERIPHERAL_NAME = "周辺機器名に null または 空文字列 または 空白 を設定することは出来ません。";
             }
+
+
+
+            /// <summary>
+            /// SrHostFunctionAttribute クラスの例外メッセージ
+            /// </summary>
+            internal static class SrHostFunctionAttribute
+            {
+                /// <summary>
+                /// 無効な関数名を使用した例外メッセージ
+                /// </summary>
+                internal const string INVALID_FUNCTION_NAME = "関数名に null または 空文字列 または 空白 を設定することは出来ません。";
+            }
         }
     }
 }
