@@ -54,6 +54,12 @@ namespace SnowRabbit
             /// 仮想マシンタグ
             /// </summary>
             internal const string VIRTUAL_MACHINE = "VirtualMachine";
+
+
+            /// <summary>
+            /// 周辺機器タグ
+            /// </summary>
+            internal const string PERIPHERAL = "Peripheral";
         }
 
 
@@ -72,6 +78,31 @@ namespace SnowRabbit
                 /// SnowRabbit.RuntimeEngine.VirtualMachine.SrvmMachineParts.Dispose(bool) が呼び出されたときのログメッセージ
                 /// </summary>
                 internal const string EMPTY_DISPOSE_CALL = "Called SnowRabbit.RuntimeEngine.VirtualMachine.SrvmMachineParts.Dispose(bool)";
+            }
+
+
+
+            /// <summary>
+            /// 周辺機器のログメッセージを保持したクラスです
+            /// </summary>
+            internal static class Peripheral
+            {
+                /// <summary>
+                /// 周辺機器関数の生成開始トレースメッセージ
+                /// </summary>
+                internal const string BEGIN_CREATE_PERIPHERAL_FUNCTION = "Begin create peripheral function.";
+
+
+                /// <summary>
+                /// 戻り値のセットアップをするトレースメッセージ
+                /// </summary>
+                internal const string SETUP_RETURN_INFO = "Setup return info.";
+
+
+                /// <summary>
+                /// 引数のセットアップをするトレースメッセージ
+                /// </summary>
+                internal const string SETUP_ARGUMENT_INFO = "Setup argument info.";
             }
         }
 
