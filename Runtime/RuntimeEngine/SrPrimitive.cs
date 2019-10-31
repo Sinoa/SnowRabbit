@@ -24,6 +24,48 @@ namespace SnowRabbit.RuntimeEngine
     public struct SrPrimitive
     {
         /// <summary>
+        /// 符号付き8bit整数
+        /// </summary>
+        [FieldOffset(0)]
+        public sbyte Sbyte;
+
+
+        /// <summary>
+        /// 符号なし8bit整数
+        /// </summary>
+        [FieldOffset(0)]
+        public byte Byte;
+
+
+        /// <summary>
+        /// 符号付き16bit整数
+        /// </summary>
+        [FieldOffset(0)]
+        public short Short;
+
+
+        /// <summary>
+        /// 符号なし16bit整数
+        /// </summary>
+        [FieldOffset(0)]
+        public ushort Ushort;
+
+
+        /// <summary>
+        /// 符号付き32bit整数
+        /// </summary>
+        [FieldOffset(0)]
+        public int Int;
+
+
+        /// <summary>
+        /// 符号なし32bit整数
+        /// </summary>
+        [FieldOffset(0)]
+        public uint Uint;
+
+
+        /// <summary>
         /// 符号付き64bit整数
         /// </summary>
         [FieldOffset(0)]
@@ -35,6 +77,13 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         [FieldOffset(0)]
         public ulong Ulong;
+
+
+        /// <summary>
+        /// 32bit浮動小数点
+        /// </summary>
+        [FieldOffset(0)]
+        public float Float;
 
 
         /// <summary>
