@@ -18,27 +18,10 @@ using System;
 namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 {
     /// <summary>
-    /// SnowRabbit の周辺機器関数あることを示す属性クラスです
+    /// SnowRabbit の周辺機器拡張関数に継続フラグを受け取るパラメータを示す属性クラスです
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-    public class SrHostFunctionAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false, AllowMultiple = false)]
+    public class SrContinueFlagAttribute : Attribute
     {
-        /// <summary>
-        /// 登録される関数名
-        /// </summary>
-        public string Name { get; }
-
-
-
-        /// <summary>
-        /// SrHostFunctionAttribute クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="name">登録する周辺機器名</param>
-        /// <exception cref="ArgumentException">関数名に null または 空文字列 または 空白 を設定することは出来ません。</exception>
-        public SrHostFunctionAttribute(string name)
-        {
-            // 関数名を覚える
-            Name = string.IsNullOrWhiteSpace(name) ? throw new ArgumentException(InternalString.ExceptionMessage.SrHostFunctionAttribute.INVALID_FUNCTION_NAME, nameof(name)) : name;
-        }
     }
 }
