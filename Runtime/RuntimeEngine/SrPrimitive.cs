@@ -38,6 +38,13 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
+        /// 符号なし16bit整数（Unicode）
+        /// </summary>
+        [FieldOffset(0)]
+        public char Char;
+
+
+        /// <summary>
         /// 符号付き16bit整数
         /// </summary>
         [FieldOffset(0)]
