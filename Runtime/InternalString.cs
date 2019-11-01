@@ -103,6 +103,54 @@ namespace SnowRabbit
                 /// 引数のセットアップをするトレースメッセージ
                 /// </summary>
                 internal const string SETUP_ARGUMENT_INFO = "Setup argument info.";
+
+
+                /// <summary>
+                /// タスクが戻り値だった場合のトレースメッセージ
+                /// </summary>
+                internal const string RETURN_TYPE_IS_TASK = "Return type is task.";
+
+
+                /// <summary>
+                /// 戻り値の型がTaskでなかった場合のトレースメッセージ
+                /// </summary>
+                internal const string RETURN_TYPE_IS_NOT_TASK = "Return type is not task.";
+
+
+                /// <summary>
+                /// 非ジェネリックタスクだった場合のトレースメッセージ
+                /// </summary>
+                internal const string NON_GENERIC_TASK = "Task is not generic.";
+
+
+                /// <summary>
+                /// 引数が無い場合のトレースメッセージ
+                /// </summary>
+                internal const string ARGUMENT_EMPTY = "Argument empty.";
+
+
+                /// <summary>
+                /// ジェネリックタスクだった場合のジェネリック型のトレースメッセージ
+                /// </summary>
+                /// <param name="type">ジェネリックの型</param>
+                /// <returns>トレースメッセージ</returns>
+                internal static string TASK_GENERIC_TYPE_IS(System.Type type) => $"Task generic type is '{type.FullName}'.";
+
+
+                /// <summary>
+                /// 引数の数のトレースメッセージ
+                /// </summary>
+                /// <param name="count">引数の数</param>
+                /// <returns>トレースメッセージ</returns>
+                internal static string ARGUMENT_COUNT_IS(int count) => $"Argument count = {count}.";
+
+
+                /// <summary>
+                /// 対応する変換関数が見つからなかった時のメッセージ
+                /// </summary>
+                /// <param name="type">見つからなかった型</param>
+                /// <returns>メッセージ</returns>
+                internal static string CONVERT_FUNCTION_NOT_FOUND(System.Type type) => $"'{type.FullName}' convert function not found.";
             }
         }
 

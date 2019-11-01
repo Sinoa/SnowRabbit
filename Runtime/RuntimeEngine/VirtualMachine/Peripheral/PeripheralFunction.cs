@@ -14,7 +14,9 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using SnowRabbit.Diagnostics.Logging;
 
 namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
@@ -24,17 +26,51 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
     /// </summary>
     internal class PeripheralFunction
     {
+        // クラス変数宣言
+        private static readonly Dictionary<Type, Func<SrValue, object>> fromValueConvertTable;
+        private static readonly Dictionary<Type, Func<object, SrValue>> toValueConvertTable;
+
         // メンバ変数定義
         private MethodInfo method;
+        private object[] arguments;
+        private Func<SrValue, object>[] argumentSetters;
+        private Func<object, SrValue> setResult;
         private bool isTask;
-        private Type returnType;
-        private Type taskResultType;
         private PropertyInfo taskResultProperty;
 
 
 
         /// <summary>
-        /// PeripheralFunction クラスのインスタンスを初期化子ます
+        /// PeripheralFunction クラスの初期化をします
+        /// </summary>
+        static PeripheralFunction()
+        {
+            // SrValue から特定の型へ正しくキャストする関数テーブルを初期化
+            fromValueConvertTable = new Dictionary<Type, Func<SrValue, object>>()
+            {
+                // 各型に合わせた返却関数を用意
+                { typeof(sbyte), x => x.Primitive.Sbyte },
+                { typeof(byte), x => x.Primitive.Byte },
+                { typeof(char), x => x.Primitive.Char },
+                { typeof(short), x => x.Primitive.Short },
+                { typeof(ushort), x => x.Primitive.Ushort },
+                { typeof(int), x => x.Primitive.Int },
+                { typeof(uint), x => x.Primitive.Uint },
+                { typeof(long), x => x.Primitive.Long },
+                { typeof(ulong), x => x.Primitive.Ulong },
+                { typeof(float), x => x.Primitive.Float },
+                { typeof(double), x => x.Primitive.Double },
+                { typeof(bool), x => x.Primitive.Int != 0 },
+                { typeof(IntPtr), x => new IntPtr(x.Primitive.Long) },
+                { typeof(UIntPtr), x => new UIntPtr(x.Primitive.Ulong) },
+                { typeof(string), x => x.Object },
+                { typeof(object), x => x.Object },
+            };
+        }
+
+
+        /// <summary>
+        /// PeripheralFunction クラスのインスタンスを初期化をします
         /// </summary>
         /// <param name="info">周辺機器関数として使用する関数情報</param>
         /// <exception cref="ArgumentNullException">info が null です</exception>
@@ -46,26 +82,113 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // 各種情報のセットアップをする
-            SetupReturnInfo(info);
             SetupArgumentInfo(info);
+            SetupReturnInfo(info);
+        }
+
+
+        /// <summary>
+        /// 引数情報をセットアップします
+        /// </summary>
+        /// <param name="info">周辺機器関数として使用する関数情報</param>
+        private void SetupArgumentInfo(MethodInfo info)
+        {
+            // 引数の数を知る
+            SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.SETUP_ARGUMENT_INFO);
+            var parameters = info.GetParameters();
+
+
+            // 引数が0件なら
+            if (parameters.Length == 0)
+            {
+                // 引数関連は空で初期化
+                SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.ARGUMENT_EMPTY);
+                arguments = Array.Empty<object>();
+                argumentSetters = Array.Empty<Func<SrValue, object>>();
+                return;
+            }
+
+
+            // 引数と引数設定関数を初期化子て引数の数分ループ
+            SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.ARGUMENT_COUNT_IS(parameters.Length));
+            arguments = new object[parameters.Length];
+            argumentSetters = new Func<SrValue, object>[parameters.Length];
+            for (int i = 0; i < parameters.Length; ++i)
+            {
+                // 引数情報を取得して変換関数があるなら
+                var parameter = parameters[i];
+                if (fromValueConvertTable.TryGetValue(parameter.ParameterType, out argumentSetters[i]))
+                {
+                    // そのまま次の引数へ
+                    continue;
+                }
+
+
+                // 対応関数が無いならobject型そのまま出力する変換関数を利用する
+                SrLogger.Debug(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.CONVERT_FUNCTION_NOT_FOUND(parameter.ParameterType));
+                argumentSetters[i] = fromValueConvertTable[typeof(object)];
+            }
         }
 
 
         private void SetupReturnInfo(MethodInfo info)
         {
-            returnType = info.ReturnType;
+            // 関数の戻り値型を取得
+            SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.SETUP_RETURN_INFO);
+            var returnType = info.ReturnType;
+
+
+            // もしTask型の戻り値なら
+            if (typeof(Task).IsAssignableFrom(returnType))
+            {
+                // Task型の戻り値であることを覚える
+                SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.RETURN_TYPE_IS_TASK);
+                isTask = true;
+
+
+                // もし単純なTask型なら
+                if (!returnType.IsGenericType)
+                {
+                    // 非ジェネリックのTaskであることを覚えて終了
+                    SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.NON_GENERIC_TASK);
+                    taskResultProperty = null;
+                    setResult = null;
+                    return;
+                }
+
+
+                // ジェネリックなTaskならどんな値を返すかを知るのとResultプロパティを取得
+                var taskResultType = returnType.GenericTypeArguments[0];
+                taskResultProperty = returnType.GetProperty("Result");
+                SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.TASK_GENERIC_TYPE_IS(taskResultType));
+            }
+
+
+            // タスクではないことを覚える
+            SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.RETURN_TYPE_IS_NOT_TASK);
+            isTask = false;
+            taskResultProperty = null;
+
+
             if ((returnType == typeof(void) || returnType.IsPrimitive) && returnType != typeof(IntPtr) && returnType != typeof(UIntPtr))
             {
                 isTask = false;
-                taskResultType = null;
                 taskResultProperty = null;
                 return;
             }
         }
 
 
-        private void SetupArgumentInfo(MethodInfo info)
+        public void Call(SrValue[] args, int index, int count)
         {
+            for (int i = 0; i < args.Length; ++i)
+            {
+                arguments[i] = argumentSetters[i](args[i]);
+            }
+
+
+            method.Invoke(null, arguments);
+            Array.Clear(arguments, 0, arguments.Length);
         }
     }
 }
