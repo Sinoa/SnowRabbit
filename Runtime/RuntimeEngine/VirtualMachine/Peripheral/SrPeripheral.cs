@@ -13,12 +13,17 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-namespace SnowRabbit.RuntimeEngine.VirtualMachine
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Threading.Tasks;
+using SnowRabbit.Diagnostics.Logging;
+
+namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 {
-    /// <summary>
-    /// SnowRabbit が実装する仮想マシン周辺機器クラスです
-    /// </summary>
-    public class SrvmPeripheral : SrvmMachineParts
+    internal class SrPeripheral
     {
+        private object instance;
+        private Dictionary<string, int> functionTable;
     }
 }
