@@ -44,5 +44,30 @@ namespace SnowRabbitTest
             instruction.Set(opCode, r1, r2, r3, imm);
             Assert.AreEqual(expected, instruction.Raw);
         }
+
+
+        /// <summary>
+        /// Set関数後に値の取得系で一致した値で取得されるかをテストします
+        /// </summary>
+        /// <param name="opCode">設定するオペコード</param>
+        /// <param name="r1">指定レジスタインデックス1番</param>
+        /// <param name="r2">指定レジスタインデックス2番</param>
+        /// <param name="r3">指定レジスタインデックス3番</param>
+        /// <param name="imm">即値</param>
+        [TestCase(OpCode.Mov, SrvmProcessor.RegisterBPIndex, SrvmProcessor.RegisterSPIndex, (byte)0, 0U)]
+        [TestCase(OpCode.Addl, SrvmProcessor.RegisterBIndex, SrvmProcessor.RegisterIPIndex, (byte)0, 0xA5A5A5A5U)]
+        [TestCase(OpCode.Gpfid, SrvmProcessor.RegisterR10Index, SrvmProcessor.RegisterR13Index, SrvmProcessor.RegisterR9Index, 0x123U)]
+        public void GetParameterTest(OpCode opCode, byte r1, byte r2, byte r3, uint imm)
+        {
+            // 値をセットしてGet関数やフィールドから同様の値として取り出せるか確認
+            var instruction = new SrInstruction();
+            instruction.Set(opCode, r1, r2, r3, imm);
+            instruction.GetRegisterNumber(out var r1out, out var r2out, out var r3out);
+            Assert.AreEqual(opCode, instruction.OpCode);
+            Assert.AreEqual(r1, r1out);
+            Assert.AreEqual(r2, r2out);
+            Assert.AreEqual(r3, r3out);
+            Assert.AreEqual(imm, instruction.Uint);
+        }
     }
 }
