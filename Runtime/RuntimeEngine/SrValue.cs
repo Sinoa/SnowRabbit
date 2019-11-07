@@ -13,12 +13,14 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
+
 namespace SnowRabbit.RuntimeEngine
 {
     /// <summary>
     /// 仮想マシンが使用する値の最小単位を表現した構造体です
     /// </summary>
-    public struct SrValue
+    public struct SrValue : IEquatable<SrValue>
     {
         /// <summary>
         /// プリミティブ型としての値
@@ -34,7 +36,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// sbyte から SrValue へのキャストオーバーライドです
+        /// sbyte から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">sbyte の値</param>
         public static implicit operator SrValue(sbyte value)
@@ -47,7 +49,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// byte から SrValue へのキャストオーバーライドです
+        /// byte から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">byte の値</param>
         public static implicit operator SrValue(byte value)
@@ -60,7 +62,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// short から SrValue へのキャストオーバーライドです
+        /// short から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">short の値</param>
         public static implicit operator SrValue(short value)
@@ -73,7 +75,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// ushort から SrValue へのキャストオーバーライドです
+        /// ushort から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">ushort の値</param>
         public static implicit operator SrValue(ushort value)
@@ -86,7 +88,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// char から SrValue へのキャストオーバーライドです
+        /// char から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">char の値</param>
         public static implicit operator SrValue(char value)
@@ -99,7 +101,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// int から SrValue へのキャストオーバーライドです
+        /// int から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">int の値</param>
         public static implicit operator SrValue(int value)
@@ -112,7 +114,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// uint から SrValue へのキャストオーバーライドです
+        /// uint から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">uint の値</param>
         public static implicit operator SrValue(uint value)
@@ -125,7 +127,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// long から SrValue へのキャストオーバーライドです
+        /// long から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">long の値</param>
         public static implicit operator SrValue(long value)
@@ -138,7 +140,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// ulong から SrValue へのキャストオーバーライドです
+        /// ulong から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">ulong の値</param>
         public static implicit operator SrValue(ulong value)
@@ -151,7 +153,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// float から SrValue へのキャストオーバーライドです
+        /// float から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">float の値</param>
         public static implicit operator SrValue(float value)
@@ -164,7 +166,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// double から SrValue へのキャストオーバーライドです
+        /// double から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">double の値</param>
         public static implicit operator SrValue(double value)
@@ -177,7 +179,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// string から SrValue へのキャストオーバーライドです
+        /// string から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">string の値</param>
         public static implicit operator SrValue(string value)
@@ -190,7 +192,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrInstruction から SrValue へのキャストオーバーライドです
+        /// SrInstruction から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrInstruction の値</param>
         public static implicit operator SrValue(SrInstruction value)
@@ -203,7 +205,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から sbyte へのキャストオーバーライドです
+        /// SrValue から sbyte へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator sbyte(SrValue value)
@@ -214,7 +216,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から byte へのキャストオーバーライドです
+        /// SrValue から byte へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator byte(SrValue value)
@@ -225,7 +227,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から short へのキャストオーバーライドです
+        /// SrValue から short へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator short(SrValue value)
@@ -236,7 +238,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から ushort へのキャストオーバーライドです
+        /// SrValue から ushort へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator ushort(SrValue value)
@@ -247,7 +249,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から char へのキャストオーバーライドです
+        /// SrValue から char へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator char(SrValue value)
@@ -258,7 +260,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から int へのキャストオーバーライドです
+        /// SrValue から int へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator int(SrValue value)
@@ -269,7 +271,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から uint へのキャストオーバーライドです
+        /// SrValue から uint へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator uint(SrValue value)
@@ -280,7 +282,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から long へのキャストオーバーライドです
+        /// SrValue から long へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator long(SrValue value)
@@ -291,7 +293,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から ulong へのキャストオーバーライドです
+        /// SrValue から ulong へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator ulong(SrValue value)
@@ -302,7 +304,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から float へのキャストオーバーライドです
+        /// SrValue から float へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator float(SrValue value)
@@ -313,7 +315,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から double へのキャストオーバーライドです
+        /// SrValue から double へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator double(SrValue value)
@@ -324,7 +326,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から string へのキャストオーバーライドです
+        /// SrValue から string へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator string(SrValue value)
@@ -335,7 +337,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// SrValue から SrInstruction へのキャストオーバーライドです
+        /// SrValue から SrInstruction へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator SrInstruction(SrValue value)
@@ -346,7 +348,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// true の評価のオーバーライドです
+        /// true の評価のオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         /// <returns>true の条件を結果を返します</returns>
@@ -358,7 +360,7 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// false の評価のオーバーライドです
+        /// false の評価のオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         /// <returns>false の条件を結果を返します</returns>
@@ -366,6 +368,36 @@ namespace SnowRabbit.RuntimeEngine
         {
             // false になりうる条件結果を返す
             return value.Primitive.Long == 0 || value.Object == null;
+        }
+
+
+        public bool Equals(SrValue other)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public static bool operator ==(SrValue left, SrValue right)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public static bool operator !=(SrValue left, SrValue right)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 }
