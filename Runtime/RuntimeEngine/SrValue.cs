@@ -343,5 +343,29 @@ namespace SnowRabbit.RuntimeEngine
             // SrInstruction の返却
             return value.Primitive.Instruction;
         }
+
+
+        /// <summary>
+        /// true の評価のオーバーライドです
+        /// </summary>
+        /// <param name="value">SrValue インスタンス</param>
+        /// <returns>true の条件を結果を返します</returns>
+        public static bool operator true(SrValue value)
+        {
+            // true になりうる条件結果を返す
+            return value.Primitive.Long != 0 || value.Object != null;
+        }
+
+
+        /// <summary>
+        /// false の評価のオーバーライドです
+        /// </summary>
+        /// <param name="value">SrValue インスタンス</param>
+        /// <returns>false の条件を結果を返します</returns>
+        public static bool operator false(SrValue value)
+        {
+            // false になりうる条件結果を返す
+            return value.Primitive.Long == 0 || value.Object == null;
+        }
     }
 }
