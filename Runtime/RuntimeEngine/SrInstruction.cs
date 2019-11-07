@@ -62,6 +62,7 @@ Register{RegisterName}Index として定数定義されています。
 
 */
 
+using System;
 using System.Runtime.InteropServices;
 
 namespace SnowRabbit.RuntimeEngine
@@ -70,7 +71,7 @@ namespace SnowRabbit.RuntimeEngine
     /// 仮想マシンが実行する命令の構造を表現した構造体です。また構造はリトルエンディアンを前提としています。
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct SrInstruction
+    public struct SrInstruction : IEquatable<SrInstruction>
     {
         /// <summary>
         /// 命令全体を符号なし64bit整数としてアクセスします
@@ -258,6 +259,75 @@ namespace SnowRabbit.RuntimeEngine
             r1 = (byte)((Register >> 10) & 0x1F);
             r2 = (byte)((Register >> 5) & 0x1F);
             r3 = (byte)((Register >> 0) & 0x1F);
+        }
+
+
+        /// <summary>
+        /// SrInstruction の等価確認をします
+        /// </summary>
+        /// <param name="other">比較対象</param>
+        /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
+        public bool Equals(SrInstruction other)
+        {
+            // Raw の値さえ一致していれば問題ない
+            return Raw == other.Raw;
+        }
+
+
+        /// <summary>
+        /// 等価演算子のオーバーロードです
+        /// </summary>
+        /// <param name="left">左の値</param>
+        /// <param name="right">右の値</param>
+        /// <returns>等価の結果を返します</returns>
+        public static bool operator ==(SrInstruction left, SrInstruction right)
+        {
+            // Equals の結果をそのまま返す
+            return left.Equals(right);
+        }
+
+
+        /// <summary>
+        /// 非等価演算子のオーバーロードです
+        /// </summary>
+        /// <param name="left">左の値</param>
+        /// <param name="right">右の値</param>
+        /// <returns>非等価の結果を返します</returns>
+        public static bool operator !=(SrInstruction left, SrInstruction right)
+        {
+            // Equals の結果を反転して返す
+            return !left.Equals(right);
+        }
+
+
+        /// <summary>
+        /// object の等価オーバーロードです
+        /// </summary>
+        /// <param name="obj">比較対象</param>
+        /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
+        public override bool Equals(object obj)
+        {
+            // 型が一致しないなら
+            if (!(obj is SrInstruction))
+            {
+                // そもそも一致しない
+                return false;
+            }
+
+
+            // 等価結果をそのまま返す
+            return Raw == ((SrInstruction)obj).Raw;
+        }
+
+
+        /// <summary>
+        /// ハッシュコードを取得します
+        /// </summary>
+        /// <returns>ハッシュコードを返します</returns>
+        public override int GetHashCode()
+        {
+            // ulongのハッシュ計算をそのまま使う
+            return Raw.GetHashCode();
         }
     }
 }
