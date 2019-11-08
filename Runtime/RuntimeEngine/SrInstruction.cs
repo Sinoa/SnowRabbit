@@ -307,16 +307,8 @@ namespace SnowRabbit.RuntimeEngine
         /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
         public override bool Equals(object obj)
         {
-            // 型が一致しないなら
-            if (!(obj is SrInstruction))
-            {
-                // そもそも一致しない
-                return false;
-            }
-
-
-            // 等価結果をそのまま返す
-            return Raw == ((SrInstruction)obj).Raw;
+            // 型が一致すればジェネリック側の Equals 結果を返して、一致しないなら false を返す
+            return obj is SrInstruction ? Equals((SrInstruction)obj) : false;
         }
 
 

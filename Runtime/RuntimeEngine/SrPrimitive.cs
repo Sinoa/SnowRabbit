@@ -13,6 +13,7 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
 using System.Runtime.InteropServices;
 
 namespace SnowRabbit.RuntimeEngine
@@ -21,7 +22,7 @@ namespace SnowRabbit.RuntimeEngine
     /// 仮想マシンが使用するプリミティブ型として表現する構造体です
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct SrPrimitive
+    public struct SrPrimitive : IEquatable<SrPrimitive>
     {
         /// <summary>
         /// 符号付き8bit整数
@@ -105,5 +106,67 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         [FieldOffset(0)]
         public SrInstruction Instruction;
+
+
+
+        /// <summary>
+        /// SrPrimitive の等価確認をします
+        /// </summary>
+        /// <param name="other">比較対象</param>
+        /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
+        public bool Equals(SrPrimitive other)
+        {
+            // ulong の値が一致していれば等価
+            return Ulong == other.Ulong;
+        }
+
+
+        /// <summary>
+        /// 等価演算子のオーバーロードです
+        /// </summary>
+        /// <param name="left">左の値</param>
+        /// <param name="right">右の値</param>
+        /// <returns>等価の結果を返します</returns>
+        public static bool operator ==(SrPrimitive left, SrPrimitive right)
+        {
+            // Equals の結果をそのまま返す
+            return left.Equals(right);
+        }
+
+
+        /// <summary>
+        /// 非等価演算子のオーバーロードです
+        /// </summary>
+        /// <param name="left">左の値</param>
+        /// <param name="right">右の値</param>
+        /// <returns>非等価の結果を返します</returns>
+        public static bool operator !=(SrPrimitive left, SrPrimitive right)
+        {
+            // Equals の結果を反転して返す
+            return !left.Equals(right);
+        }
+
+
+        /// <summary>
+        /// object の等価オーバーロードです
+        /// </summary>
+        /// <param name="obj">比較対象</param>
+        /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
+        public override bool Equals(object obj)
+        {
+            // 型が一致すればジェネリック側の Equals 結果を返して、一致しないなら false を返す
+            return obj is SrPrimitive ? Equals((SrPrimitive)obj) : false;
+        }
+
+
+        /// <summary>
+        /// ハッシュコードを取得します
+        /// </summary>
+        /// <returns>ハッシュコードを返します</returns>
+        public override int GetHashCode()
+        {
+            // ulongのハッシュ計算をそのまま使う
+            return Ulong.GetHashCode();
+        }
     }
 }
