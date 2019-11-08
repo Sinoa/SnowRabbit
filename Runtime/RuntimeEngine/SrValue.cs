@@ -371,30 +371,60 @@ namespace SnowRabbit.RuntimeEngine
         }
 
 
+        /// <summary>
+        /// SrValue の等価確認をします
+        /// </summary>
+        /// <param name="other">比較対象</param>
+        /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
         public bool Equals(SrValue other)
         {
-            throw new NotImplementedException();
+            // 値とオブジェクトの参照が一致していれば等価
+            return Primitive == other.Primitive && Object == other.Object;
         }
 
 
+        /// <summary>
+        /// 等価演算子のオーバーロードです
+        /// </summary>
+        /// <param name="left">左の値</param>
+        /// <param name="right">右の値</param>
+        /// <returns>等価の結果を返します</returns>
         public static bool operator ==(SrValue left, SrValue right)
         {
-            throw new NotImplementedException();
+            // Equals の結果をそのまま返す
+            return left.Equals(right);
         }
 
 
+        /// <summary>
+        /// 非等価演算子のオーバーロードです
+        /// </summary>
+        /// <param name="left">左の値</param>
+        /// <param name="right">右の値</param>
+        /// <returns>非等価の結果を返します</returns>
         public static bool operator !=(SrValue left, SrValue right)
         {
-            throw new NotImplementedException();
+            // Equals の結果を反転して返す
+            return !left.Equals(right);
         }
 
 
+        /// <summary>
+        /// object の等価オーバーロードです
+        /// </summary>
+        /// <param name="obj">比較対象</param>
+        /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
         public override bool Equals(object obj)
         {
-            return base.Equals(obj);
+            // 型が一致すればジェネリック側の Equals 結果を返して、一致しないなら false を返す
+            return obj is SrValue ? Equals((SrValue)obj) : false;
         }
 
 
+        /// <summary>
+        /// ハッシュコードを取得します
+        /// </summary>
+        /// <returns>ハッシュコードを返します</returns>
         public override int GetHashCode()
         {
             return base.GetHashCode();
