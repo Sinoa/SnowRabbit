@@ -77,7 +77,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         public PeripheralFunction(MethodInfo info)
         {
             // 関数情報を覚える
-            SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.BEGIN_CREATE_PERIPHERAL_FUNCTION);
+            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Begin create peripheral function.");
             method = info ?? throw new ArgumentNullException(nameof(info));
 
 
@@ -94,7 +94,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private void SetupArgumentInfo(MethodInfo info)
         {
             // 引数の数を知る
-            SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.SETUP_ARGUMENT_INFO);
+            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Setup argument info.");
             var parameters = info.GetParameters();
 
 
@@ -102,7 +102,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             if (parameters.Length == 0)
             {
                 // 引数関連は空で初期化
-                SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.ARGUMENT_EMPTY);
+                SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Argument empty.");
                 arguments = Array.Empty<object>();
                 argumentSetters = Array.Empty<Func<SrValue, object>>();
                 return;
@@ -110,7 +110,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // 引数と引数設定関数を初期化子て引数の数分ループ
-            SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.ARGUMENT_COUNT_IS(parameters.Length));
+            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"Argument count = {parameters.Length}.");
             arguments = new object[parameters.Length];
             argumentSetters = new Func<SrValue, object>[parameters.Length];
             for (int i = 0; i < parameters.Length; ++i)
@@ -125,7 +125,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
                 // 対応関数が無いならobject型そのまま出力する変換関数を利用する
-                SrLogger.Debug(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.CONVERT_FUNCTION_NOT_FOUND(parameter.ParameterType));
+                SrLogger.Debug(SharedString.LogTag.PERIPHERAL, $"'{parameter.ParameterType.FullName}' convert function not found.");
                 argumentSetters[i] = fromValueConvertTable[typeof(object)];
             }
         }
@@ -134,7 +134,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private void SetupReturnInfo(MethodInfo info)
         {
             // 関数の戻り値型を取得
-            SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.SETUP_RETURN_INFO);
+            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Setup return info.");
             var returnType = info.ReturnType;
 
 
@@ -142,7 +142,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             if (typeof(Task).IsAssignableFrom(returnType))
             {
                 // Task型の戻り値であることを覚える
-                SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.RETURN_TYPE_IS_TASK);
+                SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Return type is task.");
                 isTask = true;
 
 
@@ -150,7 +150,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
                 if (!returnType.IsGenericType)
                 {
                     // 非ジェネリックのTaskであることを覚えて終了
-                    SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.NON_GENERIC_TASK);
+                    SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Task is not generic.");
                     taskResultProperty = null;
                     setResult = null;
                     return;
@@ -160,12 +160,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
                 // ジェネリックなTaskならどんな値を返すかを知るのとResultプロパティを取得
                 var taskResultType = returnType.GenericTypeArguments[0];
                 taskResultProperty = returnType.GetProperty("Result");
-                SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.TASK_GENERIC_TYPE_IS(taskResultType));
+                SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"Task generic type is '{taskResultType.FullName}'.");
             }
 
 
             // タスクではないことを覚える
-            SrLogger.Trace(InternalString.LogTag.PERIPHERAL, InternalString.LogMessage.Peripheral.RETURN_TYPE_IS_NOT_TASK);
+            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Return type is not task.");
             isTask = false;
             taskResultProperty = null;
 

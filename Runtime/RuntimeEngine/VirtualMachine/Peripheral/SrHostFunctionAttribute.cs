@@ -38,7 +38,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         public SrHostFunctionAttribute(string name)
         {
             // 関数名を覚える
-            Name = string.IsNullOrWhiteSpace(name) ? throw new ArgumentException(InternalString.ExceptionMessage.SrHostFunctionAttribute.INVALID_FUNCTION_NAME, nameof(name)) : name;
+            Name = string.IsNullOrWhiteSpace(name) ? throw new ArgumentException("関数名に null または 空文字列 または 空白 を設定することは出来ません。", nameof(name)) : name;
         }
     }
 }

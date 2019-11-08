@@ -38,7 +38,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         public SrPeripheralAttribute(string name)
         {
             // 周辺機器名を覚える
-            Name = string.IsNullOrWhiteSpace(name) ? throw new ArgumentException(InternalString.ExceptionMessage.SrPeripheralAttribute.INVALID_PERIPHERAL_NAME, nameof(name)) : name;
+            Name = string.IsNullOrWhiteSpace(name) ? throw new ArgumentException("周辺機器名に null または 空文字列 または 空白 を設定することは出来ません。", nameof(name)) : name;
         }
     }
 }
