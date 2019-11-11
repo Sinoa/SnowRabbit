@@ -62,11 +62,11 @@ namespace SnowRabbitTest
             // 値をセットしてGet関数やフィールドから同様の値として取り出せるか確認
             var instruction = new SrInstruction();
             instruction.Set(opCode, r1, r2, r3, imm);
-            instruction.GetRegisterNumber(out var r1out, out var r2out, out var r3out);
+            instruction.GetRegisterNumber(out var r1Out, out var r2Out, out var r3Out);
             Assert.AreEqual(opCode, instruction.OpCode);
-            Assert.AreEqual(r1, r1out);
-            Assert.AreEqual(r2, r2out);
-            Assert.AreEqual(r3, r3out);
+            Assert.AreEqual(r1, r1Out);
+            Assert.AreEqual(r2, r2Out);
+            Assert.AreEqual(r3, r3Out);
             Assert.AreEqual(imm, instruction.Uint);
         }
     }
