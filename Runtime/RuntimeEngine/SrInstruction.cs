@@ -267,11 +267,7 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         /// <param name="other">比較対象</param>
         /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
-        public bool Equals(SrInstruction other)
-        {
-            // Raw の値さえ一致していれば問題ない
-            return Raw == other.Raw;
-        }
+        public bool Equals(SrInstruction other) => Raw == other.Raw;
 
 
         /// <summary>
@@ -280,11 +276,7 @@ namespace SnowRabbit.RuntimeEngine
         /// <param name="left">左の値</param>
         /// <param name="right">右の値</param>
         /// <returns>等価の結果を返します</returns>
-        public static bool operator ==(SrInstruction left, SrInstruction right)
-        {
-            // Equals の結果をそのまま返す
-            return left.Equals(right);
-        }
+        public static bool operator ==(SrInstruction left, SrInstruction right) => left.Equals(right);
 
 
         /// <summary>
@@ -293,11 +285,7 @@ namespace SnowRabbit.RuntimeEngine
         /// <param name="left">左の値</param>
         /// <param name="right">右の値</param>
         /// <returns>非等価の結果を返します</returns>
-        public static bool operator !=(SrInstruction left, SrInstruction right)
-        {
-            // Equals の結果を反転して返す
-            return !left.Equals(right);
-        }
+        public static bool operator !=(SrInstruction left, SrInstruction right) => !left.Equals(right);
 
 
         /// <summary>
@@ -305,21 +293,13 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         /// <param name="obj">比較対象</param>
         /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
-        public override bool Equals(object obj)
-        {
-            // 型が一致すればジェネリック側の Equals 結果を返して、一致しないなら false を返す
-            return obj is SrInstruction ? Equals((SrInstruction)obj) : false;
-        }
+        public override bool Equals(object obj) => obj is SrInstruction ? Equals((SrInstruction)obj) : false;
 
 
         /// <summary>
         /// ハッシュコードを取得します
         /// </summary>
         /// <returns>ハッシュコードを返します</returns>
-        public override int GetHashCode()
-        {
-            // ulongのハッシュ計算をそのまま使う
-            return Raw.GetHashCode();
-        }
+        public override int GetHashCode() => Raw.GetHashCode();
     }
 }

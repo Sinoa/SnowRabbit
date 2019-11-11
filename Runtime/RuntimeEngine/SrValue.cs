@@ -208,143 +208,91 @@ namespace SnowRabbit.RuntimeEngine
         /// SrValue から sbyte へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator sbyte(SrValue value)
-        {
-            // sbyte の返却
-            return value.Primitive.Sbyte;
-        }
+        public static implicit operator sbyte(SrValue value) => value.Primitive.Sbyte;
 
 
         /// <summary>
         /// SrValue から byte へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator byte(SrValue value)
-        {
-            // byte の返却
-            return value.Primitive.Byte;
-        }
+        public static implicit operator byte(SrValue value) => value.Primitive.Byte;
 
 
         /// <summary>
         /// SrValue から short へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator short(SrValue value)
-        {
-            // short の返却
-            return value.Primitive.Short;
-        }
+        public static implicit operator short(SrValue value) => value.Primitive.Short;
 
 
         /// <summary>
         /// SrValue から ushort へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator ushort(SrValue value)
-        {
-            // ushort の返却
-            return value.Primitive.Ushort;
-        }
+        public static implicit operator ushort(SrValue value) => value.Primitive.Ushort;
 
 
         /// <summary>
         /// SrValue から char へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator char(SrValue value)
-        {
-            // char の返却
-            return value.Primitive.Char;
-        }
+        public static implicit operator char(SrValue value) => value.Primitive.Char;
 
 
         /// <summary>
         /// SrValue から int へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator int(SrValue value)
-        {
-            // int の返却
-            return value.Primitive.Int;
-        }
+        public static implicit operator int(SrValue value) => value.Primitive.Int;
 
 
         /// <summary>
         /// SrValue から uint へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator uint(SrValue value)
-        {
-            // uint の返却
-            return value.Primitive.Uint;
-        }
+        public static implicit operator uint(SrValue value) => value.Primitive.Uint;
 
 
         /// <summary>
         /// SrValue から long へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator long(SrValue value)
-        {
-            // long の返却
-            return value.Primitive.Long;
-        }
+        public static implicit operator long(SrValue value) => value.Primitive.Long;
 
 
         /// <summary>
         /// SrValue から ulong へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator ulong(SrValue value)
-        {
-            // ulong の返却
-            return value.Primitive.Ulong;
-        }
+        public static implicit operator ulong(SrValue value) => value.Primitive.Ulong;
 
 
         /// <summary>
         /// SrValue から float へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator float(SrValue value)
-        {
-            // float の返却
-            return value.Primitive.Float;
-        }
+        public static implicit operator float(SrValue value) => value.Primitive.Float;
 
 
         /// <summary>
         /// SrValue から double へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator double(SrValue value)
-        {
-            // double の返却
-            return value.Primitive.Double;
-        }
+        public static implicit operator double(SrValue value) => value.Primitive.Double;
 
 
         /// <summary>
         /// SrValue から string へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator string(SrValue value)
-        {
-            // string へ as キャストして返却
-            return value.Object as string;
-        }
+        public static implicit operator string(SrValue value) => value.Object as string;
 
 
         /// <summary>
         /// SrValue から SrInstruction へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
-        public static implicit operator SrInstruction(SrValue value)
-        {
-            // SrInstruction の返却
-            return value.Primitive.Instruction;
-        }
+        public static implicit operator SrInstruction(SrValue value) => value.Primitive.Instruction;
 
 
         /// <summary>
@@ -352,11 +300,7 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         /// <returns>true の条件を結果を返します</returns>
-        public static bool operator true(SrValue value)
-        {
-            // true になりうる条件結果を返す
-            return value.Primitive.Long != 0 || value.Object != null;
-        }
+        public static bool operator true(SrValue value) => value.Primitive.Long != 0 || value.Object != null;
 
 
         /// <summary>
@@ -364,11 +308,7 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         /// <returns>false の条件を結果を返します</returns>
-        public static bool operator false(SrValue value)
-        {
-            // false になりうる条件結果を返す
-            return value.Primitive.Long == 0 || value.Object == null;
-        }
+        public static bool operator false(SrValue value) => value.Primitive.Long == 0 || value.Object == null;
 
 
         /// <summary>
@@ -376,11 +316,7 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         /// <param name="other">比較対象</param>
         /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
-        public bool Equals(SrValue other)
-        {
-            // 値とオブジェクトの参照が一致していれば等価
-            return Primitive == other.Primitive && Object == other.Object;
-        }
+        public bool Equals(SrValue other) => Primitive == other.Primitive && Object == other.Object;
 
 
         /// <summary>
@@ -389,11 +325,7 @@ namespace SnowRabbit.RuntimeEngine
         /// <param name="left">左の値</param>
         /// <param name="right">右の値</param>
         /// <returns>等価の結果を返します</returns>
-        public static bool operator ==(SrValue left, SrValue right)
-        {
-            // Equals の結果をそのまま返す
-            return left.Equals(right);
-        }
+        public static bool operator ==(SrValue left, SrValue right) => left.Equals(right);
 
 
         /// <summary>
@@ -402,11 +334,7 @@ namespace SnowRabbit.RuntimeEngine
         /// <param name="left">左の値</param>
         /// <param name="right">右の値</param>
         /// <returns>非等価の結果を返します</returns>
-        public static bool operator !=(SrValue left, SrValue right)
-        {
-            // Equals の結果を反転して返す
-            return !left.Equals(right);
-        }
+        public static bool operator !=(SrValue left, SrValue right) => !left.Equals(right);
 
 
         /// <summary>
@@ -414,20 +342,13 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         /// <param name="obj">比較対象</param>
         /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
-        public override bool Equals(object obj)
-        {
-            // 型が一致すればジェネリック側の Equals 結果を返して、一致しないなら false を返す
-            return obj is SrValue ? Equals((SrValue)obj) : false;
-        }
+        public override bool Equals(object obj) => obj is SrValue ? Equals((SrValue)obj) : false;
 
 
         /// <summary>
         /// ハッシュコードを取得します
         /// </summary>
         /// <returns>ハッシュコードを返します</returns>
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
+        public override int GetHashCode() => Object == null ? Primitive.GetHashCode() : base.GetHashCode();
     }
 }
