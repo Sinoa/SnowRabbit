@@ -29,5 +29,24 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         // メンバ変数定義
         private object instance = null;
         private Dictionary<string, int> functionTable = new Dictionary<string, int>();
+
+
+
+        /// <summary>
+        /// 周辺機器名
+        /// </summary>
+        public string Name { get; }
+
+
+
+        /// <summary>
+        /// SrPeripheral クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="targetInstance">SrPeripheralAttribute 属性がついたインスタンス</param>
+        /// <exception cref="ArgumentNullException">targetInstance が null です</exception>
+        public SrPeripheral(object targetInstance)
+        {
+            instance = targetInstance ?? throw new ArgumentNullException(nameof(targetInstance));
+        }
     }
 }
