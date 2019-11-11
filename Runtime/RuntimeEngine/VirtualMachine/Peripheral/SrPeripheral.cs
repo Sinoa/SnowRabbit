@@ -21,9 +21,13 @@ using SnowRabbit.Diagnostics.Logging;
 
 namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 {
+    /// <summary>
+    /// SnowRabbit の周辺機器を表すクラスです
+    /// </summary>
     internal class SrPeripheral
     {
-        private object instance;
-        private Dictionary<string, int> functionTable;
+        // メンバ変数定義
+        private object instance = null;
+        private Dictionary<string, int> functionTable = new Dictionary<string, int>();
     }
 }
