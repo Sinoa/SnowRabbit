@@ -434,6 +434,7 @@ namespace CarrotCompilerCollection.Compiler
                 while (token.Kind != CccTokenKind.End)
                 {
                     ParseBlock();
+                    ThrowExceptionNotEndFinish(ref token);
                 }
 
 
@@ -1260,6 +1261,15 @@ namespace CarrotCompilerCollection.Compiler
 
 
             ThrowExceptionCompileError($"識別子 '{name}' は代入可能な式ではありません", 0);
+        }
+
+
+        private void ThrowExceptionNotEndFinish(ref Token token)
+        {
+            if (token.Kind == TokenKind.EndOfToken)
+            {
+                ThrowExceptionCompileError("end で終了する必要があります", 0);
+            }
         }
 
 
