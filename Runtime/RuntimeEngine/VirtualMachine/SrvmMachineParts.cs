@@ -52,7 +52,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         {
             // このクラスでは実際の解放処理はありません
             // 継承するクラスで適切なDisposeの実装をして下さい
-            SrLogger.Trace(SharedString.LogTag.VIRTUALMACHINE, "Called SnowRabbit.RuntimeEngine.VirtualMachine.SrvmMachineParts.Dispose(bool)");
+            SrLogger.Trace(SharedString.LogTag.VIRTUAL_MACHINE, "Called SnowRabbit.RuntimeEngine.VirtualMachine.SrvmMachineParts.Dispose(bool)");
         }
     }
 }

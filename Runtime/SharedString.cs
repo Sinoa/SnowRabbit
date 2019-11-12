@@ -53,7 +53,7 @@ namespace SnowRabbit
             /// <summary>
             /// 仮想マシンタグ
             /// </summary>
-            internal const string VIRTUALMACHINE = "VirtualMachine";
+            internal const string VIRTUAL_MACHINE = "VirtualMachine";
 
 
             /// <summary>
