@@ -31,12 +31,10 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private Dictionary<string, int> functionTable = new Dictionary<string, int>();
 
 
-
         /// <summary>
         /// 周辺機器名
         /// </summary>
         public string Name { get; }
-
 
 
         /// <summary>
@@ -44,9 +42,18 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         /// </summary>
         /// <param name="targetInstance">SrPeripheralAttribute 属性がついたインスタンス</param>
         /// <exception cref="ArgumentNullException">targetInstance が null です</exception>
+        /// <exception cref="SrPeripheralAttributeNotFoundException">targetInstance に SrPeripheralAttribute 属性が見つかりませんでした</exception>
         public SrPeripheral(object targetInstance)
         {
+            // まずは型情報を取得する
             instance = targetInstance ?? throw new ArgumentNullException(nameof(targetInstance));
+            var targetType = targetInstance.GetType();
+            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"SrPeripheral Initialize of '{targetType.FullName}'.");
+
+
+            // 周辺機器属性を取得するが見つからなかった場合は、例外を投げる
+            var attribute = targetType.GetCustomAttribute<SrPeripheralAttribute>() ?? throw new SrPeripheralAttributeNotFoundException($"'{targetType.FullName}' に SrPeripheralAttribute 属性が見つかりませんでした");
+            var peripheralName = attribute.Name;
         }
     }
 }
