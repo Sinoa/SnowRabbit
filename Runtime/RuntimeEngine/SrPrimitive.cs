@@ -102,6 +102,20 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
+        /// プラットフォーム依存のポインタ（ハンドル）型
+        /// </summary>
+        [FieldOffset(0)]
+        public IntPtr IntPtr;
+
+
+        /// <summary>
+        /// プラットフォーム依存のポインタ（ハンドル）型
+        /// </summary>
+        [FieldOffset(0)]
+        public UIntPtr UIntPtr;
+
+
+        /// <summary>
         /// 仮想マシンの命令
         /// </summary>
         [FieldOffset(0)]

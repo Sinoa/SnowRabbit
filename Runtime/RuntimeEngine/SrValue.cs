@@ -192,6 +192,32 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
+        /// IntPtr から SrValue へのキャストオーバーロードです
+        /// </summary>
+        /// <param name="value">IntPtr の値</param>
+        public static implicit operator SrValue(IntPtr value)
+        {
+            // IntPtr を受け取る
+            SrValue srValue = default;
+            srValue.Primitive.IntPtr = value;
+            return srValue;
+        }
+
+
+        /// <summary>
+        /// UIntPtr から SrValue へのキャストオーバーロードです
+        /// </summary>
+        /// <param name="value">UIntPtr の値</param>
+        public static implicit operator SrValue(UIntPtr value)
+        {
+            // UIntPtr を受け取る
+            SrValue srValue = default;
+            srValue.Primitive.UIntPtr = value;
+            return srValue;
+        }
+
+
+        /// <summary>
         /// SrInstruction から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">SrInstruction の値</param>
@@ -286,6 +312,20 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator string(SrValue value) => value.Object as string;
+
+
+        /// <summary>
+        /// SrValue から IntPtr へのキャストオーバーロードです
+        /// </summary>
+        /// <param name="value">SrValue インスタンス</param>
+        public static implicit operator IntPtr(SrValue value) => value.Primitive.IntPtr;
+
+
+        /// <summary>
+        /// SrValue から UIntPtr へのキャストオーバーロードです
+        /// </summary>
+        /// <param name="value">SrValue インスタンス</param>
+        public static implicit operator UIntPtr(SrValue value) => value.Primitive.UIntPtr;
 
 
         /// <summary>
