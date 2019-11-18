@@ -28,10 +28,10 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
     {
         // クラス変数宣言
         private static readonly Dictionary<Type, Func<SrValue, object>> fromValueConvertTable;
-        private static readonly Dictionary<Type, Func<object, SrValue>> toValueConvertTable;
 
         // メンバ変数定義
-        private MethodInfo method;
+        private object targetInstance;
+        private MethodInfo methodInfo;
         private object[] arguments;
         private Func<SrValue, object>[] argumentSetters;
         private Func<object, SrValue> setResult;
@@ -69,7 +69,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         }
 
 
-        public SrPeripheralFunction(object targetInstance, MethodInfo info, SrHostFunctionAttribute attribute)
+        public SrPeripheralFunction(object targetInstance, MethodInfo info)
         {
         }
 

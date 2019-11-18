@@ -70,7 +70,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             foreach (var function in functions)
             {
                 // 既に同じ名前の関数がテーブルに存在するなら
-                var functionName = function.info.Name;
+                var functionName = function.attribute.Name;
                 if (functionTable.ContainsKey(functionName))
                 {
                     // 警告を出して次へ
@@ -81,7 +81,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
                 // 周辺機器関数オブジェクトを生成してテーブルに設定
                 SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"Create and Register '{functionName}' peripheral function.");
-                functionTable[functionName] = new SrPeripheralFunction(targetInstance, function.info, function.attribute);
+                functionTable[functionName] = new SrPeripheralFunction(targetInstance, function.info);
             }
         }
 
