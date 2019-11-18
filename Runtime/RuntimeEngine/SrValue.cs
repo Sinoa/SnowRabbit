@@ -349,6 +349,6 @@ namespace SnowRabbit.RuntimeEngine
         /// ハッシュコードを取得します
         /// </summary>
         /// <returns>ハッシュコードを返します</returns>
-        public override int GetHashCode() => Object == null ? Primitive.GetHashCode() : base.GetHashCode();
+        public override int GetHashCode() => base.GetHashCode();
     }
 }
