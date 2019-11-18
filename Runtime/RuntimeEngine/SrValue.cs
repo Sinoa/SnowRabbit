@@ -153,6 +153,19 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
+        /// bool から SrValue へのキャストオーバーロードです
+        /// </summary>
+        /// <param name="value">bool の値</param>
+        public static implicit operator SrValue(bool value)
+        {
+            // bool を受け取る
+            SrValue srValue = default;
+            srValue.Primitive.Long = value ? 1 : 0;
+            return srValue;
+        }
+
+
+        /// <summary>
         /// float から SrValue へのキャストオーバーロードです
         /// </summary>
         /// <param name="value">float の値</param>
@@ -291,6 +304,13 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         /// <param name="value">SrValue インスタンス</param>
         public static implicit operator ulong(SrValue value) => value.Primitive.Ulong;
+
+
+        /// <summary>
+        /// SrValue から bool へのキャストオーバーロードです
+        /// </summary>
+        /// <param name="value">SrValue インスタンス</param>
+        public static implicit operator bool(SrValue value) => value.Primitive.Long != 0;
 
 
         /// <summary>
