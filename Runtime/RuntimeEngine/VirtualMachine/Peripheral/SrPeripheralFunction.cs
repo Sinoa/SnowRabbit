@@ -63,7 +63,9 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         /// <summary>
         /// PeripheralFunction クラスの初期化をします
         /// </summary>
+#pragma warning disable CA1810
         static SrPeripheralFunction()
+#pragma warning restore CA1810
         {
             // SrValue から特定の型へ正しくキャストする関数テーブルを初期化
             fromValueConvertTable = new Dictionary<Type, Func<SrValue, object>>()
@@ -107,6 +109,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
                 { typeof(IntPtr), x => (IntPtr)x },
                 { typeof(UIntPtr), x => (UIntPtr)x },
                 { typeof(string), x => (string)x },
+                { typeof(object), x => { var res = new SrValue { Object = x }; return res; } },
             };
         }
 
@@ -193,8 +196,10 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             {
                 // void 戻り値であることを覚える
                 SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Simple void return.");
+                taskResultType = typeof(void);
                 isVoidReturn = true;
                 taskResultProperty = null;
+                resultSetter = null;
                 return;
             }
 
@@ -211,6 +216,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             taskResultType = typeof(void);
             taskResultProperty = null;
             isVoidReturn = false;
+            resultSetter = null;
 
 
             // もし単純なTask型なら
@@ -228,7 +234,13 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             taskResultType = returnType.GenericTypeArguments[0];
 
 
-            // 扱える
+            // 返却する型によって設定関数を選択するが、選択出来なかった場合は
+            if (!toValueConvertTable.TryGetValue(taskResultType, out resultSetter))
+            {
+                // 通常の型では解決しないときはobject型として処理をする
+                SrLogger.Warning(SharedString.LogTag.PERIPHERAL, $"'{taskResultType}' convert function not found.");
+                resultSetter = toValueConvertTable[typeof(object)];
+            }
         }
 
 
@@ -259,6 +271,25 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
             // void戻り値ではないのならTaskとして返す
             return (Task)result;
+        }
+
+
+        /// <summary>
+        /// 非同期タスクの時の場合、結果をタスクから受け取ります
+        /// </summary>
+        /// <returns>タスクが終了している場合の結果を受け取ります</returns>
+        public SrValue GetResult()
+        {
+            // void 返却または 結果設定関数がない（単純なTask）の場合は
+            if (isVoidReturn || resultSetter == null)
+            {
+                // GetResultは操作できませんよ
+                throw new InvalidOperationException("void または Task 戻り値に対して結果を受け取れません");
+            }
+
+
+            // プロパティのGet関数を使って結果を拾い上げて結果を設定関数を経由して返す
+            return resultSetter(taskResultProperty.GetValue(targetInstance));
         }
     }
 }
