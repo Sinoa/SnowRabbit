@@ -81,7 +81,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
                 // 周辺機器関数オブジェクトを生成してテーブルに設定
                 SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"Create and Register '{functionName}' peripheral function.");
-                functionTable[functionName] = new SrPeripheralFunction(targetInstance, function.info);
+                functionTable[functionName] = new SrPeripheralFunction(function.info.IsStatic ? null : targetInstance, function.info);
             }
         }
 

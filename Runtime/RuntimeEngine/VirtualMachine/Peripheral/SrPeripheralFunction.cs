@@ -32,6 +32,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         // メンバ変数定義
         private object targetInstance;
         private MethodInfo methodInfo;
+
         private object[] arguments;
         private Func<SrValue, object>[] argumentSetters;
         private Func<object, SrValue> setResult;
@@ -69,8 +70,17 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         }
 
 
+        /// <summary>
+        /// PeripheralFunction クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="targetInstance">インスタンス関数呼び出しの際に使用する呼び出す対象のインスタンス、静的関数の場合は null を指定</param>
+        /// <param name="info">周辺機器関数として使用する関数の情報</param>
+        /// <exception cref="ArgumentNullException">info が null です</exception>
         public SrPeripheralFunction(object targetInstance, MethodInfo info)
         {
+            // ひとまず参照を受け取る
+            methodInfo = info ?? throw new ArgumentNullException(nameof(info));
+            this.targetInstance = targetInstance;
         }
 
 
@@ -83,7 +93,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         {
             // 関数情報を覚える
             SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Begin create peripheral function.");
-            method = info ?? throw new ArgumentNullException(nameof(info));
+            methodInfo = info ?? throw new ArgumentNullException(nameof(info));
 
 
             // 各種情報のセットアップをする
@@ -192,7 +202,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             }
 
 
-            method.Invoke(null, arguments);
+            methodInfo.Invoke(null, arguments);
             Array.Clear(arguments, 0, arguments.Length);
         }
     }
