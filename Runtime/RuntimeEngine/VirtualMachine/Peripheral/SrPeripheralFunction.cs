@@ -24,7 +24,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
     /// <summary>
     /// 仮想マシンとホスト間の関数を取り扱う周辺機器関数クラスです
     /// </summary>
-    internal class PeripheralFunction
+    internal class SrPeripheralFunction
     {
         // クラス変数宣言
         private static readonly Dictionary<Type, Func<SrValue, object>> fromValueConvertTable;
@@ -43,7 +43,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         /// <summary>
         /// PeripheralFunction クラスの初期化をします
         /// </summary>
-        static PeripheralFunction()
+        static SrPeripheralFunction()
         {
             // SrValue から特定の型へ正しくキャストする関数テーブルを初期化
             fromValueConvertTable = new Dictionary<Type, Func<SrValue, object>>()
@@ -69,12 +69,17 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         }
 
 
+        public SrPeripheralFunction(object targetInstance, MethodInfo info, SrHostFunctionAttribute attribute)
+        {
+        }
+
+
         /// <summary>
         /// PeripheralFunction クラスのインスタンスを初期化をします
         /// </summary>
         /// <param name="info">周辺機器関数として使用する関数情報</param>
         /// <exception cref="ArgumentNullException">info が null です</exception>
-        public PeripheralFunction(MethodInfo info)
+        public SrPeripheralFunction(MethodInfo info)
         {
             // 関数情報を覚える
             SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Begin create peripheral function.");

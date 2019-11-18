@@ -19,44 +19,44 @@ using System.Runtime.Serialization;
 namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 {
     /// <summary>
-    /// 周辺機器クラスに SrPeripheralAttribute 属性がない場合の例外クラスです
+    /// 周辺機器関数を見つけられなかった場合の例外クラスです
     /// </summary>
     [Serializable]
-    public class SrPeripheralAttributeNotFoundException : SnowRabbitException
+    public class SrPeripheralFunctionNotFoundException : SnowRabbitException
     {
         /// <summary>
-        /// SrPeripheralAttributeNotFoundException クラスのインスタンスを初期化します
+        /// SrPeripheralFunctionNotFoundException クラスのインスタンスを初期化します
         /// </summary>
-        public SrPeripheralAttributeNotFoundException()
+        public SrPeripheralFunctionNotFoundException()
         {
         }
 
 
         /// <summary>
-        /// SrPeripheralAttributeNotFoundException クラスのインスタンスを初期化します
+        /// SrPeripheralFunctionNotFoundException クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="message">例外に設定するメッセージ</param>
-        public SrPeripheralAttributeNotFoundException(string message) : base(message)
+        public SrPeripheralFunctionNotFoundException(string message) : base(message)
         {
         }
 
 
         /// <summary>
-        /// SrPeripheralAttributeNotFoundException クラスのインスタンスを初期化します
+        /// SrPeripheralFunctionNotFoundException クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="message">例外に設定するメッセージ</param>
         /// <param name="inner">この例外を発生させる原因となった例外</param>
-        public SrPeripheralAttributeNotFoundException(string message, Exception inner) : base(message, inner)
+        public SrPeripheralFunctionNotFoundException(string message, Exception inner) : base(message, inner)
         {
         }
 
 
         /// <summary>
-        /// シリアル化したデータを使用して SrPeripheralAttributeNotFoundException クラスの新しいインスタンスを初期化します。
+        /// シリアル化したデータを使用して SrPeripheralFunctionNotFoundException クラスの新しいインスタンスを初期化します。
         /// </summary>
         /// <param name="info">スローされている例外に関するシリアル化済みオブジェクトデータを保持している SerializationInfo</param>
         /// <param name="context">転送元または転送先についてのコンテキスト情報を含む StreamingContext</param>
-        protected SrPeripheralAttributeNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
+        protected SrPeripheralFunctionNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }
