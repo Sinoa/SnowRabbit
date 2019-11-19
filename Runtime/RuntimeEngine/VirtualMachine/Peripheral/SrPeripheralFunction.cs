@@ -55,6 +55,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private Func<SrValue, object>[] argumentSetters;
         private bool isVoidReturn;
         private Type taskResultType;
+        private Task taskReference;
         private PropertyInfo taskResultProperty;
         private Func<object, SrValue> resultSetter;
 
@@ -270,7 +271,8 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // void戻り値ではないのならTaskとして返す
-            return (Task)result;
+            taskReference = (Task)result;
+            return taskReference;
         }
 
 
@@ -289,7 +291,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // プロパティのGet関数を使って結果を拾い上げて結果を設定関数を経由して返す
-            return resultSetter(taskResultProperty.GetValue(targetInstance));
+            return resultSetter(taskResultProperty.GetValue(taskReference));
         }
     }
 }
