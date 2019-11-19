@@ -247,7 +247,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             // 配列外参照例外を承知でいきなりループでアクセス（呼び出しコードは極力実行速度優先で実装）
             SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"CallPeripheralFunction '{methodInfo.Name}'.");
             int indexGap = 0;
-            for (int i = 0; i < count; ++i)
+            for (int i = 0; i < arguments.Length; ++i)
             {
                 // もしプロセスIDを渡すインデックスなら
                 if (processIDArgumentIndex == i)

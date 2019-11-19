@@ -138,6 +138,34 @@ namespace SnowRabbitTest
             result = taskFunc.GetResult();
             Assert.AreEqual("このメッセージは、結合されるはずです。", (string)result.Object);
         }
+
+
+        /// <summary>
+        /// 少々特別な周辺機器関数の呼び出しテストをします
+        /// </summary>
+        [Test, Order(3)]
+        public void CallSpecialPeripheralFunction()
+        {
+            // プロセスIDが渡ってくする関数の呼び出しをするが、プロセスIDは引数リストからは渡すことはない（ここからは見えない引数として扱う）
+            var function = peripheral.GetPeripheralFunction("ProcFunc");
+            Assert.IsNotNull(function);
+            var arg = new SrValue[4];
+            arg[0].Primitive.Int = 456;
+            arg[1].Primitive.Int = 123;
+            function.Call(arg, 0, 2, 579);
+
+
+            // プライベートな関数でも属性がついている場合はアクセスが可能であることを確認する
+            function = peripheral.GetPeripheralFunction("PrivateFunc");
+            Assert.IsNotNull(function);
+            function.Call(Array.Empty<SrValue>(), 0, 0, 0);
+
+
+            // 静的な関数でも呼び出せることを確認
+            function = peripheral.GetPeripheralFunction("StaticFunc");
+            Assert.IsNotNull(function);
+            function.Call(Array.Empty<SrValue>(), 0, 0, 0);
+        }
     }
 
 
@@ -282,6 +310,47 @@ namespace SnowRabbitTest
             await Task.Delay(1000);
             Console.WriteLine($"Complete WaitReturnableTaskFunction({messageA}, {messageB})");
             return messageA + messageB;
+        }
+
+
+        /// <summary>
+        /// プロセスIDを受け取る関数の定義です
+        /// </summary>
+        /// <param name="a">単純な引数１</param>
+        /// <param name="processID">プロセスID</param>
+        /// <param name="b">単純な引数２</param>
+        /// <returns>引数１と２の合計を返します</returns>
+        [SrHostFunction("ProcFunc")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<保留中>")]
+        public int ProcessIDFunction(int a, [SrProcessID]int processID, int b)
+        {
+            // プロセスIDを出力しつつ a + b の結果が processID になると予想する
+            Console.WriteLine($"ProcessID : {processID}");
+            Assert.True(processID == a + b);
+            return a + b;
+        }
+
+
+        /// <summary>
+        /// プライベートな関数の定義です
+        /// </summary>
+        [SrHostFunction("PrivateFunc")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("コードの品質", "IDE0051:使用されていないプライベート メンバーを削除する", Justification = "<保留中>")]
+        private void PrivateFunction()
+        {
+            // 呼び出されたことを出力
+            Console.WriteLine("Called PrivateFunc");
+        }
+
+
+        /// <summary>
+        /// 静的関数の定義です
+        /// </summary>
+        [SrHostFunction("StaticFunc")]
+        public static void StaticFunction()
+        {
+            // 呼び出されたことを出力
+            Console.WriteLine("Called StaticFunc");
         }
     }
 }
