@@ -53,11 +53,11 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private readonly MethodInfo methodInfo;
         private object[] arguments;
         private Func<SrValue, object>[] argumentSetters;
+        private Func<object, SrValue> resultSetter;
         private bool isVoidReturn;
         private Type taskResultType;
         private Task taskReference;
         private PropertyInfo taskResultProperty;
-        private Func<object, SrValue> resultSetter;
 
 
 
@@ -95,6 +95,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             toValueConvertTable = new Dictionary<Type, Func<object, SrValue>>()
             {
                 // 各型に合わせた返却関数を用意
+                { typeof(void), x => default },
                 { typeof(sbyte), x => (sbyte)x },
                 { typeof(byte), x => (byte)x },
                 { typeof(char), x => (char)x },
@@ -118,14 +119,14 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         /// <summary>
         /// PeripheralFunction クラスのインスタンスを初期化します
         /// </summary>
-        /// <param name="targetInstance">インスタンス関数呼び出しの際に使用する呼び出す対象のインスタンス、静的関数の場合は null を指定</param>
+        /// <param name="target">インスタンス関数呼び出しの際に使用する呼び出す対象のインスタンス、静的関数の場合は null を指定</param>
         /// <param name="info">周辺機器関数として使用する関数の情報</param>
         /// <exception cref="ArgumentNullException">info が null です</exception>
-        public SrPeripheralFunction(object targetInstance, MethodInfo info)
+        public SrPeripheralFunction(object target, MethodInfo info)
         {
             // ひとまず参照を受け取る
+            targetInstance = target;
             methodInfo = info ?? throw new ArgumentNullException(nameof(info));
-            this.targetInstance = targetInstance;
             SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"Begin create peripheral function for '{info.DeclaringType}.{info.Name}'.");
 
 
@@ -166,16 +167,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             {
                 // 引数情報を取得して変換対象の型から変換関数を取り出して次へ
                 var parameter = parameters[i];
-                if (fromValueConvertTable.TryGetValue(parameter.ParameterType, out argumentSetters[i]))
+                if (!fromValueConvertTable.TryGetValue(parameter.ParameterType, out argumentSetters[i]))
                 {
-                    // そのまま次の引数へ
-                    continue;
+                    // 対応関数が無いなら警告を出してobject型そのまま出力する変換関数を利用する
+                    SrLogger.Warning(SharedString.LogTag.PERIPHERAL, $"'{parameter.ParameterType.FullName}' convert function not found.");
+                    argumentSetters[i] = fromValueConvertTable[typeof(object)];
                 }
-
-
-                // 対応関数が無いなら警告を出してobject型そのまま出力する変換関数を利用する
-                SrLogger.Warning(SharedString.LogTag.PERIPHERAL, $"'{parameter.ParameterType.FullName}' convert function not found.");
-                argumentSetters[i] = fromValueConvertTable[typeof(object)];
             }
         }
 
