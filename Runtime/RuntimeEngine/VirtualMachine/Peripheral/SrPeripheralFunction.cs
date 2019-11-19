@@ -257,6 +257,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         public Task Call(SrValue[] args, int index, int count)
         {
             // 配列外参照例外を承知でいきなりループでアクセス（呼び出しコードは極力実行速度優先で実装）
+            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"CallPeripheralFunction '{methodInfo.Name}'.");
             for (int i = 0; i < count; ++i)
             {
                 // 引数設定関数を用いて値配列から引数配列へ参照コピー（ボクシングは現状やむなし、改善方法を検討）
@@ -271,6 +272,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // void戻り値ではないのならTaskとして返す
+            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"This peripheral function is TaskReturn '{methodInfo.Name}'.");
             taskReference = (Task)result;
             return taskReference;
         }
@@ -291,6 +293,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // プロパティのGet関数を使って結果を拾い上げて結果を設定関数を経由して返す
+            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"PeripheralFunction GetResult '{methodInfo.Name}'");
             return resultSetter(taskResultProperty.GetValue(taskReference));
         }
     }

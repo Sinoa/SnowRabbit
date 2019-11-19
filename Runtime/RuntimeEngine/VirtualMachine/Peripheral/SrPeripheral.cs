@@ -139,6 +139,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // 関数の取得を試みて成功したら返す
+            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"SrPeripheralFunction({name});");
             if (functionTable.TryGetValue(name, out var function)) return function;
 
 
