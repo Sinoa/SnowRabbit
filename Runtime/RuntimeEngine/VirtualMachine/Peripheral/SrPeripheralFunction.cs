@@ -13,24 +13,6 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-/*
-
-# ホスト関数のシグネチャ
-
-サポートするホスト関数のシグネチャは、Task型またはTask<TResult>またはvoidを返却し、引数はプリミティブ型及びstring型、object型のいずれかを受け取る自由な引数配置です。
-
-次の例が許された関数シグネチャです。
-
-```
-void MySimpleFunction();
-Task MySampleFunction(int arg1);
-Task<int> MySampleFunction2(string arg1, int arg2, Transform arg3);
-```
-
-ただし、C#のプリミティブ型及びstring型などの基本的な型以外は原則的に、object型として処理されます。
-
-*/
-
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -47,6 +29,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         // クラス変数宣言
         private static readonly Dictionary<Type, Func<SrValue, object>> fromValueConvertTable;
         private static readonly Dictionary<Type, Func<object, SrValue>> toValueConvertTable;
+        private static readonly Func<object, SrValue> taskToValueConvert;
 
         // メンバ変数定義
         private readonly object targetInstance;
@@ -54,10 +37,8 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private object[] arguments;
         private Func<SrValue, object>[] argumentSetters;
         private Func<object, SrValue> resultSetter;
-        private bool isVoidReturn;
-        private Type taskResultType;
-        private Task taskReference;
-        private PropertyInfo taskResultProperty;
+        private object result;
+        private bool isTask;
 
 
 
@@ -69,6 +50,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 #pragma warning restore CA1810
         {
             // SrValue から特定の型へ正しくキャストする関数テーブルを初期化
+            // TODO 素直にリゾルバ化したほうが良いかもしれない
             fromValueConvertTable = new Dictionary<Type, Func<SrValue, object>>()
             {
                 // 各型に合わせた返却関数を用意
@@ -92,6 +74,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // object から SrValue へ正しくキャストする関数テーブルを初期化
+            // TODO 素直にリゾルバ化したほうが良いかもしれない
             toValueConvertTable = new Dictionary<Type, Func<object, SrValue>>()
             {
                 // 各型に合わせた返却関数を用意
@@ -111,8 +94,30 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
                 { typeof(IntPtr), x => (IntPtr)x },
                 { typeof(UIntPtr), x => (UIntPtr)x },
                 { typeof(string), x => (string)x },
-                { typeof(object), x => { var res = new SrValue { Object = x }; return res; } },
+                { typeof(object), x => new SrValue { Object = x } },
+                { typeof(Task), x => default },
+                { typeof(Task<sbyte>), x => ((Task<sbyte>)x).Result },
+                { typeof(Task<byte>), x => ((Task<byte>)x).Result },
+                { typeof(Task<char>), x => ((Task<char>)x).Result },
+                { typeof(Task<short>), x => ((Task<short>)x).Result },
+                { typeof(Task<ushort>), x => ((Task<ushort>)x).Result },
+                { typeof(Task<int>), x => ((Task<int>)x).Result },
+                { typeof(Task<uint>), x => ((Task<uint>)x).Result },
+                { typeof(Task<long>), x => ((Task<long>)x).Result },
+                { typeof(Task<ulong>), x => ((Task<ulong>)x).Result },
+                { typeof(Task<float>), x => ((Task<float>)x).Result },
+                { typeof(Task<double>), x => ((Task<double>)x).Result },
+                { typeof(Task<bool>), x => ((Task<bool>)x).Result },
+                { typeof(Task<IntPtr>), x => ((Task<IntPtr>)x).Result },
+                { typeof(Task<UIntPtr>), x => ((Task<UIntPtr>)x).Result },
+                { typeof(Task<string>), x => ((Task<string>)x).Result },
+                { typeof(Task<object>), x => new SrValue { Object = ((Task<object>)x).Result } },
             };
+
+
+            // Task<TResult>にて定義済み以外からの解決ができない場合の汎用解決関数
+            // TODO 素直にリゾルバ化したほうが良いかもしれない
+            taskToValueConvert = x => new SrValue { Object = x.GetType().GetProperty("Result").GetValue(x) };
         }
 
 
@@ -184,61 +189,25 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         /// <exception cref="ArgumentException">関数 '{info.DeclaringType.FullName}.{info.Name}' は Task または Task\<TResult\> または void を返しません</exception>
         private void SetupReturnInfo(MethodInfo info)
         {
-            // 関数の戻り値型を取得
+            // 関数の戻り値型を取得してタスクかどうかを知る
             SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"Setup return info. from '{info.DeclaringType.FullName}.{info.Name}'");
             var returnType = info.ReturnType;
+            isTask = typeof(Task).IsAssignableFrom(returnType);
+            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, isTask ? "Function is Task." : "Function is not Task.");
 
 
-            // ただの void 返却なら
-            if (returnType == typeof(void))
+            // 変換テーブルから変換関数を取り出せるのなら
+            if (toValueConvertTable.TryGetValue(returnType, out resultSetter))
             {
-                // void 戻り値であることを覚える
-                SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Simple void return.");
-                taskResultType = typeof(void);
-                isVoidReturn = true;
-                taskResultProperty = null;
-                resultSetter = null;
+                // これ以上解析はしない
+                SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Use built-in ResultResolver.");
                 return;
             }
 
 
-            // もしTask型を返さない関数なら
-            if (!typeof(Task).IsAssignableFrom(returnType))
-            {
-                // 周辺機器関数は必ずTask型を返すようなシグネチャでなければならない
-                throw new ArgumentException($"関数 '{info.DeclaringType.FullName}.{info.Name}' は Task または Task<TResult> または void を返しません");
-            }
-
-
-            // Task返却であることを覚える
-            taskResultType = typeof(void);
-            taskResultProperty = null;
-            isVoidReturn = false;
-            resultSetter = null;
-
-
-            // もし単純なTask型なら
-            if (!returnType.IsGenericType)
-            {
-                // 非ジェネリックであることを伝えて終了
-                SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Task is not generic.");
-                return;
-            }
-
-
-            // Task<TResult>.Result プロパティの取得と型の取得
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Return type is task.");
-            taskResultProperty = returnType.GetProperty("Result");
-            taskResultType = returnType.GenericTypeArguments[0];
-
-
-            // 返却する型によって設定関数を選択するが、選択出来なかった場合は
-            if (!toValueConvertTable.TryGetValue(taskResultType, out resultSetter))
-            {
-                // 通常の型では解決しないときはobject型として処理をする
-                SrLogger.Warning(SharedString.LogTag.PERIPHERAL, $"'{taskResultType}' convert function not found.");
-                resultSetter = toValueConvertTable[typeof(object)];
-            }
+            // Task<TResult> かどうかによってデフォルトの解決関数を選択する
+            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Use default ResultResolver.");
+            resultSetter = isTask ? taskToValueConvert : toValueConvertTable[typeof(object)];
         }
 
 
@@ -262,16 +231,13 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             }
 
 
-            // 関数を呼び出して引数をクリア後、もしvoid戻り値の関数なのであれば直ちに完了タスクを返す
-            var result = methodInfo.Invoke(targetInstance, arguments);
+            // 関数を呼び出して引数をクリア
+            result = methodInfo.Invoke(targetInstance, arguments);
             Array.Clear(arguments, 0, arguments.Length);
-            if (isVoidReturn) return Task.CompletedTask;
 
 
-            // void戻り値ではないのならTaskとして返す
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"This peripheral function is TaskReturn '{methodInfo.Name}'.");
-            taskReference = (Task)result;
-            return taskReference;
+            // タスクの場合は単純なTaskへキャストして返して、タスクでないなら直ちに完了を返す
+            return isTask ? (Task)result : Task.CompletedTask;
         }
 
 
@@ -281,17 +247,9 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         /// <returns>タスクが終了している場合の結果を受け取ります</returns>
         public SrValue GetResult()
         {
-            // void 返却または 結果設定関数がない（単純なTask）の場合は
-            if (isVoidReturn || resultSetter == null)
-            {
-                // GetResultは操作できませんよ
-                throw new InvalidOperationException("void または Task 戻り値に対して結果を受け取れません");
-            }
-
-
-            // プロパティのGet関数を使って結果を拾い上げて結果を設定関数を経由して返す
+            // 変換関数を通して返す
             SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"PeripheralFunction GetResult '{methodInfo.Name}'");
-            return resultSetter(taskResultProperty.GetValue(taskReference));
+            return resultSetter(result);
         }
     }
 }

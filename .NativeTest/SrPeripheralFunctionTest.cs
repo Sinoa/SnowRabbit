@@ -75,6 +75,22 @@ namespace SnowRabbitTest
             Assert.IsNotNull(function);
             task = function.Call(arg, 3, 3);
             Assert.True(task.IsCompleted);
+
+
+            // 単純な戻り地を受け取る関数を取り出して実行する
+            function = peripheral.GetPeripheralFunction("RetSimple");
+            Assert.IsNotNull(function);
+            function.Call(Array.Empty<SrValue>(), 0, 0);
+            Assert.AreEqual("Simple Return Function", function.GetResult().Object);
+
+
+            // 単純な引数の受け取りと結果を返す関数を取り出して実行する
+            function = peripheral.GetPeripheralFunction("RetSimpleEx");
+            Assert.IsNotNull(function);
+            arg[0].Primitive.Int = 456;
+            arg[1].Primitive.Int = 123;
+            function.Call(arg, 0, 2);
+            Assert.AreEqual(579, function.GetResult().Primitive.Int);
         }
 
 
@@ -84,11 +100,10 @@ namespace SnowRabbitTest
         [Test, Order(2)]
         public void CallTaskPeripheralFunction()
         {
-            // 直ちに完了するはずの関数を取り出して完了済みであることを確認する（ついでにGetResultがGetResult出来ないことも確認）
+            // 直ちに完了するはずの関数を取り出して完了済みであることを確認する
             var taskFunc = peripheral.GetPeripheralFunction("CompTaskFunc");
             Assert.IsNotNull(taskFunc);
             Assert.True(taskFunc.Call(Array.Empty<SrValue>(), 0, 0).IsCompleted);
-            Assert.Throws<InvalidOperationException>(() => taskFunc.GetResult());
 
 
             // 少しだけ待つタスクを取得して待機しているかを確認する
@@ -176,6 +191,34 @@ namespace SnowRabbitTest
         {
             // 関数は読み出せています
             Console.WriteLine($"[{message}] {a} + {b} = {a + b}");
+        }
+
+
+        /// <summary>
+        /// 値を返す単純な周辺機器関数の定義です
+        /// </summary>
+        /// <returns>単純な文字列を返します</returns>
+        [SrHostFunction("RetSimple")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<保留中>")]
+        public string SimpleReturnableFunction()
+        {
+            // 単純に結果を返します
+            return "Simple Return Function";
+        }
+
+
+        /// <summary>
+        /// 値を返す単純な周辺機器関数の定義です
+        /// </summary>
+        /// <param name="a">引数１</param>
+        /// <param name="b">引数２</param>
+        /// <returns>引数１と２の加算結果を返します</returns>
+        [SrHostFunction("RetSimpleEx")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<保留中>")]
+        public int SimpleReturnableFunction(int a, int b)
+        {
+            // 単純に加算結果を返す
+            return a + b;
         }
 
 
