@@ -62,7 +62,7 @@ namespace SnowRabbitTest
             // 周辺機器から関数を取り出して実行する
             var function = peripheral.GetPeripheralFunction("Simple");
             Assert.IsNotNull(function);
-            var task = function.Call(Array.Empty<SrValue>(), 0, 0);
+            var task = function.Call(Array.Empty<SrValue>(), 0, 0, 0);
             Assert.True(task.IsCompleted);
 
 
@@ -73,14 +73,14 @@ namespace SnowRabbitTest
             arg[4].Primitive.Int = 456;
             arg[5].Primitive.Int = 123;
             Assert.IsNotNull(function);
-            task = function.Call(arg, 3, 3);
+            task = function.Call(arg, 3, 3, 0);
             Assert.True(task.IsCompleted);
 
 
             // 単純な戻り地を受け取る関数を取り出して実行する
             function = peripheral.GetPeripheralFunction("RetSimple");
             Assert.IsNotNull(function);
-            function.Call(Array.Empty<SrValue>(), 0, 0);
+            function.Call(Array.Empty<SrValue>(), 0, 0, 0);
             Assert.AreEqual("Simple Return Function", function.GetResult().Object);
 
 
@@ -89,7 +89,7 @@ namespace SnowRabbitTest
             Assert.IsNotNull(function);
             arg[0].Primitive.Int = 456;
             arg[1].Primitive.Int = 123;
-            function.Call(arg, 0, 2);
+            function.Call(arg, 0, 2, 0);
             Assert.AreEqual(579, function.GetResult().Primitive.Int);
         }
 
@@ -103,13 +103,13 @@ namespace SnowRabbitTest
             // 直ちに完了するはずの関数を取り出して完了済みであることを確認する
             var taskFunc = peripheral.GetPeripheralFunction("CompTaskFunc");
             Assert.IsNotNull(taskFunc);
-            Assert.True(taskFunc.Call(Array.Empty<SrValue>(), 0, 0).IsCompleted);
+            Assert.True(taskFunc.Call(Array.Empty<SrValue>(), 0, 0, 0).IsCompleted);
 
 
             // 少しだけ待つタスクを取得して待機しているかを確認する
             taskFunc = peripheral.GetPeripheralFunction("WaitTaskFunc");
             Assert.IsNotNull(taskFunc);
-            var task = taskFunc.Call(Array.Empty<SrValue>(), 0, 0);
+            var task = taskFunc.Call(Array.Empty<SrValue>(), 0, 0, 0);
             Assert.False(task.IsCompleted);
             task.Wait();
 
@@ -120,7 +120,7 @@ namespace SnowRabbitTest
             var arg = new SrValue[4];
             arg[2].Primitive.Int = 456;
             arg[3].Primitive.Int = 123;
-            task = taskFunc.Call(arg, 2, 2);
+            task = taskFunc.Call(arg, 2, 2, 0);
             Assert.True(task.IsCompleted);
             task.Wait();
             var result = taskFunc.GetResult();
@@ -132,7 +132,7 @@ namespace SnowRabbitTest
             Assert.IsNotNull(taskFunc);
             arg[0] = "結合されるはずです。";
             arg[1] = "このメッセージは、";
-            task = taskFunc.Call(arg, 0, 2);
+            task = taskFunc.Call(arg, 0, 2, 0);
             Assert.False(task.IsCompleted);
             task.Wait();
             result = taskFunc.GetResult();

@@ -39,6 +39,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private Func<object, SrValue> resultSetter;
         private object result;
         private bool isTask;
+        private int processIDArgumentIndex = -1;
 
 
 
@@ -146,6 +147,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         /// 引数情報をセットアップします
         /// </summary>
         /// <param name="info">周辺機器関数として使用する関数情報</param>
+        /// <exception cref="NotSupportedException">SrProcessIDAttribute 属性の引数は int でなければなりません</exception>
         private void SetupArgumentInfo(MethodInfo info)
         {
             // 引数の数を知る
@@ -170,8 +172,27 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             argumentSetters = new Func<SrValue, object>[parameters.Length];
             for (int i = 0; i < parameters.Length; ++i)
             {
-                // 引数情報を取得して変換対象の型から変換関数を取り出して次へ
+                // 引数情報の取得
                 var parameter = parameters[i];
+
+
+                // もし SrProcessIDAttribute 属性がついていたら
+                if (parameter.GetCustomAttribute<SrProcessIDAttribute>() != null)
+                {
+                    // パラメータがintでないなら
+                    if (parameter.ParameterType != typeof(int))
+                    {
+                        // int以外は非サポートである例外を吐く
+                        throw new NotSupportedException("SrProcessIDAttribute 属性の引数は int でなければなりません");
+                    }
+
+
+                    // この引数インデックスをプロセスID用引数であることを覚える
+                    processIDArgumentIndex = i;
+                }
+
+
+                // 変換対象の型から変換関数を取り出す
                 if (!fromValueConvertTable.TryGetValue(parameter.ParameterType, out argumentSetters[i]))
                 {
                     // 対応関数が無いなら警告を出してobject型そのまま出力する変換関数を利用する
@@ -219,15 +240,27 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         /// <param name="args">引数として使用される配列の参照</param>
         /// <param name="index">引数として使用する開始インデックス</param>
         /// <param name="count">引数として使用する長さ</param>
+        /// <param name="processID">プロセスIDとして渡す値</param>
         /// <returns>呼び出した関数を待機するタスクを返します</returns>
-        public Task Call(SrValue[] args, int index, int count)
+        public Task Call(SrValue[] args, int index, int count, int processID)
         {
             // 配列外参照例外を承知でいきなりループでアクセス（呼び出しコードは極力実行速度優先で実装）
             SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"CallPeripheralFunction '{methodInfo.Name}'.");
+            int indexGap = 0;
             for (int i = 0; i < count; ++i)
             {
+                // もしプロセスIDを渡すインデックスなら
+                if (processIDArgumentIndex == i)
+                {
+                    // 引数にプロセスIDを入れてインデックスギャップを調整後次へ
+                    arguments[i] = processID;
+                    indexGap += 1;
+                    continue;
+                }
+
+
                 // 引数設定関数を用いて値配列から引数配列へ参照コピー（ボクシングは現状やむなし、改善方法を検討）
-                arguments[i] = argumentSetters[i](args[index + count - 1 - i]);
+                arguments[i] = argumentSetters[i](args[index + count - 1 - i + indexGap]);
             }
 
 
