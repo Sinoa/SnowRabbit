@@ -50,7 +50,7 @@ namespace SnowRabbitTest
         /// 単純な周辺機器関数の呼び出しをテストします
         /// </summary>
         [Test, Order(1)]
-        public void CallSimplePeripheralFunction()
+        public void CallSimplePeripheralFunctionTest()
         {
             // そもそも関数が見つからない例外を確認をする
             Assert.Throws<ArgumentException>(() => peripheral.GetPeripheralFunction(null));
@@ -98,7 +98,7 @@ namespace SnowRabbitTest
         /// 非同期周辺機器関数の呼び出しをテストします
         /// </summary>
         [Test, Order(2)]
-        public void CallTaskPeripheralFunction()
+        public void CallTaskPeripheralFunctionTest()
         {
             // 直ちに完了するはずの関数を取り出して完了済みであることを確認する
             var taskFunc = peripheral.GetPeripheralFunction("CompTaskFunc");
@@ -144,7 +144,7 @@ namespace SnowRabbitTest
         /// 少々特別な周辺機器関数の呼び出しテストをします
         /// </summary>
         [Test, Order(3)]
-        public void CallSpecialPeripheralFunction()
+        public void CallSpecialPeripheralFunctionTest()
         {
             // プロセスIDが渡ってくする関数の呼び出しをするが、プロセスIDは引数リストからは渡すことはない（ここからは見えない引数として扱う）
             var function = peripheral.GetPeripheralFunction("ProcFunc");
@@ -166,6 +166,59 @@ namespace SnowRabbitTest
             Assert.IsNotNull(function);
             function.Call(Array.Empty<SrValue>(), 0, 0, 0);
         }
+
+
+        /// <summary>
+        /// ユーザー定義クラスの扱う周辺機器関数の呼び出しテストをします
+        /// </summary>
+        [Test, Order(4)]
+        public void CallMyDataClassParamFuctionTest()
+        {
+            // 自前の定義クラスのインスタンスを作って呼び出して更に確認もする
+            var function = peripheral.GetPeripheralFunction("MyDataFunc");
+            Assert.IsNotNull(function);
+            var arg = new SrValue[1];
+            arg[0].Object = new MyDataClass();
+            ((MyDataClass)arg[0].Object).ParameterA = 123;
+            ((MyDataClass)arg[0].Object).ParameterB = "Message";
+            function.Call(arg, 0, 1, 123);
+            var result = (MyDataClass)function.GetResult().Object;
+            Assert.AreEqual(12300, result.ParameterA);
+            Assert.AreEqual("ParameterB : Message", result.ParameterB);
+
+
+            // 非同期で同じ確認をする
+            function = peripheral.GetPeripheralFunction("MyDataFuncAsync");
+            Assert.IsNotNull(function);
+            arg[0].Object = new MyDataClass();
+            ((MyDataClass)arg[0].Object).ParameterA = 456;
+            ((MyDataClass)arg[0].Object).ParameterB = "Message";
+            var task = function.Call(arg, 0, 1, 456);
+            Assert.False(task.IsCompleted);
+            task.Wait();
+            result = (MyDataClass)function.GetResult().Object;
+            Assert.AreEqual(456000, result.ParameterA);
+            Assert.AreEqual("ParameterB : Message Async", result.ParameterB);
+        }
+    }
+
+
+
+    /// <summary>
+    /// ユーザー定義クラスを拡張関数経由からでも渡せたり返せたり出来るかを確認するためのクラスです
+    /// </summary>
+    public class MyDataClass
+    {
+        /// <summary>
+        /// パラメータAプロパティ
+        /// </summary>
+        public int ParameterA { get; set; }
+
+
+        /// <summary>
+        /// パラメータBプロパティ
+        /// </summary>
+        public string ParameterB { get; set; }
     }
 
 
@@ -351,6 +404,44 @@ namespace SnowRabbitTest
         {
             // 呼び出されたことを出力
             Console.WriteLine("Called StaticFunc");
+        }
+
+
+        /// <summary>
+        /// ユーザー定義クラスを扱えるかの確認関数の定義です
+        /// </summary>
+        /// <param name="inArg">引数１</param>
+        /// <returns>ユーザー定義クラスのインスタンスを返します</returns>
+        [SrHostFunction("MyDataFunc")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("コードの品質", "IDE0051:使用されていないプライベート メンバーを削除する", Justification = "<保留中>")]
+        public MyDataClass MyDataFunc(MyDataClass inArg)
+        {
+            // 新しいインスタンスを作って返す
+            var newData = new MyDataClass();
+            newData.ParameterA = inArg.ParameterA * 100;
+            newData.ParameterB = $"ParameterB : {inArg.ParameterB}";
+            return newData;
+        }
+
+
+        /// <summary>
+        /// タスクでもユーザー定義クラスを扱えるかの確認関数の定義です
+        /// </summary>
+        /// <param name="inArg">引数１</param>
+        /// <returns>ユーザー定義クラスのインスタンスを返します</returns>
+        [SrHostFunction("MyDataFuncAsync")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("コードの品質", "IDE0051:使用されていないプライベート メンバーを削除する", Justification = "<保留中>")]
+        public async Task<MyDataClass> MyDataFuncAsync(MyDataClass inArg)
+        {
+            // 意図的に長く待つ
+            await Task.Delay(1000);
+
+
+            // 新しいインスタンスを作って返す
+            var newData = new MyDataClass();
+            newData.ParameterA = inArg.ParameterA * 1000;
+            newData.ParameterB = $"ParameterB : {inArg.ParameterB} Async";
+            return newData;
         }
     }
 }
