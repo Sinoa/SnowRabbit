@@ -68,7 +68,7 @@ namespace SnowRabbit.Security
         /// <param name="buffer">計算する対象のバッファ</param>
         /// <returns>CRC64計算された結果を返します</returns>
         /// <exception cref="ArgumentNullException">buffer が null です</exception>
-        unsafe public override ulong Calculate(ulong continusHash, byte[] buffer)
+        public override unsafe ulong Calculate(ulong continusHash, byte[] buffer)
         {
             // バッファのアドレスを取得
             fixed (byte* p = buffer)
@@ -93,7 +93,7 @@ namespace SnowRabbit.Security
         /// <returns>CRC64計算された結果を返します</returns>
         /// <exception cref="ArgumentNullException">buffer が null です</exception>
         /// <exception cref="ArgumentOutOfRangeException">index または index, count 合計値がbufferの範囲を超えます</exception>
-        unsafe public override ulong Calculate(ulong continusHash, byte[] buffer, int index, int count)
+        public override unsafe ulong Calculate(ulong continusHash, byte[] buffer, int index, int count)
         {
             // もし buffer が null なら
             if (buffer == null)
@@ -132,7 +132,7 @@ namespace SnowRabbit.Security
         /// <param name="count">計算するバイトの数</param>
         /// <returns>CRC64計算された結果を返します</returns>
         /// <exception cref="ArgumentNullException">buffer が null です</exception>
-        unsafe public override ulong Calculate(ulong continusHash, byte* buffer, int count)
+        public override unsafe ulong Calculate(ulong continusHash, byte* buffer, int count)
         {
             // もし buffer が null なら
             if (buffer == null)

@@ -81,7 +81,7 @@ namespace SnowRabbit.Security
         /// <param name="buffer">計算する対象のポインタ</param>
         /// <param name="count">計算するサイズ</param>
         /// <returns>計算された結果を返します</returns>
-        unsafe public abstract T Calculate(byte* buffer, int count);
+        public abstract unsafe T Calculate(byte* buffer, int count);
 
 
         /// <summary>
@@ -91,6 +91,6 @@ namespace SnowRabbit.Security
         /// <param name="buffer">計算する対象のポインタ</param>
         /// <param name="count">計算するサイズ</param>
         /// <returns>計算された結果を返します</returns>
-        unsafe public abstract T Calculate(T continusHash, byte* buffer, int count);
+        public abstract unsafe T Calculate(T continusHash, byte* buffer, int count);
     }
 }

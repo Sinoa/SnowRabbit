@@ -39,7 +39,7 @@ namespace SnowRabbit.Security
         /// <param name="buffer">計算する対象のバッファ</param>
         /// <returns>計算された結果を返します</returns>
         /// <exception cref="ArgumentNullException">buffer が null です</exception>
-        unsafe public override ulong Calculate(byte[] buffer)
+        public override unsafe ulong Calculate(byte[] buffer)
         {
             // バッファのアドレスを取得
             fixed (byte* p = buffer)
@@ -62,7 +62,7 @@ namespace SnowRabbit.Security
         /// <returns>計算された結果を返します</returns>
         /// <exception cref="ArgumentNullException">buffer が null です</exception>
         /// <exception cref="ArgumentOutOfRangeException">index または index, count 合計値がbufferの範囲を超えます</exception>
-        unsafe public override ulong Calculate(byte[] buffer, int index, int count)
+        public override unsafe ulong Calculate(byte[] buffer, int index, int count)
         {
             // もし buffer が null なら
             if (buffer == null)
@@ -99,7 +99,7 @@ namespace SnowRabbit.Security
         /// <param name="count">計算するバイトの数</param>
         /// <returns>計算された結果を返します</returns>
         /// <exception cref="ArgumentNullException">buffer が null です</exception>
-        unsafe public override ulong Calculate(byte* buffer, int count)
+        public override unsafe ulong Calculate(byte* buffer, int count)
         {
             // ulong.MaxValueによるXOR反転を利用した計算を行い結果を返す
             return Calculate(ulong.MaxValue, buffer, count) ^ ulong.MaxValue;
