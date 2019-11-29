@@ -51,6 +51,12 @@ namespace SnowRabbit
         internal static class LogTag
         {
             /// <summary>
+            /// SrDisposableタグ
+            /// </summary>
+            internal const string SR_DISPOSABLE = "SrDisposable";
+
+
+            /// <summary>
             /// 仮想マシンタグ
             /// </summary>
             internal const string VIRTUAL_MACHINE = "VirtualMachine";

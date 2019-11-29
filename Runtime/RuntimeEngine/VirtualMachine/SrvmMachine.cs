@@ -18,7 +18,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
     /// <summary>
     /// SnowRabbit が実装する仮想マシンクラスです
     /// </summary>
-    public class SrvmMachine : SrvmMachineParts
+    public class SrvmMachine : SrDisposable
     {
+        // 以下メンバ変数定義
+        private SrvmProcessor processor;
+        private SrvmMemory memory;
+        private SrvmFirmware firmware;
+        private SrvmStorage storage;
     }
 }

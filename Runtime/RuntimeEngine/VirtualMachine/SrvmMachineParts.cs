@@ -13,46 +13,16 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using System;
-using SnowRabbit.Diagnostics.Logging;
-
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
 {
     /// <summary>
     /// 各種仮想マシンの部品クラスを定義する為の仮想マシンパーツ抽象クラスです
     /// </summary>
-    public abstract class SrvmMachineParts : IDisposable
+    public abstract class SrvmMachineParts : SrDisposable
     {
         /// <summary>
-        /// 確保したリソースを解放します
+        /// SrvmMachineParts クラスを持つ仮想マシンへの参照
         /// </summary>
-        ~SrvmMachineParts()
-        {
-            // アンマネージドのみの解放をする
-            Dispose(false);
-        }
-
-
-        /// <summary>
-        /// 確保したリソースを解放します
-        /// </summary>
-        public void Dispose()
-        {
-            // マネージドを含む解放をしてGCのファイナライザに追加されないようにする
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-
-        /// <summary>
-        /// 確保したリソースを解放します
-        /// </summary>
-        /// <param name="disposing">マネージドを含む解放の場合は true を、アンマネージドのみ解放の場合は false を指定</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            // このクラスでは実際の解放処理はありません
-            // 継承するクラスで適切なDisposeの実装をして下さい
-            SrLogger.Trace(SharedString.LogTag.VIRTUAL_MACHINE, "Called SnowRabbit.RuntimeEngine.VirtualMachine.SrvmMachineParts.Dispose(bool)");
-        }
+        internal protected SrvmMachine Machine { get; internal set; }
     }
 }
