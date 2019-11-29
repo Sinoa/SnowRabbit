@@ -67,6 +67,19 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
         /// <summary>
+        /// 指定された名前の周辺機器インスタンスを取得します
+        /// </summary>
+        /// <param name="peripheralName">取得する周辺機器インスタンスの名前</param>
+        /// <returns>指定された名前の周辺機器が存在している場合は インスタンス を返しますが、存在しない場合は null を返します</returns>
+        internal SrPeripheral GetPeripheral(string peripheralName)
+        {
+            // TryGetした結果をそのまま返す
+            peripheralTable.TryGetValue(peripheralName, out var peripheral);
+            return peripheral;
+        }
+
+
+        /// <summary>
         /// 確保したリソースを解放します
         /// </summary>
         /// <param name="disposing">マネージドを含む解放の場合は true を、アンマネージドのみ解放の場合は false を指定</param>
