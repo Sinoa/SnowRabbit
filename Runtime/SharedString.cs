@@ -66,6 +66,12 @@ namespace SnowRabbit
             /// 周辺機器タグ
             /// </summary>
             internal const string PERIPHERAL = "Peripheral";
+
+
+            /// <summary>
+            /// ファームウェアタグ
+            /// </summary>
+            internal const string SR_VM_FIRMWARE = "SrFirmware";
         }
     }
 }

@@ -90,6 +90,16 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
         /// <summary>
+        /// この仮想マシンの状態を更新します
+        /// </summary>
+        public void Update()
+        {
+            ThrowExceptionIfObjectDisposed();
+            throw new NotImplementedException();
+        }
+
+
+        /// <summary>
         /// 自身が既に解放済みの場合に例外をスローします
         /// </summary>
         /// <exception cref="ObjectDisposedException">既に解放済みです</exception>
