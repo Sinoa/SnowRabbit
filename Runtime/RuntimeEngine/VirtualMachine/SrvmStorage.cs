@@ -13,12 +13,20 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System.IO;
+
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
 {
     /// <summary>
     /// SnowRabbit が実装する仮想マシンストレージクラスです
     /// </summary>
-    public class SrvmStorage : SrvmMachineParts
+    public abstract class SrvmStorage : SrvmMachineParts
     {
+        /// <summary>
+        /// 指定されたパスのデータをストリームとして開きます
+        /// </summary>
+        /// <param name="path">ストリームとして開くデータのパス</param>
+        /// <returns>正しくストリームを開けた場合は Stream インスタンスを返しますが、開けなかった場合は null を返します</returns>
+        public abstract Stream Open(string path);
     }
 }

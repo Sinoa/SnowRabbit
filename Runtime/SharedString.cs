@@ -72,6 +72,12 @@ namespace SnowRabbit
             /// ファームウェアタグ
             /// </summary>
             internal const string SR_VM_FIRMWARE = "SrFirmware";
+
+
+            /// <summary>
+            /// ファイルシステムストレージタグ
+            /// </summary>
+            internal const string SR_VM_FS_STORAGE = "SrvmFileSystemStorage";
         }
     }
 }
