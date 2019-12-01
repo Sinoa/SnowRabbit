@@ -23,7 +23,7 @@ namespace SnowRabbit.IO
     /// SnowRabbit が扱うリトルエンディアンなストリームを扱うクラスです。
     /// リトルエンディアンCPUであればパススルーな動作をしますが、ビッグエンディアンCPUの場合はエンディアン変換が行われます。
     /// </summary>
-    public class SrBinaryStream : IDisposable
+    public class SrBinaryStream : SrDisposable
     {
         // 定数定義
         private const int DefaultIOBufferSize = 16 << 10;
@@ -93,54 +93,26 @@ namespace SnowRabbit.IO
 
 
         /// <summary>
-        /// インスタンスのリソースを解放します
-        /// </summary>
-        //~SrBinaryStream()
-        //{
-        //    // ファイナライザからのDispose呼び出し
-        //    Dispose(false);
-        //}
-
-
-        /// <summary>
-        /// インスタンスのリソースを解放します
-        /// </summary>
-        public void Dispose()
-        {
-            // DisposeからのDispose呼び出しをしてGCに自身のファイナライザを止めてもらう
-            Dispose(true);
-            //GC.SuppressFinalize(this);
-        }
-
-
-        /// <summary>
         /// インスタンスの実際のリソースを解放します
         /// </summary>
         /// <param name="disposing">マネージドを含む解放の場合は true を、アンマネージドのみの場合は false を指定</param>
-        protected virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
-            // 既に解放済みなら
-            if (disposed)
-            {
-                // 何もしない
-                return;
-            }
+            // 既に解放済みなら何もしない
+            if (disposed) return;
 
 
-            // マネージの解放なら
-            if (disposing)
+            // マネージの解放かつ解放時にストリームを閉じるなら
+            if (disposing && !leaveOpen)
             {
-                // もし解放時にストリームを閉じる場合は
-                if (!leaveOpen)
-                {
-                    // ストリームを閉じる
-                    BaseStream.Dispose();
-                }
+                // ストリームを閉じる
+                BaseStream.Dispose();
             }
 
 
             // 解放済みマーク
             disposed = true;
+            base.Dispose(disposing);
         }
         #endregion
 
