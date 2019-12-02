@@ -95,14 +95,18 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                 SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Execute stopped, for Process status is '{process.ProcessState}'.");
                 return;
             }
-
-
-            // プロセスが準備完了状態なのなら
-            if (process.ProcessState == SrProcessStatus.Ready)
+            else if (process.ProcessState == SrProcessStatus.Ready)
             {
-                // プロセスの動作開始イベントを実行して開始状態にする
+                // プロセスが準備完了状態なら、プロセスの動作開始イベントを実行して開始状態にする
                 SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Startup process ID={process.ProcessID}");
                 OnProcessStartup(process);
+                process.ProcessState = SrProcessStatus.Running;
+            }
+            else if (process.ProcessState == SrProcessStatus.ResumeRequested)
+            {
+                // プロセスが再開要求状態なら、プロセスの動作再開イベントを実行して開始状態にする
+                SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Resume process ID={process.ProcessID}");
+                OnProcessResume(process);
                 process.ProcessState = SrProcessStatus.Running;
             }
 
@@ -592,6 +596,17 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         {
             // トレースログくらいは出す
             SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessStartup ID={process.ProcessID}");
+        }
+
+
+        /// <summary>
+        /// プロセスが動作の再開をした時の処理をします
+        /// </summary>
+        /// <param name="process">動作を再開するプロセス</param>
+        protected virtual void OnProcessResume(SrProcess process)
+        {
+            // トレースログくらいは出す
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessResume ID={process.ProcessID}");
         }
 
 

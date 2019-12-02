@@ -53,7 +53,7 @@ namespace SnowRabbit.RuntimeEngine
         /// <param name="programCode">このプロセスが使用するプログラムコードのメモリブロック</param>
         /// <param name="processMemory">このプロセスが使用するメモリのメモリブロック</param>
         /// <param name="processorContext">このプロセスが使用するプロセッサコンテキストのメモリブロック</param>
-        public SrProcess(int processID, MemoryBlock<SrValue> programCode, MemoryBlock<SrValue> processMemory, MemoryBlock<SrValue> processorContext)
+        internal SrProcess(int processID, MemoryBlock<SrValue> programCode, MemoryBlock<SrValue> processMemory, MemoryBlock<SrValue> processorContext)
         {
             // すべて受け取る
             ProcessID = processID;
@@ -66,6 +66,43 @@ namespace SnowRabbit.RuntimeEngine
             ProcessState = SrProcessStatus.Ready;
             RunningStopwatch = new Stopwatch();
             UnhandledExceptionMode = UnhandledExceptionMode.CatchException;
+        }
+
+
+        /// <summary>
+        /// 一時停止しているプロセスを再開します。ただし、停止したプロセスは呼び出しが無視されます。
+        /// さらに UnhandledExceptionMode の CatchException によってキャッチされた例外があった場合は、例外が破棄されることに注意してください。
+        /// </summary>
+        public void Resume()
+        {
+            // プロセスが停止中なら何もしない
+            if (ProcessState == SrProcessStatus.Stopped) return;
+
+
+            // プロセスの状態を再開要求にして例外発行情報もクリア
+            ProcessState = SrProcessStatus.ResumeRequested;
+            ExceptionDispatchInfo = null;
+        }
+
+
+        /// <summary>
+        /// プロセスの実行中に発生した例外で UnhandledExceptionMode にて CatchException の場合にキャッチした例外をスローします。
+        /// 何も例外が発生していないか ThrowException モードの時に発生した例外は何もしません。また、パニック状態になったプロセスは再開要求状態になります。
+        /// </summary>
+        public void ResumeAndThrowIfOccurrencedException()
+        {
+            // プロセスが停止 または 例外自体発生していないなら何もせず終了
+            if (ProcessState == SrProcessStatus.Stopped || ExceptionDispatchInfo == null) return;
+
+
+            // プロセスの状態を再開要求状態にして例外発行情報をスタック変数に参照を移す
+            ProcessState = SrProcessStatus.ResumeRequested;
+            var dispatchInfo = ExceptionDispatchInfo;
+            ExceptionDispatchInfo = null;
+
+
+            // 例外発行情報の例外をスローする
+            dispatchInfo.Throw();
         }
     }
 }

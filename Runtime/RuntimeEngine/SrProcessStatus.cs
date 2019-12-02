@@ -29,7 +29,7 @@ namespace SnowRabbit.RuntimeEngine
         Running = 0x00,
 
         /// <summary>
-        /// プロセスは一時停止中です
+        /// プロセスは一時停止しました
         /// </summary>
         Suspended = 0x01,
 
@@ -47,5 +47,10 @@ namespace SnowRabbit.RuntimeEngine
         /// プロセス実行中に不明なエラーが発生しました
         /// </summary>
         Panic = 0x10,
+
+        /// <summary>
+        /// プロセスに動作を再開するように要求されました
+        /// </summary>
+        ResumeRequested = 0x20,
     }
 }
