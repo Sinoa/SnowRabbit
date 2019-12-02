@@ -13,6 +13,9 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System.Diagnostics;
+using System.Runtime.ExceptionServices;
+
 namespace SnowRabbit.RuntimeEngine
 {
     /// <summary>
@@ -25,6 +28,21 @@ namespace SnowRabbit.RuntimeEngine
         internal protected readonly MemoryBlock<SrValue> ProgramCode;
         internal protected readonly MemoryBlock<SrValue> ProcessMemory;
         internal protected readonly MemoryBlock<SrValue> ProcessorContext;
+        internal readonly Stopwatch RunningStopwatch;
+        internal ExceptionDispatchInfo ExceptionDispatchInfo;
+
+
+
+        /// <summary>
+        /// プロセスの動作状態を取得します
+        /// </summary>
+        public SrProcessStatus ProcessState { get; internal set; }
+
+
+        /// <summary>
+        /// 例外発生時の動作モードを取得設定します
+        /// </summary>
+        public UnhandledExceptionMode UnhandledExceptionMode { get; set; }
 
 
 
@@ -42,6 +60,12 @@ namespace SnowRabbit.RuntimeEngine
             ProgramCode = programCode;
             ProcessMemory = processMemory;
             ProcessorContext = processorContext;
+
+
+            // 他初期化処理
+            ProcessState = SrProcessStatus.Ready;
+            RunningStopwatch = new Stopwatch();
+            UnhandledExceptionMode = UnhandledExceptionMode.CatchException;
         }
     }
 }
