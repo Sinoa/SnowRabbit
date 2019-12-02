@@ -78,6 +78,12 @@ namespace SnowRabbit
             /// ファイルシステムストレージタグ
             /// </summary>
             internal const string SR_VM_FS_STORAGE = "SrvmFileSystemStorage";
+
+
+            /// <summary>
+            /// プロセッサタグ
+            /// </summary>
+            internal const string SR_VM_PROCESSOR = "SrvmProcessor";
         }
     }
 }

@@ -13,6 +13,9 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
+using SnowRabbit.Diagnostics.Logging;
+
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
 {
     /// <summary>
@@ -40,5 +43,34 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         public const byte RegisterIPIndex = 30; // InstructionPointer Register[IP]
         public const byte RegisterZeroIndex = 31; // Zero Register[ZERO]
         public const byte RegisterInvalidIndex = 31; // Invalid Register[INVALID]
+
+
+
+        /// <summary>
+        /// 対象プロセスのプロセッサコンテキストを初期化します
+        /// </summary>
+        /// <param name="process">初期化するプロセス</param>
+        /// <exception cref="ArgumentNullException">process が null です</exception>
+        public unsafe virtual void InitializeProcessorContext(SrProcess process)
+        {
+            // null を渡されたらむり
+            if (process == null) throw new ArgumentNullException(nameof(process));
+
+
+            // 末尾のレジスタインデックスまでループ
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, "InitializeProcessorContext");
+            for (var i = 0; i < RegisterZeroIndex; ++i)
+            {
+                // プロセッサコンテキストの値を初期化する
+                process.ProcessorContext[i] = default;
+            }
+
+
+            // スタックポインタとベースポインタの位置をプロセスメモリの末尾へ
+            // （プッシュ時はデクリメントされたから値がセットされるので、配列の長さそのままで初期化）
+            var memoryLength = process.ProcessMemory.Length;
+            process.ProcessorContext[RegisterSPIndex].Primitive.Long = memoryLength;
+            process.ProcessorContext[RegisterBPIndex].Primitive.Long = memoryLength;
+        }
     }
 }
