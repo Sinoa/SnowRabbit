@@ -21,10 +21,10 @@ namespace SnowRabbit.RuntimeEngine
     public class SrProcess : SrDisposable
     {
         // メンバ変数定義
-        private readonly int processID;
-        private readonly MemoryBlock<SrValue> programCode;
-        private readonly MemoryBlock<SrValue> processMemory;
-        private readonly MemoryBlock<SrValue> processorContext;
+        internal protected readonly int processID;
+        internal protected readonly MemoryBlock<SrValue> programCode;
+        internal protected readonly MemoryBlock<SrValue> processMemory;
+        internal protected readonly MemoryBlock<SrValue> processorContext;
 
 
 
