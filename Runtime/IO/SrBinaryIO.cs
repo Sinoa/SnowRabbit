@@ -23,7 +23,7 @@ namespace SnowRabbit.IO
     /// SnowRabbit が扱うリトルエンディアンなストリームを扱うクラスです。
     /// リトルエンディアンCPUであればパススルーな動作をしますが、ビッグエンディアンCPUの場合はエンディアン変換が行われます。
     /// </summary>
-    public class SrBinaryStream : SrDisposable
+    public class SrBinaryIO : SrDisposable
     {
         // 定数定義
         private const int DefaultIOBufferSize = 16 << 10;
@@ -52,28 +52,28 @@ namespace SnowRabbit.IO
 
         #region Constructor and Dispose
         /// <summary>
-        /// SrBinaryStream クラスのインスタンスを初期化します
+        /// SrBinaryIO クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="stream">ストリーム制御を行う対象のストリーム</param>
         /// <exception cref="ArgumentNullException">stream が null です</exception>
-        public SrBinaryStream(Stream stream) : this(stream, DefaultLeaveOpen, DefaultIOBufferSize, DefaultCharBufferSize)
+        public SrBinaryIO(Stream stream) : this(stream, DefaultLeaveOpen, DefaultIOBufferSize, DefaultCharBufferSize)
         {
         }
 
 
         /// <summary>
-        /// SrBinaryStream クラスのインスタンスを初期化します
+        /// SrBinaryIO クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="stream">ストリーム制御を行う対象のストリーム</param>
         /// <param name="leaveOpen">このインスタンスが破棄される時にストリームを開いたままにする場合は true を、閉じる場合は false</param>
         /// <exception cref="ArgumentNullException">stream が null です</exception>
-        public SrBinaryStream(Stream stream, bool leaveOpen) : this(stream, leaveOpen, DefaultIOBufferSize, DefaultCharBufferSize)
+        public SrBinaryIO(Stream stream, bool leaveOpen) : this(stream, leaveOpen, DefaultIOBufferSize, DefaultCharBufferSize)
         {
         }
 
 
         /// <summary>
-        /// SrBinaryStream クラスのインスタンスを初期化します
+        /// SrBinaryIO クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="stream">ストリーム制御を行う対象のストリーム</param>
         /// <param name="leaveOpen">このインスタンスが破棄される時にストリームを開いたままにする場合は true を、閉じる場合は false</param>
@@ -82,7 +82,7 @@ namespace SnowRabbit.IO
         /// <exception cref="ArgumentNullException">stream が null です</exception>
         /// <exception cref="ArgumentOutOfRangeException">ioBufferSize に MinIOBufferSize 未満の値は指定出来ません</exception>
         /// <exception cref="ArgumentOutOfRangeException">charBufferSize に MinCharBufferSize 未満の値は指定出来ません</exception>
-        public SrBinaryStream(Stream stream, bool leaveOpen, int ioBufferSize, int charBufferSize)
+        public SrBinaryIO(Stream stream, bool leaveOpen, int ioBufferSize, int charBufferSize)
         {
             // 初期化をする
             BaseStream = stream ?? throw new ArgumentNullException(nameof(stream));
