@@ -26,7 +26,7 @@ namespace SnowRabbit.RuntimeEngine
         private const uint SegmentBitMask = 0x000FFFFF;
 
         // 以下メンバ変数定義
-        internal readonly MemoryBlock<SrValue>[] Memory;
+        private readonly MemoryBlock<SrValue>[] Memory;
 
 
 
@@ -41,12 +41,12 @@ namespace SnowRabbit.RuntimeEngine
             get
             {
                 // 上位12bitはセグメント番号、下位20bitはオフセットアドレス
-                return Memory[virtualAddress >> 10][(int)(virtualAddress & SegmentBitMask)];
+                return Memory[virtualAddress >> 20][(int)(virtualAddress & SegmentBitMask)];
             }
             set
             {
                 // 上位12bitはセグメント番号、下位20bitはオフセットアドレス
-                Memory[virtualAddress >> 10][(int)(virtualAddress & SegmentBitMask)] = value;
+                Memory[virtualAddress >> 20][(int)(virtualAddress & SegmentBitMask)] = value;
             }
         }
 
