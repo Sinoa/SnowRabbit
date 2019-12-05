@@ -27,6 +27,9 @@ namespace SnowRabbit.RuntimeEngine
 
         // 以下メンバ変数定義
         private readonly MemoryBlock<SrValue>[] Memory;
+        public readonly int ProgramCodeSize;
+        public readonly int ProcessMemorySize;
+
 
 
 
@@ -65,6 +68,11 @@ namespace SnowRabbit.RuntimeEngine
                 programCode, // Segment 0
                 processMemory, // Segment 1
             };
+
+
+            // 長さを記憶する
+            ProgramCodeSize = programCode.Length;
+            ProcessMemorySize = processMemory.Length;
         }
 
 
