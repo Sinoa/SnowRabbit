@@ -25,8 +25,7 @@ namespace SnowRabbit.RuntimeEngine
     {
         // メンバ変数定義
         internal protected readonly int ProcessID;
-        internal protected readonly MemoryBlock<SrValue> ProgramCode;
-        internal protected readonly MemoryBlock<SrValue> ProcessMemory;
+        internal protected readonly SrVirtualMemory VirtualMemory;
         internal protected readonly MemoryBlock<SrValue> ProcessorContext;
         internal readonly Stopwatch RunningStopwatch;
         internal ExceptionDispatchInfo ExceptionDispatchInfo;
@@ -57,8 +56,7 @@ namespace SnowRabbit.RuntimeEngine
         {
             // すべて受け取る
             ProcessID = processID;
-            ProgramCode = programCode;
-            ProcessMemory = processMemory;
+            VirtualMemory = new SrVirtualMemory(programCode, processMemory);
             ProcessorContext = processorContext;
 
 
