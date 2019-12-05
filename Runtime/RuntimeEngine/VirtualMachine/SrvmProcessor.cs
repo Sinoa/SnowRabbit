@@ -70,9 +70,9 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
             // スタックポインタとベースポインタの位置をプロセスメモリの末尾へ
             // （プッシュ時はデクリメントされたから値がセットされるので、配列の長さそのままで初期化）
-            var memoryLength = process.ProcessMemory.Length;
-            process.ProcessorContext[RegisterSPIndex].Primitive.Long = memoryLength;
-            process.ProcessorContext[RegisterBPIndex].Primitive.Long = memoryLength;
+            var memoryLength = process.VirtualMemory.ProcessMemorySize;
+            process.ProcessorContext[RegisterSPIndex].Primitive.Long = 0x00100000 + memoryLength;
+            process.ProcessorContext[RegisterBPIndex].Primitive.Long = 0x00100000 + memoryLength;
         }
 
 
@@ -146,8 +146,14 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         /// プロセスを実際に処理する実行関数です
         /// </summary>
         /// <param name="process">実行するプロセス</param>
+        /// <exception cref="SrUnknownInstructionException">不明な命令 'Op={instruction.OpCode}' を実行しようとしました</exception>
         private unsafe void ExecuteCore(SrProcess process)
         {
+            // プロセスに紐付いている情報をローカル変数に持ってくる
+            var context = process.ProcessorContext;
+            var memory = process.VirtualMemory;
+
+
             // プロセスの動作計測ストップウォッチを開始
             process.RunningStopwatch.Start();
 
@@ -156,10 +162,14 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             var running = true;
             while (running)
             {
+                // ゼロレジスタは常にゼロ
+                context[RegisterZeroIndex].Primitive.Int = 0;
+
+
                 // 現在の命令ポインタが指している命令を取り出して、実行の準備をしてデバッグイベントを呼ぶ
-                var instructionPointer = process.ProcessorContext[RegisterIPIndex].Primitive.Int;
+                var instructionPointer = context[RegisterIPIndex].Primitive.Int;
                 var nextInstructionPointer = instructionPointer + 1;
-                var instruction = process.ProgramCode[instructionPointer].Primitive.Instruction;
+                var instruction = memory[instructionPointer].Primitive.Instruction;
                 instruction.GetRegisterNumber(out var r1, out var r2, out var r3);
                 OnPreProcessInstruction_Debug(process, instruction);
 
@@ -168,366 +178,366 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                 switch (instruction.OpCode)
                 {
                     #region CPU Control
-                    //case OpCode.Halt:
-                    //    execution = false;
-                    //    process.ProcessStatus = SrProcessStatus.Stopped;
-                    //    break;
+                    case OpCode.Halt:
+                        running = false;
+                        process.ProcessState = SrProcessStatus.Stopped;
+                        break;
                     #endregion
 
 
                     #region Data Transfer
-                    //case OpCode.Mov:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0];
-                    //    break;
+                    case OpCode.Mov:
+                        context[r1] = context[r2];
+                        break;
 
 
-                    //case OpCode.Movl:
-                    //    context[regANumber].Value.Long[0] = immediate;
-                    //    break;
+                    case OpCode.Movl:
+                        context[r1] = instruction.Int;
+                        break;
 
 
-                    //case OpCode.Ldr:
-                    //    var offsetAddress = (int)context[regBNumber].Value.Long[0];
-                    //    context[regANumber].Value.Long[0] = memory[offsetAddress + immediate].Value.Long[0];
-                    //    break;
+                    case OpCode.Ldr:
+                        var offsetAddress = context[r2].Primitive.Int;
+                        context[r1] = memory[offsetAddress + instruction.Int];
+                        break;
 
 
-                    //case OpCode.Ldrl:
-                    //    context[regANumber].Value.Long[0] = memory[immediate].Value.Long[0];
-                    //    break;
+                    case OpCode.Ldrl:
+                        context[r1] = memory[instruction.Int];
+                        break;
 
 
-                    //case OpCode.Str:
-                    //    offsetAddress = (int)context[regBNumber].Value.Long[0];
-                    //    memory[offsetAddress + immediate].Value.Long[0] = context[regANumber].Value.Long[0];
-                    //    break;
+                    case OpCode.Str:
+                        offsetAddress = context[r2].Primitive.Int;
+                        memory[offsetAddress + instruction.Int] = context[r1].Primitive.Long;
+                        break;
 
 
-                    //case OpCode.Strl:
-                    //    memory[immediate].Value.Long[0] = context[regANumber].Value.Long[0];
-                    //    break;
+                    case OpCode.Strl:
+                        memory[instruction.Int] = context[r1];
+                        break;
 
 
-                    //case OpCode.Push:
-                    //    var sp = context[RegisterSPIndex].Value.Long[0] - 1;
-                    //    memory[(int)sp].Value.Long[0] = context[regANumber].Value.Long[0];
-                    //    context[RegisterSPIndex].Value.Long[0] = sp;
-                    //    break;
+                    case OpCode.Push:
+                        var sp = context[RegisterSPIndex] - 1;
+                        memory[sp] = context[r1];
+                        context[RegisterSPIndex] = sp;
+                        break;
 
 
-                    //case OpCode.Pushl:
-                    //    sp = context[RegisterSPIndex].Value.Long[0] - 1;
-                    //    memory[(int)sp].Value.Long[0] = immediate;
-                    //    context[RegisterSPIndex].Value.Long[0] = sp;
-                    //    break;
+                    case OpCode.Pushl:
+                        sp = context[RegisterSPIndex] - 1;
+                        memory[sp] = instruction.Int;
+                        context[RegisterSPIndex] = sp;
+                        break;
 
 
-                    //case OpCode.Pop:
-                    //    sp = context[RegisterSPIndex].Value.Long[0];
-                    //    context[regANumber].Value.Long[0] = memory[(int)sp].Value.Long[0];
-                    //    context[RegisterSPIndex].Value.Long[0] = sp + 1;
-                    //    break;
+                    case OpCode.Pop:
+                        sp = context[RegisterSPIndex];
+                        context[r1] = memory[sp];
+                        context[RegisterSPIndex] = sp + 1;
+                        break;
 
 
-                    //case OpCode.Fmovl:
-                    //    context[regANumber].Value.Float[0] = immediateF;
-                    //    break;
+                    case OpCode.Fmovl:
+                        context[r1] = instruction.Float;
+                        break;
 
 
-                    //case OpCode.Fpushl:
-                    //    sp = context[RegisterSPIndex].Value.Long[0] - 1;
-                    //    memory[(int)sp].Value.Float[0] = immediateF;
-                    //    context[RegisterSPIndex].Value.Long[0] = sp;
-                    //    break;
+                    case OpCode.Fpushl:
+                        sp = context[RegisterSPIndex] - 1;
+                        memory[sp] = instruction.Float;
+                        context[RegisterSPIndex] = sp;
+                        break;
 
 
-                    //case OpCode.Movfti:
-                    //    context[regANumber].Value.Long[0] = (long)context[regBNumber].Value.Float[0];
-                    //    break;
+                    case OpCode.Movfti:
+                        context[r1] = (long)context[r2].Primitive.Float;
+                        break;
 
 
-                    //case OpCode.Movitf:
-                    //    context[regANumber].Value.Float[0] = context[regBNumber].Value.Long[0];
-                    //    break;
+                    case OpCode.Movitf:
+                        context[r1] = (float)context[r1].Primitive.Long;
+                        break;
                     #endregion
 
 
                     #region Arithmetic
-                    //case OpCode.Add:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] + context[regCNumber].Value.Long[0];
-                    //    break;
+                    case OpCode.Add:
+                        context[r1] = (long)context[r2] + context[r3];
+                        break;
 
 
-                    //case OpCode.Addl:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] + immediate;
-                    //    break;
+                    case OpCode.Addl:
+                        context[r1] = (long)context[r2] + instruction.Int;
+                        break;
 
 
-                    //case OpCode.Sub:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] - context[regCNumber].Value.Long[0];
-                    //    break;
+                    case OpCode.Sub:
+                        context[r1] = (long)context[r2] - context[r3];
+                        break;
 
 
-                    //case OpCode.Subl:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] - immediate;
-                    //    break;
+                    case OpCode.Subl:
+                        context[r1] = (long)context[r2] - instruction.Int;
+                        break;
 
 
-                    //case OpCode.Mul:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] * context[regCNumber].Value.Long[0];
-                    //    break;
+                    case OpCode.Mul:
+                        context[r1] = (long)context[r2] * context[r3];
+                        break;
 
 
-                    //case OpCode.Mull:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] * immediate;
-                    //    break;
+                    case OpCode.Mull:
+                        context[r1] = (long)context[r2] * instruction.Int;
+                        break;
 
 
-                    //case OpCode.Div:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] / context[regCNumber].Value.Long[0];
-                    //    break;
+                    case OpCode.Div:
+                        context[r1] = (long)context[r2] / context[r3];
+                        break;
 
 
-                    //case OpCode.Divl:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] / immediate;
-                    //    break;
+                    case OpCode.Divl:
+                        context[r1] = (long)context[r2] / instruction.Int;
+                        break;
 
 
-                    //case OpCode.Mod:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] % context[regCNumber].Value.Long[0];
-                    //    break;
+                    case OpCode.Mod:
+                        context[r1] = (long)context[r2] % context[r3];
+                        break;
 
 
-                    //case OpCode.Modl:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] % immediate;
-                    //    break;
+                    case OpCode.Modl:
+                        context[r1] = (long)context[r2] % instruction.Int;
+                        break;
 
 
-                    //case OpCode.Pow:
-                    //    context[regANumber].Value.Long[0] = (long)Math.Pow(context[regBNumber].Value.Long[0], context[regCNumber].Value.Long[0]);
-                    //    break;
+                    case OpCode.Pow:
+                        context[r1] = (long)Math.Pow(context[r2], context[r3]);
+                        break;
 
 
-                    //case OpCode.Powl:
-                    //    context[regANumber].Value.Long[0] = (long)Math.Pow(context[regBNumber].Value.Long[0], immediate);
-                    //    break;
+                    case OpCode.Powl:
+                        context[r1] = (long)Math.Pow(context[r2], instruction.Int);
+                        break;
 
 
-                    //case OpCode.Neg:
-                    //    context[regANumber].Value.Long[0] = -context[regBNumber].Value.Long[0];
-                    //    break;
+                    case OpCode.Neg:
+                        context[r1] = -(long)context[r2];
+                        break;
 
 
-                    //case OpCode.Negl:
-                    //    context[regANumber].Value.Long[0] = -immediate;
-                    //    break;
+                    case OpCode.Negl:
+                        context[r1] = -instruction.Int;
+                        break;
 
 
-                    //case OpCode.Fadd:
-                    //    context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] + context[regCNumber].Value.Float[0];
-                    //    break;
+                    case OpCode.Fadd:
+                        context[r1] = (float)context[r2] + context[r3];
+                        break;
 
 
-                    //case OpCode.Faddl:
-                    //    context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] + immediateF;
-                    //    break;
+                    case OpCode.Faddl:
+                        context[r1] = (float)context[r2] + instruction.Float;
+                        break;
 
 
-                    //case OpCode.Fsub:
-                    //    context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] - context[regCNumber].Value.Float[0];
-                    //    break;
+                    case OpCode.Fsub:
+                        context[r1] = (float)context[r2] - context[r3];
+                        break;
 
 
-                    //case OpCode.Fsubl:
-                    //    context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] - immediateF;
-                    //    break;
+                    case OpCode.Fsubl:
+                        context[r1] = (float)context[r2] - instruction.Float;
+                        break;
 
 
-                    //case OpCode.Fmul:
-                    //    context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] * context[regCNumber].Value.Float[0];
-                    //    break;
+                    case OpCode.Fmul:
+                        context[r1] = (float)context[r2] * context[r3];
+                        break;
 
 
-                    //case OpCode.Fmull:
-                    //    context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] * immediateF;
-                    //    break;
+                    case OpCode.Fmull:
+                        context[r1] = (float)context[r2] * instruction.Float;
+                        break;
 
 
-                    //case OpCode.Fdiv:
-                    //    context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] / context[regCNumber].Value.Float[0];
-                    //    break;
+                    case OpCode.Fdiv:
+                        context[r1] = (float)context[r2] / context[r3];
+                        break;
 
 
-                    //case OpCode.Fdivl:
-                    //    context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] / immediateF;
-                    //    break;
+                    case OpCode.Fdivl:
+                        context[r1] = (float)context[r2] / instruction.Float;
+                        break;
 
 
-                    //case OpCode.Fmod:
-                    //    context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] % context[regCNumber].Value.Float[0];
-                    //    break;
+                    case OpCode.Fmod:
+                        context[r1] = (float)context[r2] % context[r3];
+                        break;
 
 
-                    //case OpCode.Fmodl:
-                    //    context[regANumber].Value.Float[0] = context[regBNumber].Value.Float[0] % immediateF;
-                    //    break;
+                    case OpCode.Fmodl:
+                        context[r1] = (float)context[r2] % instruction.Float;
+                        break;
 
 
-                    //case OpCode.Fpow:
-                    //    context[regANumber].Value.Float[0] = (float)Math.Pow(context[regBNumber].Value.Float[0], context[regCNumber].Value.Float[0]);
-                    //    break;
+                    case OpCode.Fpow:
+                        context[r1] = (float)Math.Pow(context[r2], context[r3]);
+                        break;
 
 
-                    //case OpCode.Fpowl:
-                    //    context[regANumber].Value.Float[0] = (float)Math.Pow(context[regBNumber].Value.Float[0], immediateF);
-                    //    break;
+                    case OpCode.Fpowl:
+                        context[r1] = (float)Math.Pow(context[r2], instruction.Float);
+                        break;
 
 
-                    //case OpCode.Fneg:
-                    //    context[regANumber].Value.Float[0] = -context[regBNumber].Value.Float[0];
-                    //    break;
+                    case OpCode.Fneg:
+                        context[r1] = -(float)context[r2];
+                        break;
 
 
-                    //case OpCode.Fnegl:
-                    //    context[regANumber].Value.Float[0] = -immediateF;
-                    //    break;
+                    case OpCode.Fnegl:
+                        context[r1] = -instruction.Float;
+                        break;
                     #endregion
 
 
                     #region Logic
                     //case OpCode.Or:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] | context[regCNumber].Value.Long[0];
+                    //    context[r1] = context[r2] | context[r3];
                     //    break;
 
 
                     //case OpCode.Xor:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] ^ context[regCNumber].Value.Long[0];
+                    //    context[r1] = context[r2] ^ context[r3];
                     //    break;
 
 
                     //case OpCode.And:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] & context[regCNumber].Value.Long[0];
+                    //    context[r1] = context[r2] & context[r3];
                     //    break;
 
 
                     //case OpCode.Not:
-                    //    context[regANumber].Value.Long[0] = ~context[regANumber].Value.Long[0];
+                    //    context[r1] = ~context[r1];
                     //    break;
 
 
                     //case OpCode.Shl:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] << (int)(context[regCNumber].Value.Long[0]);
+                    //    context[r1] = context[r2] << (int)(context[r3]);
                     //    break;
 
 
                     //case OpCode.Shr:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] >> (int)(context[regCNumber].Value.Long[0]);
+                    //    context[r1] = context[r2] >> (int)(context[r3]);
                     //    break;
 
 
                     //case OpCode.Teq:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] == context[regCNumber].Value.Long[0] ? 1L : 0L;
+                    //    context[r1] = context[r2] == context[r3] ? 1L : 0L;
                     //    break;
 
 
                     //case OpCode.Tne:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] != context[regCNumber].Value.Long[0] ? 1L : 0L;
+                    //    context[r1] = context[r2] != context[r3] ? 1L : 0L;
                     //    break;
 
 
                     //case OpCode.Tg:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] > context[regCNumber].Value.Long[0] ? 1L : 0L;
+                    //    context[r1] = context[r2] > context[r3] ? 1L : 0L;
                     //    break;
 
 
                     //case OpCode.Tge:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] >= context[regCNumber].Value.Long[0] ? 1L : 0L;
+                    //    context[r1] = context[r2] >= context[r3] ? 1L : 0L;
                     //    break;
 
 
                     //case OpCode.Tl:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] < context[regCNumber].Value.Long[0] ? 1L : 0L;
+                    //    context[r1] = context[r2] < context[r3] ? 1L : 0L;
                     //    break;
 
 
                     //case OpCode.Tle:
-                    //    context[regANumber].Value.Long[0] = context[regBNumber].Value.Long[0] <= context[regCNumber].Value.Long[0] ? 1L : 0L;
+                    //    context[r1] = context[r2] <= context[r3] ? 1L : 0L;
                     //    break;
                     #endregion
 
 
                     #region Flow Control
                     //case OpCode.Br:
-                    //    nextInstructionPointer = context[regANumber].Value.Long[0] + immediate;
+                    //    nextInstructionPointer = context[r1] + instruction.Int;
                     //    break;
 
 
                     //case OpCode.Brl:
-                    //    nextInstructionPointer = immediate;
+                    //    nextInstructionPointer = instruction.Int;
                     //    break;
 
 
                     //case OpCode.Bnz:
-                    //    nextInstructionPointer = context[regBNumber].Value.Long[0] != 0 ? context[regANumber].Value.Long[0] + immediate : nextInstructionPointer;
+                    //    nextInstructionPointer = context[r2] != 0 ? context[r1] + instruction.Int : nextInstructionPointer;
                     //    break;
 
 
                     //case OpCode.Bnzl:
-                    //    nextInstructionPointer = context[regBNumber].Value.Long[0] != 0 ? immediate : nextInstructionPointer;
+                    //    nextInstructionPointer = context[r2] != 0 ? instruction.Int : nextInstructionPointer;
                     //    break;
 
 
                     //case OpCode.Call:
-                    //    sp = context[RegisterSPIndex].Value.Long[0] - 1;
-                    //    memory[(int)sp].Value.Long[0] = nextInstructionPointer;
-                    //    context[RegisterSPIndex].Value.Long[0] = sp;
-                    //    nextInstructionPointer = context[regANumber].Value.Long[0] + immediate;
+                    //    sp = context[RegisterSPIndex] - 1;
+                    //    memory[(int)sp] = nextInstructionPointer;
+                    //    context[RegisterSPIndex] = sp;
+                    //    nextInstructionPointer = context[r1] + instruction.Int;
                     //    break;
 
 
                     //case OpCode.Calll:
-                    //    sp = context[RegisterSPIndex].Value.Long[0] - 1;
-                    //    memory[(int)sp].Value.Long[0] = nextInstructionPointer;
-                    //    context[RegisterSPIndex].Value.Long[0] = sp;
-                    //    nextInstructionPointer = immediate;
+                    //    sp = context[RegisterSPIndex] - 1;
+                    //    memory[(int)sp] = nextInstructionPointer;
+                    //    context[RegisterSPIndex] = sp;
+                    //    nextInstructionPointer = instruction.Int;
                     //    break;
 
 
                     //case OpCode.Callnz:
-                    //    if (context[regBNumber].Value.Long[0] != 0)
+                    //    if (context[r2] != 0)
                     //    {
-                    //        sp = context[RegisterSPIndex].Value.Long[0] - 1;
-                    //        memory[(int)sp].Value.Long[0] = nextInstructionPointer;
-                    //        context[RegisterSPIndex].Value.Long[0] = sp;
-                    //        nextInstructionPointer = context[regANumber].Value.Long[0] + immediate;
+                    //        sp = context[RegisterSPIndex] - 1;
+                    //        memory[(int)sp] = nextInstructionPointer;
+                    //        context[RegisterSPIndex] = sp;
+                    //        nextInstructionPointer = context[r1] + instruction.Int;
                     //    }
                     //    break;
 
 
                     //case OpCode.Callnzl:
-                    //    if (context[regBNumber].Value.Long[0] != 0)
+                    //    if (context[r2] != 0)
                     //    {
-                    //        sp = context[RegisterSPIndex].Value.Long[0] - 1;
-                    //        memory[(int)sp].Value.Long[0] = nextInstructionPointer;
-                    //        context[RegisterSPIndex].Value.Long[0] = sp;
-                    //        nextInstructionPointer = immediate;
+                    //        sp = context[RegisterSPIndex] - 1;
+                    //        memory[(int)sp] = nextInstructionPointer;
+                    //        context[RegisterSPIndex] = sp;
+                    //        nextInstructionPointer = instruction.Int;
                     //    }
                     //    break;
 
 
                     //case OpCode.Ret:
-                    //    sp = context[RegisterSPIndex].Value.Long[0];
-                    //    nextInstructionPointer = memory[(int)sp].Value.Long[0];
-                    //    context[RegisterSPIndex].Value.Long[0] = sp + 1;
+                    //    sp = context[RegisterSPIndex];
+                    //    nextInstructionPointer = memory[(int)sp];
+                    //    context[RegisterSPIndex] = sp + 1;
                     //    break;
                     #endregion
 
 
                     #region CSharp Host Control
                     //case OpCode.Cpf:
-                    //    var peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
-                    //    var function = peripheral.GetFunction((int)context[regBNumber].Value.Long[0]);
-                    //    var stackFrame = memory.Slice((int)context[RegisterSPIndex].Value.Long[0], (int)context[regCNumber].Value.Long[0]);
+                    //    var peripheral = Machine.Firmware.GetPeripheral((int)context[r1]);
+                    //    var function = peripheral.GetFunction((int)context[r2]);
+                    //    var stackFrame = memory.Slice((int)context[RegisterSPIndex], (int)context[r3]);
                     //    var result = function(new SrStackFrame(process.ID, context, stackFrame, process.ObjectMemory));
                     //    if (result == HostFunctionResult.Pause)
                     //    {
@@ -538,9 +548,9 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
                     //case OpCode.Cpfl:
-                    //    peripheral = Machine.Firmware.GetPeripheral((int)context[regANumber].Value.Long[0]);
-                    //    function = peripheral.GetFunction((int)context[regBNumber].Value.Long[0]);
-                    //    stackFrame = memory.Slice((int)context[RegisterSPIndex].Value.Long[0], immediate);
+                    //    peripheral = Machine.Firmware.GetPeripheral((int)context[r1]);
+                    //    function = peripheral.GetFunction((int)context[r2]);
+                    //    stackFrame = memory.Slice((int)context[RegisterSPIndex], instruction.Int);
                     //    result = function(new SrStackFrame(process.ID, context, stackFrame, process.ObjectMemory));
                     //    if (result == HostFunctionResult.Pause)
                     //    {
@@ -551,34 +561,35 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
                     //case OpCode.Gpid:
-                    //    context[regANumber].Value.Long[0] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[(int)context[regBNumber].Value.Long[0]].Value);
+                    //    context[r1] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[(int)context[r2]].Value);
                     //    break;
 
 
                     //case OpCode.Gpidl:
-                    //    context[regANumber].Value.Long[0] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[immediate].Value);
+                    //    context[r1] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[instruction.Int].Value);
                     //    break;
 
 
                     //case OpCode.Gpfid:
-                    //    peripheral = Machine.Firmware.GetPeripheral((int)context[regBNumber].Value.Long[0]);
-                    //    context[regANumber].Value.Long[0] = peripheral.GetFunctionID((string)process.ObjectMemory[(int)context[regCNumber].Value.Long[0]].Value);
+                    //    peripheral = Machine.Firmware.GetPeripheral((int)context[r2]);
+                    //    context[r1] = peripheral.GetFunctionID((string)process.ObjectMemory[(int)context[r3]].Value);
                     //    break;
 
 
                     //case OpCode.Gpfidl:
-                    //    peripheral = Machine.Firmware.GetPeripheral((int)context[regBNumber].Value.Long[0]);
-                    //    context[regANumber].Value.Long[0] = peripheral.GetFunctionID((string)process.ObjectMemory[immediate].Value);
+                    //    peripheral = Machine.Firmware.GetPeripheral((int)context[r2]);
+                    //    context[r1] = peripheral.GetFunctionID((string)process.ObjectMemory[instruction.Int].Value);
                     //    break;
                     #endregion
 
 
-                    //default: throw new NotImplementedException($"Unknown machine code {(byte)instruction.OpCode}");
+                    // オペコードが一致しない命令が来た場合は例外を投げる
+                    default: throw new SrUnknownInstructionException($"不明な命令 '0x{instruction.Raw.ToString("X16")}' を実行しようとしました");
                 }
 
 
                 // 最終的な次に実行する命令位置をもどして実行後イベントも呼ぶ
-                process.ProcessorContext[RegisterIPIndex].Primitive.Int = nextInstructionPointer;
+                context[RegisterIPIndex] = nextInstructionPointer;
                 OnPostProcessInstruction_Debug(process, instruction);
             }
 
