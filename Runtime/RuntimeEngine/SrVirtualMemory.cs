@@ -20,7 +20,7 @@ namespace SnowRabbit.RuntimeEngine
     /// <summary>
     /// SnowRabbit のプロセスが動作する上で使用するメモリを仮想化した表現を提供する構造体です
     /// </summary>
-    public readonly struct SrVirtualMemory
+    public readonly struct SrVirtualMemory : IEquatable<SrVirtualMemory>
     {
         // 定数定義
         private const uint SegmentBitMask = 0x000FFFFF;
@@ -66,5 +66,46 @@ namespace SnowRabbit.RuntimeEngine
                 processMemory, // Segment 1
             };
         }
+
+
+        /// <summary>
+        /// SrVirtualMemory の等価確認をします
+        /// </summary>
+        /// <param name="other">比較対象</param>
+        /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
+        public bool Equals(SrVirtualMemory other) => Memory == other.Memory;
+
+
+        /// <summary>
+        /// object の等価オーバーロードです
+        /// </summary>
+        /// <param name="obj">比較対象</param>
+        /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
+        public override bool Equals(object obj) => obj is SrVirtualMemory ? Equals((SrVirtualMemory)obj) : false;
+
+
+        /// <summary>
+        /// ハッシュコードを取得します
+        /// </summary>
+        /// <returns>ハッシュコードを返します</returns>
+        public override int GetHashCode() => base.GetHashCode();
+
+
+        /// <summary>
+        /// 等価演算子のオーバーロードです
+        /// </summary>
+        /// <param name="left">左の値</param>
+        /// <param name="right">右の値</param>
+        /// <returns>等価の結果を返します</returns>
+        public static bool operator ==(SrVirtualMemory left, SrVirtualMemory right) => left.Equals(right);
+
+
+        /// <summary>
+        /// 非等価演算子のオーバーロードです
+        /// </summary>
+        /// <param name="left">左の値</param>
+        /// <param name="right">右の値</param>
+        /// <returns>非等価の結果を返します</returns>
+        public static bool operator !=(SrVirtualMemory left, SrVirtualMemory right) => !left.Equals(right);
     }
 }
