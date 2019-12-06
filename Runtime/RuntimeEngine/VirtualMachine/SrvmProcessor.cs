@@ -44,7 +44,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         public const byte RegisterR15Index = 15; // FullGeneral Register[R15]
         public const byte RegisterIPIndex = 30; // InstructionPointer Register[IP]
         public const byte RegisterZeroIndex = 31; // Zero Register[ZERO]
-        public const byte RegisterInvalidIndex = 31; // Invalid Register[INVALID]
+        public const byte RegisterCount = RegisterZeroIndex + 1;
 
 
 
@@ -53,7 +53,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         /// </summary>
         /// <param name="process">初期化するプロセス</param>
         /// <exception cref="ArgumentNullException">process が null です</exception>
-        public unsafe virtual void InitializeProcessorContext(SrProcess process)
+        internal unsafe void InitializeProcessorContext(SrProcess process)
         {
             // null を渡されたらむり
             if (process == null) throw new ArgumentNullException(nameof(process));
@@ -61,7 +61,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
             // 末尾のレジスタインデックスまでループ
             SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, "InitializeProcessorContext");
-            for (var i = 0; i < RegisterZeroIndex; ++i)
+            for (var i = 0; i < RegisterCount; ++i)
             {
                 // プロセッサコンテキストの値を初期化する
                 process.ProcessorContext[i] = default;
@@ -163,7 +163,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             while (running)
             {
                 // ゼロレジスタは常にゼロ
-                context[RegisterZeroIndex].Primitive.Int = 0;
+                context[RegisterZeroIndex].Primitive.Ulong = 0;
 
 
                 // 現在の命令ポインタが指している命令を取り出して、実行の準備をしてデバッグイベントを呼ぶ
@@ -181,6 +181,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                     case OpCode.Halt:
                         running = false;
                         process.ProcessState = SrProcessStatus.Stopped;
+                        OnProcessStopped(process);
                         break;
                     #endregion
 
@@ -589,7 +590,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
                 // 最終的な次に実行する命令位置をもどして実行後イベントも呼ぶ
-                context[RegisterIPIndex] = nextInstructionPointer;
+                context[RegisterIPIndex].Primitive.Int = nextInstructionPointer;
                 OnPostProcessInstruction_Debug(process, instruction);
             }
 
@@ -611,13 +612,35 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
         /// <summary>
-        /// プロセスが動作の再開をした時の処理をします
+        /// プロセスが動作を再開をした時の処理をします
         /// </summary>
         /// <param name="process">動作を再開するプロセス</param>
         protected virtual void OnProcessResume(SrProcess process)
         {
             // トレースログくらいは出す
             SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessResume ID={process.ProcessID}");
+        }
+
+
+        /// <summary>
+        /// プロセスが動作を一時停止した時の処理をします
+        /// </summary>
+        /// <param name="process">一時停止したプロセス</param>
+        protected virtual void OnProcessSuspended(SrProcess process)
+        {
+            // トレースログくらいは出す
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessSuspended ID={process.ProcessID}");
+        }
+
+
+        /// <summary>
+        /// プロセスが動作を停止した時の処理をします
+        /// </summary>
+        /// <param name="process">停止したプロセス</param>
+        protected virtual void OnProcessStopped(SrProcess process)
+        {
+            // トレースログくらいは出す
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessStopped ID={process.ProcessID}");
         }
 
 

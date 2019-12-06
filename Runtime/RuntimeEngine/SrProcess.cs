@@ -73,8 +73,9 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         public void Resume()
         {
-            // プロセスが停止中なら何もしない
-            if (ProcessState == SrProcessStatus.Stopped) return;
+            // プロセスが 一時停止中 または パニック 以外なら何もしない
+            var stateMask = SrProcessStatus.Suspended | SrProcessStatus.Panic;
+            if ((ProcessState & stateMask) == 0) return;
 
 
             // プロセスの状態を再開要求にして例外発行情報もクリア
@@ -89,8 +90,8 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         public void ResumeAndThrowIfOccurrencedException()
         {
-            // プロセスが停止 または 例外自体発生していないなら何もせず終了
-            if (ProcessState == SrProcessStatus.Stopped || ExceptionDispatchInfo == null) return;
+            // プロセスが停止中 または 未起動 または 動作中 または 例外自体発生していないなら何もせず終了
+            if ((ProcessState & (SrProcessStatus.Stopped | SrProcessStatus.Ready | SrProcessStatus.Running)) != 0 || ExceptionDispatchInfo == null) return;
 
 
             // プロセスの状態を再開要求状態にして例外発行情報をスタック変数に参照を移す
