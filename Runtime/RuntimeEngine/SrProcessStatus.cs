@@ -24,24 +24,24 @@ namespace SnowRabbit.RuntimeEngine
     public enum SrProcessStatus : byte
     {
         /// <summary>
+        /// プロセスの動作準備が出来ました
+        /// </summary>
+        Ready = 0x01,
+
+        /// <summary>
         /// プロセスは動作中です
         /// </summary>
-        Running = 0x00,
+        Running = 0x02,
 
         /// <summary>
         /// プロセスは一時停止しました
         /// </summary>
-        Suspended = 0x01,
-
-        /// <summary>
-        /// プロセスの動作準備が出来ました
-        /// </summary>
-        Ready = 0x02,
+        Suspended = 0x04,
 
         /// <summary>
         /// プロセスは停止しました
         /// </summary>
-        Stopped = 0x04,
+        Stopped = 0x08,
 
         /// <summary>
         /// プロセス実行中に不明なエラーが発生しました
