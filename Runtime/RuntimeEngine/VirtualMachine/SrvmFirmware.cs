@@ -28,7 +28,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         // 以下メンバ変数定義
         private bool disposed;
         private readonly Dictionary<string, SrPeripheral> peripheralTable = new Dictionary<string, SrPeripheral>();
-        private readonly List<IDisposable> disposableObjectList = new List<IDisposable>();
 
 
 
@@ -54,15 +53,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             // 存在していなければ追加する
             SrLogger.Trace(SharedString.LogTag.SR_VM_FIRMWARE, $"Attach peripheral '{peripheral.Name}'.");
             peripheralTable[name] = peripheral;
-
-
-            // もし IDisposable を実装しているのなら
-            if (targetInstance is IDisposable)
-            {
-                // 解放リストに突っ込む
-                SrLogger.Trace(SharedString.LogTag.SR_VM_FIRMWARE, $"{peripheral.Name} is disposable, Adding to disposableObjectList.");
-                disposableObjectList.Add((IDisposable)targetInstance);
-            }
         }
 
 
@@ -92,17 +82,16 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             // マネージド解放なら
             if (disposing)
             {
-                // 解放リストの中にあるオブジェクト分回る
-                SrLogger.Trace(SharedString.LogTag.SR_VM_FIRMWARE, $"Dispose target count '{disposableObjectList.Count}'.");
-                foreach (var disposable in disposableObjectList)
+                // テーブルに存在する周辺機器分回る
+                foreach (var record in peripheralTable)
                 {
-                    // 解放する
-                    disposable.Dispose();
+                    // もし IDisposable を実装しているなら解放をする
+                    (record.Value as IDisposable)?.Dispose();
                 }
 
 
-                // リストを空にする
-                disposableObjectList.Clear();
+                // テーブルを空にする
+                peripheralTable.Clear();
             }
 
 
