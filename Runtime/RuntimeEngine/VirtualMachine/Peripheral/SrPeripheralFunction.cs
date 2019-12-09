@@ -260,7 +260,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
                 // 引数設定関数を用いて値配列から引数配列へ参照コピー（ボクシングは現状やむなし、改善方法を検討）
-                arguments[i] = argumentSetters[i](memory[address + count - 1 + indexGap]);
+                arguments[i] = argumentSetters[i](memory[address + count - 1 - i + indexGap]);
             }
 
 
