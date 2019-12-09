@@ -578,69 +578,69 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
                     #region Flow Control
-                    //case OpCode.Br:
-                    //    nextInstructionPointer = context[r1] + instruction.Int;
-                    //    break;
+                    case OpCode.Br:
+                        nextInstructionPointer = context[r1].Primitive.Int + instruction.Int;
+                        break;
 
 
-                    //case OpCode.Brl:
-                    //    nextInstructionPointer = instruction.Int;
-                    //    break;
+                    case OpCode.Brl:
+                        nextInstructionPointer = instruction.Int;
+                        break;
 
 
-                    //case OpCode.Bnz:
-                    //    nextInstructionPointer = context[r2] != 0 ? context[r1] + instruction.Int : nextInstructionPointer;
-                    //    break;
+                    case OpCode.Bnz:
+                        nextInstructionPointer = context[r2].Primitive.Long != 0 ? context[r1].Primitive.Int + instruction.Int : nextInstructionPointer;
+                        break;
 
 
-                    //case OpCode.Bnzl:
-                    //    nextInstructionPointer = context[r2] != 0 ? instruction.Int : nextInstructionPointer;
-                    //    break;
+                    case OpCode.Bnzl:
+                        nextInstructionPointer = context[r2].Primitive.Long != 0 ? instruction.Int : nextInstructionPointer;
+                        break;
 
 
-                    //case OpCode.Call:
-                    //    sp = context[RegisterSPIndex] - 1;
-                    //    memory[(int)sp] = nextInstructionPointer;
-                    //    context[RegisterSPIndex] = sp;
-                    //    nextInstructionPointer = context[r1] + instruction.Int;
-                    //    break;
+                    case OpCode.Call:
+                        sp = context[RegisterSPIndex] - 1;
+                        memory[sp] = nextInstructionPointer;
+                        context[RegisterSPIndex] = sp;
+                        nextInstructionPointer = context[r1].Primitive.Int + instruction.Int;
+                        break;
 
 
-                    //case OpCode.Calll:
-                    //    sp = context[RegisterSPIndex] - 1;
-                    //    memory[(int)sp] = nextInstructionPointer;
-                    //    context[RegisterSPIndex] = sp;
-                    //    nextInstructionPointer = instruction.Int;
-                    //    break;
+                    case OpCode.Calll:
+                        sp = context[RegisterSPIndex] - 1;
+                        memory[sp] = nextInstructionPointer;
+                        context[RegisterSPIndex] = sp;
+                        nextInstructionPointer = instruction.Int;
+                        break;
 
 
-                    //case OpCode.Callnz:
-                    //    if (context[r2] != 0)
-                    //    {
-                    //        sp = context[RegisterSPIndex] - 1;
-                    //        memory[(int)sp] = nextInstructionPointer;
-                    //        context[RegisterSPIndex] = sp;
-                    //        nextInstructionPointer = context[r1] + instruction.Int;
-                    //    }
-                    //    break;
+                    case OpCode.Callnz:
+                        if (context[r2].Primitive.Long != 0)
+                        {
+                            sp = context[RegisterSPIndex] - 1;
+                            memory[sp] = nextInstructionPointer;
+                            context[RegisterSPIndex] = sp;
+                            nextInstructionPointer = context[r1].Primitive.Int + instruction.Int;
+                        }
+                        break;
 
 
-                    //case OpCode.Callnzl:
-                    //    if (context[r2] != 0)
-                    //    {
-                    //        sp = context[RegisterSPIndex] - 1;
-                    //        memory[(int)sp] = nextInstructionPointer;
-                    //        context[RegisterSPIndex] = sp;
-                    //        nextInstructionPointer = instruction.Int;
-                    //    }
-                    //    break;
+                    case OpCode.Callnzl:
+                        if (context[r2].Primitive.Long != 0)
+                        {
+                            sp = context[RegisterSPIndex] - 1;
+                            memory[sp] = nextInstructionPointer;
+                            context[RegisterSPIndex] = sp;
+                            nextInstructionPointer = instruction.Int;
+                        }
+                        break;
 
 
-                    //case OpCode.Ret:
-                    //    sp = context[RegisterSPIndex];
-                    //    nextInstructionPointer = memory[(int)sp];
-                    //    context[RegisterSPIndex] = sp + 1;
-                    //    break;
+                    case OpCode.Ret:
+                        sp = context[RegisterSPIndex];
+                        nextInstructionPointer = memory[sp];
+                        context[RegisterSPIndex] = sp + 1;
+                        break;
                     #endregion
 
 
