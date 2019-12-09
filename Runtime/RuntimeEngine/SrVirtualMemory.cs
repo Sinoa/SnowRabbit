@@ -23,6 +23,7 @@ namespace SnowRabbit.RuntimeEngine
     public readonly struct SrVirtualMemory : IEquatable<SrVirtualMemory>
     {
         // 定数定義
+        public const uint ProcessSegmentOffset = 0x00100000;
         private const uint SegmentBitMask = 0x000FFFFF;
 
         // 以下メンバ変数定義

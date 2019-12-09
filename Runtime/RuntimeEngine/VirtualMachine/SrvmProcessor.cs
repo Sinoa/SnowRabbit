@@ -71,8 +71,8 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             // スタックポインタとベースポインタの位置をプロセスメモリの末尾へ
             // （プッシュ時はデクリメントされたから値がセットされるので、配列の長さそのままで初期化）
             var memoryLength = process.VirtualMemory.ProcessMemorySize;
-            process.ProcessorContext[RegisterSPIndex].Primitive.Long = 0x00100000 + memoryLength;
-            process.ProcessorContext[RegisterBPIndex].Primitive.Long = 0x00100000 + memoryLength;
+            process.ProcessorContext[RegisterSPIndex].Primitive.Long = SrVirtualMemory.ProcessSegmentOffset + memoryLength;
+            process.ProcessorContext[RegisterBPIndex].Primitive.Long = SrVirtualMemory.ProcessSegmentOffset + memoryLength;
         }
 
 
