@@ -367,40 +367,22 @@ namespace SnowRabbit.RuntimeEngine
 
         #region CSharp Host Control
         /// <summary>
+        /// レジスタが示す周辺機器関数を取得します：Peripheral Ra.obj = Rb.obj->Rc.obj [Rb=PeripheralName Rc=FunctionName]
+        /// </summary>
+        Gpf = 0xF0,
+
+
+        /// <summary>
         /// レジスタが示す周辺機器関数を呼び出します：Peripheral #Ra -> Call #Rb( ArgNum #Rc )
         /// [CallPeripheralFunction]
         /// </summary>
-        Cpf = 0xF0,
+        Cpf = 0xF1,
 
         /// <summary>
         /// レジスタと即値が示す周辺機器関数を呼び出します：Peripheral #Ra -> Call #Rb( ArgNum Imm )
         /// [CallPeripheralFunction Literal argnum]
         /// </summary>
-        Cpfl = 0xF1,
-
-        /// <summary>
-        /// レジスタが示す周辺機器名から周辺機器IDを取得します：Ra = GetPeripheralId([Rb])
-        /// [GetPeripheralId]
-        /// </summary>
-        Gpid = 0xF2,
-
-        /// <summary>
-        /// 即値が示す周辺機器名から周辺機器IDを取得します：Ra = GetPeripheralId([Imm])
-        /// [GetPeripheralId Literal peripheralName]
-        /// </summary>
-        Gpidl = 0xF3,
-
-        /// <summary>
-        /// レジスタが示す周辺機器IDの周辺機器関数名から周辺機器関数IDを取得します：Ra = GetFuncId(Rb, [Rc])
-        /// [GetPeripheralFunctionId]
-        /// </summary>
-        Gpfid = 0xF4,
-
-        /// <summary>
-        /// レジスタと即値が示す周辺機器IDの周辺機器関数名から周辺機器関数IDを取得します：Ra = GetFuncId(Rb, [Imm])
-        /// [GetPeripheralFunctionId Literal peripheralFunctionName]
-        /// </summary>
-        Gpfidl = 0xF5,
+        Cpfl = 0xF2,
         #endregion
     }
 }

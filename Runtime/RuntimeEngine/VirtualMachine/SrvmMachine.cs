@@ -25,10 +25,10 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
     {
         // 以下メンバ変数定義
         private bool disposed;
-        private readonly SrvmProcessor processor;
-        private readonly SrvmMemory memory;
-        private readonly SrvmFirmware firmware;
-        private readonly SrvmStorage storage;
+        internal readonly SrvmProcessor Processor;
+        internal readonly SrvmMemory Memory;
+        internal readonly SrvmFirmware Firmware;
+        internal readonly SrvmStorage Storage;
 
 
 
@@ -53,10 +53,10 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
             // プロセッサ、メモリ、ファームウェア、ストレージ を生成する
             SrLogger.Trace(SharedString.LogTag.VIRTUAL_MACHINE, "Create SrvmMachine.");
-            processor = factory.CreateProcessor() ?? throw new SrMachinePartsMissingException("Processor マシンパーツを見失いました");
-            memory = factory.CreateMemory() ?? throw new SrMachinePartsMissingException("Memory マシンパーツを見失いました");
-            firmware = factory.CreateFirmware() ?? throw new SrMachinePartsMissingException("Firmware マシンパーツを見失いました");
-            storage = factory.CreateStorage() ?? throw new SrMachinePartsMissingException("Storage マシンパーツを見失いました");
+            Processor = factory.CreateProcessor() ?? throw new SrMachinePartsMissingException("Processor マシンパーツを見失いました");
+            Memory = factory.CreateMemory() ?? throw new SrMachinePartsMissingException("Memory マシンパーツを見失いました");
+            Firmware = factory.CreateFirmware() ?? throw new SrMachinePartsMissingException("Firmware マシンパーツを見失いました");
+            Storage = factory.CreateStorage() ?? throw new SrMachinePartsMissingException("Storage マシンパーツを見失いました");
             SrLogger.Trace(SharedString.LogTag.VIRTUAL_MACHINE, "Created SrvmMachine.");
         }
 
@@ -76,10 +76,10 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             if (disposing)
             {
                 // ストレージ、ファームウェア、メモリ、プロセッサ の順で解放する
-                storage.Dispose();
-                firmware.Dispose();
-                memory.Dispose();
-                processor.Dispose();
+                Storage.Dispose();
+                Firmware.Dispose();
+                Memory.Dispose();
+                Processor.Dispose();
             }
 
 

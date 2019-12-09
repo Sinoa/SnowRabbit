@@ -645,6 +645,21 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
                     #region CSharp Host Control
+                    case OpCode.Gpf:
+                        var peripheral = Machine.Firmware.GetPeripheral(context[r2].Object as string);
+                        context[r1].Object = peripheral.GetPeripheralFunction(context[r3].Object as string);
+                        context[r1].Primitive.Ulong = 0;
+                        break;
+
+
+                    case OpCode.Cpf:
+                        break;
+
+
+                    case OpCode.Cpfl:
+                        break;
+
+
                     //case OpCode.Cpf:
                     //    var peripheral = Machine.Firmware.GetPeripheral((int)context[r1]);
                     //    var function = peripheral.GetFunction((int)context[r2]);
