@@ -237,12 +237,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         /// 引数は記述とは逆に設定されている前提となっています。
         /// Hint : [Code] arg1, arg2, arg3 [Data] arg3, arg2, arg1
         /// </summary>
-        /// <param name="args">引数として使用される配列の参照</param>
-        /// <param name="index">引数として使用する開始インデックス</param>
+        /// <param name="memory">関数呼び出しに使用する仮想メモリ</param>
+        /// <param name="address">引数として使用する開始アドレス</param>
         /// <param name="count">引数として使用する長さ</param>
         /// <param name="processID">プロセスIDとして渡す値</param>
         /// <returns>呼び出した関数を待機するタスクを返します</returns>
-        public Task Call(SrValue[] args, int index, int count, int processID)
+        public Task Call(SrVirtualMemory memory, int address, int count, int processID)
         {
             // 配列外参照例外を承知でいきなりループでアクセス（呼び出しコードは極力実行速度優先で実装）
             SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"CallPeripheralFunction '{methodInfo.Name}'.");
@@ -260,7 +260,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
                 // 引数設定関数を用いて値配列から引数配列へ参照コピー（ボクシングは現状やむなし、改善方法を検討）
-                arguments[i] = argumentSetters[i](args[index + count - 1 - i + indexGap]);
+                arguments[i] = argumentSetters[i](memory[address + count - 1 + indexGap]);
             }
 
 

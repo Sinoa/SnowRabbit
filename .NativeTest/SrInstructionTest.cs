@@ -36,7 +36,7 @@ namespace SnowRabbitTest
         /// <param name="expected">想定されるビットパターン</param>
         [TestCase(OpCode.Mov, SrvmProcessor.RegisterBPIndex, SrvmProcessor.RegisterSPIndex, (byte)0, 0U, (0b_0001_0000_00000000_0_00110_00111_00000UL << 32) | 0x00000000UL)]
         [TestCase(OpCode.Addl, SrvmProcessor.RegisterBIndex, SrvmProcessor.RegisterIPIndex, (byte)0, 0xA5A5A5A5U, (0b_0010_0001_00000000_0_00001_11110_00000UL << 32) | 0xA5A5A5A5UL)]
-        [TestCase(OpCode.Cpfl, SrvmProcessor.RegisterR10Index, SrvmProcessor.RegisterR13Index, SrvmProcessor.RegisterR9Index, 0x123U, (0b_1111_0100_00000000_0_01010_01101_01001UL << 32) | 0x123UL)]
+        [TestCase(OpCode.Cpfl, SrvmProcessor.RegisterR10Index, SrvmProcessor.RegisterR13Index, SrvmProcessor.RegisterR9Index, 0x123U, (0b_1111_0010_00000000_0_01010_01101_01001UL << 32) | 0x123UL)]
         public void BitPatternTest(OpCode opCode, byte r1, byte r2, byte r3, uint imm, ulong expected)
         {
             // 値をセットして想定したビットパターンかを確認

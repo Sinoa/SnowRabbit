@@ -29,7 +29,24 @@ namespace SnowRabbitTest
     {
         // メンバ変数定義
         private SrPeripheral peripheral = null;
+        private SrVirtualMemory memory = default;
 
+
+
+        /// <summary>
+        /// テストのセットアップをします
+        /// </summary>
+        [OneTimeSetUp]
+        public void Setup()
+        {
+            // 仮想メモリを用意する
+            var memoryPool = new SrValue[100];
+            var programMemory = new MemoryBlock<SrValue>(memoryPool, 0, 10);
+            var globalMemory = new MemoryBlock<SrValue>(memoryPool, 10, 10);
+            var heapMemory = new MemoryBlock<SrValue>(memoryPool, 20, 10);
+            var stackMemory = new MemoryBlock<SrValue>(memoryPool, 30, 10);
+            memory = new SrVirtualMemory(programMemory, globalMemory, heapMemory, stackMemory);
+        }
 
 
         /// <summary>
@@ -62,34 +79,33 @@ namespace SnowRabbitTest
             // 周辺機器から関数を取り出して実行する
             var function = peripheral.GetPeripheralFunction("Simple");
             Assert.IsNotNull(function);
-            var task = function.Call(Array.Empty<SrValue>(), 0, 0, 0);
+            var task = function.Call(memory, 0, 0, 0);
             Assert.True(task.IsCompleted);
 
 
             // 周辺機器から引数付き関数を取り出して実行する（引数は第一引数からプッシュする仮想マシンになるので、配列に収める順番は逆順になる）
             function = peripheral.GetPeripheralFunction("SimpleEx");
-            var arg = new SrValue[6];
-            arg[3].Object = "足し算をするよ";
-            arg[4].Primitive.Int = 456;
-            arg[5].Primitive.Int = 123;
+            memory[3] = "足し算をするよ";
+            memory[4] = 456;
+            memory[5] = 123;
             Assert.IsNotNull(function);
-            task = function.Call(arg, 3, 3, 0);
+            task = function.Call(memory, 3, 3, 0);
             Assert.True(task.IsCompleted);
 
 
             // 単純な戻り地を受け取る関数を取り出して実行する
             function = peripheral.GetPeripheralFunction("RetSimple");
             Assert.IsNotNull(function);
-            function.Call(Array.Empty<SrValue>(), 0, 0, 0);
+            function.Call(memory, 0, 0, 0);
             Assert.AreEqual("Simple Return Function", function.GetResult().Object);
 
 
             // 単純な引数の受け取りと結果を返す関数を取り出して実行する
             function = peripheral.GetPeripheralFunction("RetSimpleEx");
             Assert.IsNotNull(function);
-            arg[0].Primitive.Int = 456;
-            arg[1].Primitive.Int = 123;
-            function.Call(arg, 0, 2, 0);
+            memory[0] = 456;
+            memory[1] = 123;
+            function.Call(memory, 0, 2, 0);
             Assert.AreEqual(579, function.GetResult().Primitive.Int);
         }
 
@@ -103,13 +119,13 @@ namespace SnowRabbitTest
             // 直ちに完了するはずの関数を取り出して完了済みであることを確認する
             var taskFunc = peripheral.GetPeripheralFunction("CompTaskFunc");
             Assert.IsNotNull(taskFunc);
-            Assert.True(taskFunc.Call(Array.Empty<SrValue>(), 0, 0, 0).IsCompleted);
+            Assert.True(taskFunc.Call(memory, 0, 0, 0).IsCompleted);
 
 
             // 少しだけ待つタスクを取得して待機しているかを確認する
             taskFunc = peripheral.GetPeripheralFunction("WaitTaskFunc");
             Assert.IsNotNull(taskFunc);
-            var task = taskFunc.Call(Array.Empty<SrValue>(), 0, 0, 0);
+            var task = taskFunc.Call(memory, 0, 0, 0);
             Assert.False(task.IsCompleted);
             task.Wait();
 
@@ -117,10 +133,9 @@ namespace SnowRabbitTest
             // 結果を返してくれるタスクを実行して結果が想定通りか確認する
             taskFunc = peripheral.GetPeripheralFunction("AddTaskFunc");
             Assert.IsNotNull(taskFunc);
-            var arg = new SrValue[4];
-            arg[2].Primitive.Int = 456;
-            arg[3].Primitive.Int = 123;
-            task = taskFunc.Call(arg, 2, 2, 0);
+            memory[2] = 456;
+            memory[3] = 123;
+            task = taskFunc.Call(memory, 2, 2, 0);
             Assert.True(task.IsCompleted);
             task.Wait();
             var result = taskFunc.GetResult();
@@ -130,9 +145,9 @@ namespace SnowRabbitTest
             // 少しだけ待つ時の結果を返すタスクを実行して結果が想定通りか確認する
             taskFunc = peripheral.GetPeripheralFunction("CombWaitTaskFunc");
             Assert.IsNotNull(taskFunc);
-            arg[0] = "結合されるはずです。";
-            arg[1] = "このメッセージは、";
-            task = taskFunc.Call(arg, 0, 2, 0);
+            memory[0] = "結合されるはずです。";
+            memory[1] = "このメッセージは、";
+            task = taskFunc.Call(memory, 0, 2, 0);
             Assert.False(task.IsCompleted);
             task.Wait();
             result = taskFunc.GetResult();
@@ -149,22 +164,21 @@ namespace SnowRabbitTest
             // プロセスIDが渡ってくする関数の呼び出しをするが、プロセスIDは引数リストからは渡すことはない（ここからは見えない引数として扱う）
             var function = peripheral.GetPeripheralFunction("ProcFunc");
             Assert.IsNotNull(function);
-            var arg = new SrValue[4];
-            arg[0].Primitive.Int = 456;
-            arg[1].Primitive.Int = 123;
-            function.Call(arg, 0, 2, 579);
+            memory[0] = 456;
+            memory[1] = 123;
+            function.Call(memory, 0, 2, 579);
 
 
             // プライベートな関数でも属性がついている場合はアクセスが可能であることを確認する
             function = peripheral.GetPeripheralFunction("PrivateFunc");
             Assert.IsNotNull(function);
-            function.Call(Array.Empty<SrValue>(), 0, 0, 0);
+            function.Call(memory, 0, 0, 0);
 
 
             // 静的な関数でも呼び出せることを確認
             function = peripheral.GetPeripheralFunction("StaticFunc");
             Assert.IsNotNull(function);
-            function.Call(Array.Empty<SrValue>(), 0, 0, 0);
+            function.Call(memory, 0, 0, 0);
         }
 
 
@@ -177,11 +191,11 @@ namespace SnowRabbitTest
             // 自前の定義クラスのインスタンスを作って呼び出して更に確認もする
             var function = peripheral.GetPeripheralFunction("MyDataFunc");
             Assert.IsNotNull(function);
-            var arg = new SrValue[1];
-            arg[0].Object = new MyDataClass();
-            ((MyDataClass)arg[0].Object).ParameterA = 123;
-            ((MyDataClass)arg[0].Object).ParameterB = "Message";
-            function.Call(arg, 0, 1, 123);
+            var obj = new MyDataClass();
+            obj.ParameterA = 123;
+            obj.ParameterB = "Message";
+            memory[0] = new SrValue() { Object = obj };
+            function.Call(memory, 0, 1, 123);
             var result = (MyDataClass)function.GetResult().Object;
             Assert.AreEqual(12300, result.ParameterA);
             Assert.AreEqual("ParameterB : Message", result.ParameterB);
@@ -190,10 +204,8 @@ namespace SnowRabbitTest
             // 非同期で同じ確認をする
             function = peripheral.GetPeripheralFunction("MyDataFuncAsync");
             Assert.IsNotNull(function);
-            arg[0].Object = new MyDataClass();
-            ((MyDataClass)arg[0].Object).ParameterA = 456;
-            ((MyDataClass)arg[0].Object).ParameterB = "Message";
-            var task = function.Call(arg, 0, 1, 456);
+            obj.ParameterA = 456;
+            var task = function.Call(memory, 0, 1, 456);
             Assert.False(task.IsCompleted);
             task.Wait();
             result = (MyDataClass)function.GetResult().Object;
