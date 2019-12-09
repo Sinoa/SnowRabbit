@@ -218,7 +218,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             }
             catch (Exception exception)
             {
-                // プロセスをパニック状態と動作計測を停止にする
+                // プロセスをパニック状態にして動作計測を停止する
                 SrLogger.Fatal(SharedString.LogTag.SR_VM_PROCESSOR, exception.Message, exception);
                 process.ProcessState = SrProcessStatus.Panic;
                 process.RunningStopwatch.Stop();
@@ -253,8 +253,8 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             var running = true;
             while (running)
             {
-                // ゼロレジスタは常にゼロ
-                context[RegisterZeroIndex].Primitive.Ulong = 0;
+                // ゼロレジスタは常にゼロ（null）
+                context[RegisterZeroIndex] = default;
 
 
                 // 現在の命令ポインタが指している命令を取り出して、実行の準備をしてデバッグイベントを呼ぶ
@@ -284,7 +284,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
                     case OpCode.Movl:
-                        context[r1] = instruction.Int;
+                        context[r1] = instruction.Uint;
                         break;
 
 
@@ -301,7 +301,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
                     case OpCode.Str:
                         offsetAddress = context[r2].Primitive.Int;
-                        memory[offsetAddress + instruction.Int] = context[r1].Primitive.Long;
+                        memory[offsetAddress + instruction.Int] = context[r1];
                         break;
 
 
@@ -319,7 +319,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
                     case OpCode.Pushl:
                         sp = context[RegisterSPIndex] - 1;
-                        memory[sp] = instruction.Int;
+                        memory[sp] = instruction.Uint;
                         context[RegisterSPIndex] = sp;
                         break;
 
