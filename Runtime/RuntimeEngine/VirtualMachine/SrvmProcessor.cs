@@ -48,6 +48,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
 
+        #region Initialize
         /// <summary>
         /// 対象プロセスのプロセッサコンテキストを初期化します
         /// </summary>
@@ -74,8 +75,107 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             process.ProcessorContext[RegisterSPIndex].Primitive.Long = SrVirtualMemory.ProcessSegmentOffset + memoryLength;
             process.ProcessorContext[RegisterBPIndex].Primitive.Long = SrVirtualMemory.ProcessSegmentOffset + memoryLength;
         }
+        #endregion
 
 
+        #region Event handler
+        /// <summary>
+        /// プロセスが起動を開始した時の処理をします
+        /// </summary>
+        /// <param name="process">起動を開始するプロセス</param>
+        protected virtual void OnProcessStartup(SrProcess process)
+        {
+            // トレースログくらいは出す
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessStartup ID={process.ProcessID}");
+        }
+
+
+        /// <summary>
+        /// プロセスが動作を再開をした時の処理をします
+        /// </summary>
+        /// <param name="process">動作を再開するプロセス</param>
+        protected virtual void OnProcessResume(SrProcess process)
+        {
+            // トレースログくらいは出す
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessResume ID={process.ProcessID}");
+        }
+
+
+        /// <summary>
+        /// プロセスが動作を一時停止した時の処理をします
+        /// </summary>
+        /// <param name="process">一時停止したプロセス</param>
+        protected virtual void OnProcessSuspended(SrProcess process)
+        {
+            // トレースログくらいは出す
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessSuspended ID={process.ProcessID}");
+        }
+
+
+        /// <summary>
+        /// プロセスが動作を停止した時の処理をします
+        /// </summary>
+        /// <param name="process">停止したプロセス</param>
+        protected virtual void OnProcessStopped(SrProcess process)
+        {
+            // トレースログくらいは出す
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessStopped ID={process.ProcessID}");
+        }
+
+
+        /// <summary>
+        /// プロセスの実行中に発生した例外を処理します
+        /// </summary>
+        /// <param name="process">例外が発生したプロセス</param>
+        /// <param name="exception">発生した例外</param>
+        protected virtual void OnExceptionOccurrenced(SrProcess process, Exception exception)
+        {
+            // トレースログくらいは出す
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnExceptionOccurrenced message={exception.Message}, ID={process.ProcessID}");
+        }
+
+
+        /// <summary>
+        /// デバッグ時のみ動作するCPUが命令を実行する直前に処理をします
+        /// </summary>
+        /// <param name="process">処理するプロセス</param>
+        /// <param name="instruction">実行しようとしている命令コード</param>
+        [Conditional(SharedString.Conditional.DEBUG)]
+        protected virtual void OnPreProcessInstruction_Debug(SrProcess process, SrInstruction instruction)
+        {
+            // トレースログくらいは出す
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnPreProcessInstruction OpCode={instruction.OpCode} ID={process.ProcessID}");
+        }
+
+
+        /// <summary>
+        /// デバッグ時のみ動作するCPUが命令を実行した直後に処理をします
+        /// </summary>
+        /// <param name="process">処理するプロセス</param>
+        /// <param name="instruction">実行した命令コード</param>
+        [Conditional(SharedString.Conditional.DEBUG)]
+        protected virtual void OnPostProcessInstruction_Debug(SrProcess process, SrInstruction instruction)
+        {
+            // トレースログくらいは出す
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnPostProcessInstruction OpCode={instruction.OpCode} ID={process.ProcessID}");
+        }
+
+
+        /// <summary>
+        /// デバッグ時のみ動作するCPUが不明な命令を実行した直後に処理をします
+        /// </summary>
+        /// <param name="process">不明な命令を実行したプロセス</param>
+        /// <param name="instruction">不明な命令とされた命令</param>
+        [Conditional(SharedString.Conditional.DEBUG)]
+        protected virtual void OnUnknownInstructionExecution_Debug(SrProcess process, SrInstruction instruction)
+        {
+            // トレースログくらいは出す
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnUnknownInstructionExecution InstructionCode={instruction.Raw.ToString("X16")}");
+        }
+        #endregion
+
+
+        #region Execution main code
         /// <summary>
         /// 指定されたプロセスを実行します
         /// </summary>
@@ -125,19 +225,10 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                 process.RunningStopwatch.Stop();
 
 
-                // 動作モードがそのままスローなら
-                if (process.UnhandledExceptionMode == UnhandledExceptionMode.ThrowException)
-                {
-                    // 何も言わず再スロー
-                    SrLogger.Debug(SharedString.LogTag.SR_VM_PROCESSOR, $"UnhandledExceptionMode is ThrowException. ID={process.ProcessID}");
-                    throw;
-                }
-
-
-                // 発生した例外をキャプチャして例外を処理するイベントを起こす
-                SrLogger.Debug(SharedString.LogTag.SR_VM_PROCESSOR, $"Exception capture process ID={process.ProcessID}");
-                process.ExceptionDispatchInfo = ExceptionDispatchInfo.Capture(exception);
+                // 例外発生イベントを起こしてから再スロー
+                SrLogger.Error(SharedString.LogTag.SR_VM_PROCESSOR, $"ExceptionOccurrenced process ID={process.ProcessID}");
                 OnExceptionOccurrenced(process, exception);
+                throw;
             }
         }
 
@@ -585,7 +676,9 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
                     // オペコードが一致しない命令が来た場合は例外を投げる
-                    default: throw new SrUnknownInstructionException($"不明な命令 '0x{instruction.Raw.ToString("X16")}' を実行しようとしました");
+                    default:
+                        OnUnknownInstructionExecution_Debug(process, instruction);
+                        throw new SrUnknownInstructionException($"不明な命令 '0x{instruction.Raw.ToString("X16")}' を実行しようとしました");
                 }
 
 
@@ -598,87 +691,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             // プロセスの動作計測ストップウォッチを停止
             process.RunningStopwatch.Stop();
         }
-
-
-        /// <summary>
-        /// プロセスが起動を開始した時の処理をします
-        /// </summary>
-        /// <param name="process">起動を開始するプロセス</param>
-        protected virtual void OnProcessStartup(SrProcess process)
-        {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessStartup ID={process.ProcessID}");
-        }
-
-
-        /// <summary>
-        /// プロセスが動作を再開をした時の処理をします
-        /// </summary>
-        /// <param name="process">動作を再開するプロセス</param>
-        protected virtual void OnProcessResume(SrProcess process)
-        {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessResume ID={process.ProcessID}");
-        }
-
-
-        /// <summary>
-        /// プロセスが動作を一時停止した時の処理をします
-        /// </summary>
-        /// <param name="process">一時停止したプロセス</param>
-        protected virtual void OnProcessSuspended(SrProcess process)
-        {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessSuspended ID={process.ProcessID}");
-        }
-
-
-        /// <summary>
-        /// プロセスが動作を停止した時の処理をします
-        /// </summary>
-        /// <param name="process">停止したプロセス</param>
-        protected virtual void OnProcessStopped(SrProcess process)
-        {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessStopped ID={process.ProcessID}");
-        }
-
-
-        /// <summary>
-        /// プロセスの実行中に発生した例外を処理します
-        /// </summary>
-        /// <param name="process">例外が発生したプロセス</param>
-        /// <param name="exception">発生した例外</param>
-        protected virtual void OnExceptionOccurrenced(SrProcess process, Exception exception)
-        {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnExceptionOccurrenced message={exception.Message}, ID={process.ProcessID}");
-        }
-
-
-        /// <summary>
-        /// デバッグ時のみ動作するCPUが命令を実行する直前に処理をします
-        /// </summary>
-        /// <param name="process">処理するプロセス</param>
-        /// <param name="instruction">実行しようとしている命令コード</param>
-        [Conditional(SharedString.Conditional.DEBUG)]
-        protected virtual void OnPreProcessInstruction_Debug(SrProcess process, SrInstruction instruction)
-        {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnPreProcessInstruction_Debug OpCode={instruction.OpCode} ID={process.ProcessID}");
-        }
-
-
-        /// <summary>
-        /// デバッグ時のみ動作するCPUが命令を実行した直後に処理をします
-        /// </summary>
-        /// <param name="process">処理するプロセス</param>
-        /// <param name="instruction">実行した命令コード</param>
-        [Conditional(SharedString.Conditional.DEBUG)]
-        protected virtual void OnPostProcessInstruction_Debug(SrProcess process, SrInstruction instruction)
-        {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnPostProcessInstruction_Debug OpCode={instruction.OpCode} ID={process.ProcessID}");
-        }
+        #endregion
     }
 }
