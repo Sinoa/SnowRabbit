@@ -23,14 +23,38 @@ namespace SnowRabbit.RuntimeEngine
     public readonly struct SrVirtualMemory : IEquatable<SrVirtualMemory>
     {
         // 定数定義
-        public const uint ProcessSegmentOffset = 0x00100000;
+        public const uint GlobalOffset = 0x00100000;
+        public const uint HeapOffset = 0x00200000;
+        public const uint StackOffset = 0x00300000;
         private const uint SegmentBitMask = 0x000FFFFF;
 
         // 以下メンバ変数定義
         private readonly MemoryBlock<SrValue>[] Memory;
-        public readonly int ProgramCodeSize;
-        public readonly int ProcessMemorySize;
 
+
+
+        /// <summary>
+        /// プログラムコードのサイズ
+        /// </summary>
+        public int ProgramCodeSize => Memory[0].Length;
+
+
+        /// <summary>
+        /// グローバルメモリのサイズ
+        /// </summary>
+        public int GlobalMemorySize => Memory[1].Length;
+
+
+        /// <summary>
+        /// ヒープメモリのサイズ
+        /// </summary>
+        public int HeapMemorySize => Memory[2].Length;
+
+
+        /// <summary>
+        /// スタックメモリのサイズ
+        /// </summary>
+        public int StackMemorySize => Memory[3].Length;
 
 
 
@@ -60,20 +84,19 @@ namespace SnowRabbit.RuntimeEngine
         /// SrVirtualMemory 構造体のインスタンスを初期化します
         /// </summary>
         /// <param name="programCode">仮想メモリが持つプログラムコードのメモリブロック</param>
-        /// <param name="processMemory">仮想メモリが持つプロセスメモリのメモリブロック</param>
-        public SrVirtualMemory(MemoryBlock<SrValue> programCode, MemoryBlock<SrValue> processMemory)
+        /// <param name="globalMemory">仮想メモリが持つグローバルメモリのメモリブロック</param>
+        /// <param name="heapMemory">仮想メモリが持つヒープメモリのメモリブロック</param>
+        /// <param name="stackMemory">仮想メモリが持つスタックメモリのメモリブロック</param>
+        public SrVirtualMemory(MemoryBlock<SrValue> programCode, MemoryBlock<SrValue> globalMemory, MemoryBlock<SrValue> heapMemory, MemoryBlock<SrValue> stackMemory)
         {
             // メモリセグメント範囲ごとに参照としてもたせる
             Memory = new MemoryBlock<SrValue>[]
             {
                 programCode, // Segment 0
-                processMemory, // Segment 1
+                globalMemory, // Segment 1
+                heapMemory, // Segment 2
+                stackMemory, // Segment 3
             };
-
-
-            // 長さを記憶する
-            ProgramCodeSize = programCode.Length;
-            ProcessMemorySize = processMemory.Length;
         }
 
 

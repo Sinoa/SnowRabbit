@@ -31,19 +31,36 @@ namespace SnowRabbitTest
         public void VirtualAddressAccessTest()
         {
             // まずは実体の配列を用意して仮想メモリのインスタンスを用意する
-            var programMemory = new MemoryBlock<SrValue>(new SrValue[10], 0, 10);
-            var processMemory = new MemoryBlock<SrValue>(new SrValue[10], 0, 10);
-            var virtualMemory = new SrVirtualMemory(programMemory, processMemory);
+            var rawMemory = new SrValue[40];
+            var programMemory = new MemoryBlock<SrValue>(rawMemory, 0, 10);
+            var globalMemory = new MemoryBlock<SrValue>(rawMemory, 10, 10);
+            var heapMemory = new MemoryBlock<SrValue>(rawMemory, 20, 10);
+            var stackMemory = new MemoryBlock<SrValue>(rawMemory, 30, 10);
+            var virtualMemory = new SrVirtualMemory(programMemory, globalMemory, heapMemory, stackMemory);
 
 
             // プログラムメモリ領域に対して書き込んだら実体にも書き込まれているか確認
             virtualMemory[0x00000004] = 123456;
             Assert.AreEqual(123456, programMemory[0x00000004].Primitive.Int);
+            Assert.AreEqual(123456, rawMemory[0x00000004].Primitive.Int);
 
 
-            // プロセスメモリ領域に対して書き込んだら実体にも書き込まれているか確認
+            // グローバル領域に対して書き込んだら実体にも書き込まれているか確認
             virtualMemory[0x00100005] = 654321;
-            Assert.AreEqual(654321, processMemory[0x00000005].Primitive.Int);
+            Assert.AreEqual(654321, globalMemory[0x00000005].Primitive.Int);
+            Assert.AreEqual(654321, rawMemory[0x0000000F].Primitive.Int);
+
+
+            // ヒープ領域に対して書き込んだら実体にも書き込まれているか確認
+            virtualMemory[0x00200009] = 112233;
+            Assert.AreEqual(112233, heapMemory[0x00000009].Primitive.Int);
+            Assert.AreEqual(112233, rawMemory[0x0000001D].Primitive.Int);
+
+
+            // スタック領域に対して書き込んだら実体にも書き込まれているか確認
+            virtualMemory[0x00300004] = 445566;
+            Assert.AreEqual(445566, stackMemory[0x00000004].Primitive.Int);
+            Assert.AreEqual(445566, rawMemory[0x00000022].Primitive.Int);
         }
     }
 }

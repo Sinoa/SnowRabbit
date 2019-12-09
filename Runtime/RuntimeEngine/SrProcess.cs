@@ -47,17 +47,16 @@ namespace SnowRabbit.RuntimeEngine
         /// </summary>
         /// <param name="processID">このプロセスのプロセスID</param>
         /// <param name="programCode">このプロセスが使用するプログラムコードのメモリブロック</param>
-        /// <param name="processMemory">このプロセスが使用するメモリのメモリブロック</param>
+        /// <param name="globalMemory">仮想メモリが持つグローバルメモリのメモリブロック</param>
+        /// <param name="heapMemory">仮想メモリが持つヒープメモリのメモリブロック</param>
+        /// <param name="stackMemory">仮想メモリが持つスタックメモリのメモリブロック</param>
         /// <param name="processorContext">このプロセスが使用するプロセッサコンテキストのメモリブロック</param>
-        internal SrProcess(int processID, MemoryBlock<SrValue> programCode, MemoryBlock<SrValue> processMemory, MemoryBlock<SrValue> processorContext)
+        internal SrProcess(int processID, MemoryBlock<SrValue> programCode, MemoryBlock<SrValue> globalMemory, MemoryBlock<SrValue> heapMemory, MemoryBlock<SrValue> stackMemory, MemoryBlock<SrValue> processorContext)
         {
-            // すべて受け取る
+            // すべて受け取って初期化をする
             ProcessID = processID;
-            VirtualMemory = new SrVirtualMemory(programCode, processMemory);
+            VirtualMemory = new SrVirtualMemory(programCode, globalMemory, heapMemory, stackMemory);
             ProcessorContext = processorContext;
-
-
-            // 他初期化処理
             ProcessState = SrProcessStatus.Ready;
         }
     }

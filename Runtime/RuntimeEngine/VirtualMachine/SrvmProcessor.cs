@@ -71,9 +71,9 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
             // スタックポインタとベースポインタの位置をプロセスメモリの末尾へ
             // （プッシュ時はデクリメントされたから値がセットされるので、配列の長さそのままで初期化）
-            var memoryLength = process.VirtualMemory.ProcessMemorySize;
-            process.ProcessorContext[RegisterSPIndex].Primitive.Long = SrVirtualMemory.ProcessSegmentOffset + memoryLength;
-            process.ProcessorContext[RegisterBPIndex].Primitive.Long = SrVirtualMemory.ProcessSegmentOffset + memoryLength;
+            var memoryLength = process.VirtualMemory.GlobalMemorySize;
+            process.ProcessorContext[RegisterSPIndex].Primitive.Long = SrVirtualMemory.GlobalOffset + memoryLength;
+            process.ProcessorContext[RegisterBPIndex].Primitive.Long = SrVirtualMemory.GlobalOffset + memoryLength;
         }
         #endregion
 
@@ -214,7 +214,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             try
             {
                 // プロセスを実行する
-                SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Execute Core process ID={process.ProcessID}");
                 ExecuteCore(process);
             }
             catch (Exception exception)
@@ -241,6 +240,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         private unsafe void ExecuteCore(SrProcess process)
         {
             // プロセスに紐付いている情報をローカル変数に持ってくる
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Execute Core process ID={process.ProcessID}");
             var context = process.ProcessorContext;
             var memory = process.VirtualMemory;
 
