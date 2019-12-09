@@ -15,7 +15,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.ExceptionServices;
 using SnowRabbit.Diagnostics.Logging;
 
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
@@ -344,154 +343,154 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
                     case OpCode.Movfti:
-                        context[r1] = (long)context[r2].Primitive.Float;
+                        context[r1].Primitive.Long = (long)context[r2].Primitive.Float;
                         break;
 
 
                     case OpCode.Movitf:
-                        context[r1] = (float)context[r1].Primitive.Long;
+                        context[r1].Primitive.Float = (float)context[r1].Primitive.Long;
                         break;
                     #endregion
 
 
                     #region Arithmetic
                     case OpCode.Add:
-                        context[r1] = (long)context[r2] + context[r3];
+                        context[r1].Primitive.Long = context[r2].Primitive.Long + context[r3].Primitive.Long;
                         break;
 
 
                     case OpCode.Addl:
-                        context[r1] = (long)context[r2] + instruction.Int;
+                        context[r1].Primitive.Long = context[r2].Primitive.Long + instruction.Int;
                         break;
 
 
                     case OpCode.Sub:
-                        context[r1] = (long)context[r2] - context[r3];
+                        context[r1].Primitive.Long = context[r2].Primitive.Long - context[r3].Primitive.Long;
                         break;
 
 
                     case OpCode.Subl:
-                        context[r1] = (long)context[r2] - instruction.Int;
+                        context[r1].Primitive.Long = context[r2].Primitive.Long - instruction.Int;
                         break;
 
 
                     case OpCode.Mul:
-                        context[r1] = (long)context[r2] * context[r3];
+                        context[r1].Primitive.Long = context[r2].Primitive.Long * context[r3].Primitive.Long;
                         break;
 
 
                     case OpCode.Mull:
-                        context[r1] = (long)context[r2] * instruction.Int;
+                        context[r1].Primitive.Long = context[r2].Primitive.Long * instruction.Int;
                         break;
 
 
                     case OpCode.Div:
-                        context[r1] = (long)context[r2] / context[r3];
+                        context[r1].Primitive.Long = context[r2].Primitive.Long / context[r3].Primitive.Long;
                         break;
 
 
                     case OpCode.Divl:
-                        context[r1] = (long)context[r2] / instruction.Int;
+                        context[r1].Primitive.Long = context[r2].Primitive.Long / instruction.Int;
                         break;
 
 
                     case OpCode.Mod:
-                        context[r1] = (long)context[r2] % context[r3];
+                        context[r1].Primitive.Long = context[r2].Primitive.Long % context[r3].Primitive.Long;
                         break;
 
 
                     case OpCode.Modl:
-                        context[r1] = (long)context[r2] % instruction.Int;
+                        context[r1].Primitive.Long = context[r2].Primitive.Long % instruction.Int;
                         break;
 
 
                     case OpCode.Pow:
-                        context[r1] = (long)Math.Pow(context[r2], context[r3]);
+                        context[r1].Primitive.Long = (long)Math.Pow(context[r2].Primitive.Long, context[r3].Primitive.Long);
                         break;
 
 
                     case OpCode.Powl:
-                        context[r1] = (long)Math.Pow(context[r2], instruction.Int);
+                        context[r1].Primitive.Long = (long)Math.Pow(context[r2].Primitive.Long, instruction.Int);
                         break;
 
 
                     case OpCode.Neg:
-                        context[r1] = -(long)context[r2];
+                        context[r1].Primitive.Long = -context[r2].Primitive.Long;
                         break;
 
 
                     case OpCode.Negl:
-                        context[r1] = -instruction.Int;
+                        context[r1].Primitive.Long = -instruction.Int;
                         break;
 
 
                     case OpCode.Fadd:
-                        context[r1] = (float)context[r2] + context[r3];
+                        context[r1].Primitive.Float = context[r2].Primitive.Float + context[r3].Primitive.Float;
                         break;
 
 
                     case OpCode.Faddl:
-                        context[r1] = (float)context[r2] + instruction.Float;
+                        context[r1].Primitive.Float = context[r2].Primitive.Float + instruction.Float;
                         break;
 
 
                     case OpCode.Fsub:
-                        context[r1] = (float)context[r2] - context[r3];
+                        context[r1].Primitive.Float = context[r2].Primitive.Float - context[r3].Primitive.Float;
                         break;
 
 
                     case OpCode.Fsubl:
-                        context[r1] = (float)context[r2] - instruction.Float;
+                        context[r1].Primitive.Float = context[r2].Primitive.Float - instruction.Float;
                         break;
 
 
                     case OpCode.Fmul:
-                        context[r1] = (float)context[r2] * context[r3];
+                        context[r1].Primitive.Float = context[r2].Primitive.Float * context[r3].Primitive.Float;
                         break;
 
 
                     case OpCode.Fmull:
-                        context[r1] = (float)context[r2] * instruction.Float;
+                        context[r1].Primitive.Float = context[r2].Primitive.Float * instruction.Float;
                         break;
 
 
                     case OpCode.Fdiv:
-                        context[r1] = (float)context[r2] / context[r3];
+                        context[r1].Primitive.Float = context[r2].Primitive.Float / context[r3].Primitive.Float;
                         break;
 
 
                     case OpCode.Fdivl:
-                        context[r1] = (float)context[r2] / instruction.Float;
+                        context[r1].Primitive.Float = context[r2].Primitive.Float / instruction.Float;
                         break;
 
 
                     case OpCode.Fmod:
-                        context[r1] = (float)context[r2] % context[r3];
+                        context[r1].Primitive.Float = context[r2].Primitive.Float % context[r3].Primitive.Float;
                         break;
 
 
                     case OpCode.Fmodl:
-                        context[r1] = (float)context[r2] % instruction.Float;
+                        context[r1].Primitive.Float = context[r2].Primitive.Float % instruction.Float;
                         break;
 
 
                     case OpCode.Fpow:
-                        context[r1] = (float)Math.Pow(context[r2], context[r3]);
+                        context[r1].Primitive.Float = (float)Math.Pow(context[r2].Primitive.Float, context[r3].Primitive.Float);
                         break;
 
 
                     case OpCode.Fpowl:
-                        context[r1] = (float)Math.Pow(context[r2], instruction.Float);
+                        context[r1].Primitive.Float = (float)Math.Pow(context[r2].Primitive.Float, instruction.Float);
                         break;
 
 
                     case OpCode.Fneg:
-                        context[r1] = -(float)context[r2];
+                        context[r1].Primitive.Float = -context[r2].Primitive.Float;
                         break;
 
 
                     case OpCode.Fnegl:
-                        context[r1] = -instruction.Float;
+                        context[r1].Primitive.Float = -instruction.Float;
                         break;
                     #endregion
 
