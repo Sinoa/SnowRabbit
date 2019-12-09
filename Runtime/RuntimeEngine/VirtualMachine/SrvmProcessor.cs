@@ -496,64 +496,64 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
                     #region Logic
-                    //case OpCode.Or:
-                    //    context[r1] = context[r2] | context[r3];
-                    //    break;
+                    case OpCode.Or:
+                        context[r1].Primitive.Ulong = context[r2].Primitive.Ulong | context[r3].Primitive.Ulong;
+                        break;
 
 
-                    //case OpCode.Xor:
-                    //    context[r1] = context[r2] ^ context[r3];
-                    //    break;
+                    case OpCode.Xor:
+                        context[r1].Primitive.Ulong = context[r2].Primitive.Ulong ^ context[r3].Primitive.Ulong;
+                        break;
 
 
-                    //case OpCode.And:
-                    //    context[r1] = context[r2] & context[r3];
-                    //    break;
+                    case OpCode.And:
+                        context[r1].Primitive.Ulong = context[r2].Primitive.Ulong & context[r3].Primitive.Ulong;
+                        break;
 
 
-                    //case OpCode.Not:
-                    //    context[r1] = ~context[r1];
-                    //    break;
+                    case OpCode.Not:
+                        context[r1].Primitive.Ulong = ~context[r1].Primitive.Ulong;
+                        break;
 
 
-                    //case OpCode.Shl:
-                    //    context[r1] = context[r2] << (int)(context[r3]);
-                    //    break;
+                    case OpCode.Shl:
+                        context[r1].Primitive.Long = context[r2].Primitive.Long << (int)(context[r3]);
+                        break;
 
 
-                    //case OpCode.Shr:
-                    //    context[r1] = context[r2] >> (int)(context[r3]);
-                    //    break;
+                    case OpCode.Shr:
+                        context[r1].Primitive.Long = context[r2].Primitive.Long >> (int)(context[r3]);
+                        break;
 
 
-                    //case OpCode.Teq:
-                    //    context[r1] = context[r2] == context[r3] ? 1L : 0L;
-                    //    break;
+                    case OpCode.Teq:
+                        context[r1].Primitive.Long = context[r2].Primitive.Ulong == context[r3].Primitive.Ulong ? 1L : 0L;
+                        break;
 
 
-                    //case OpCode.Tne:
-                    //    context[r1] = context[r2] != context[r3] ? 1L : 0L;
-                    //    break;
+                    case OpCode.Tne:
+                        context[r1].Primitive.Long = context[r2].Primitive.Ulong != context[r3].Primitive.Ulong ? 1L : 0L;
+                        break;
 
 
-                    //case OpCode.Tg:
-                    //    context[r1] = context[r2] > context[r3] ? 1L : 0L;
-                    //    break;
+                    case OpCode.Tg:
+                        context[r1].Primitive.Long = context[r2].Primitive.Ulong > context[r3].Primitive.Ulong ? 1L : 0L;
+                        break;
 
 
-                    //case OpCode.Tge:
-                    //    context[r1] = context[r2] >= context[r3] ? 1L : 0L;
-                    //    break;
+                    case OpCode.Tge:
+                        context[r1].Primitive.Long = context[r2].Primitive.Ulong >= context[r3].Primitive.Ulong ? 1L : 0L;
+                        break;
 
 
-                    //case OpCode.Tl:
-                    //    context[r1] = context[r2] < context[r3] ? 1L : 0L;
-                    //    break;
+                    case OpCode.Tl:
+                        context[r1].Primitive.Long = context[r2].Primitive.Ulong < context[r3].Primitive.Ulong ? 1L : 0L;
+                        break;
 
 
-                    //case OpCode.Tle:
-                    //    context[r1] = context[r2] <= context[r3] ? 1L : 0L;
-                    //    break;
+                    case OpCode.Tle:
+                        context[r1].Primitive.Long = context[r2].Primitive.Ulong <= context[r3].Primitive.Ulong ? 1L : 0L;
+                        break;
                     #endregion
 
 
