@@ -296,6 +296,26 @@ namespace SnowRabbit.RuntimeEngine
         /// レジスタ間の小なり等価テストを行い、真であれば1を偽であれば0をレジスタに設定します：Ra = Rb <= Rc ? 1 : 0
         /// </summary>
         Tle = 0x3B,
+
+        /// <summary>
+        /// レジスタ間のオブジェクト等価テストを行い、真であれば1を偽であれば0をレジスタに設定します：Ra = [Rb].obj == [Rc].obj ? 1 : 0
+        /// </summary>
+        Toeq = 0x3C,
+
+        /// <summary>
+        /// レジスタ間のオブジェクト否等価テストを行い、真であれば1を偽であれば0をレジスタに設定します：Ra = [Rb].obj != [Rc].obj ? 1 : 0
+        /// </summary>
+        Tone = 0x3D,
+
+        /// <summary>
+        /// レジスタのオブジェクト参照がnullであれば1を偽であれば0をレジスタに設定します：Ra = [Rb].obj == null ? 1 : 0
+        /// </summary>
+        Tonull = 0x3E,
+
+        /// <summary>
+        /// レジスタのオブジェクト参照がnullであれば1を偽であれば0をレジスタに設定します：Ra = [Rb].obj != null ? 1 : 0
+        /// </summary>
+        Tonnull = 0x3F,
         #endregion
 
         #region Flow Control

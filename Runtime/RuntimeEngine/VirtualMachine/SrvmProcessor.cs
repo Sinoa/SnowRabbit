@@ -554,6 +554,26 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                     case OpCode.Tle:
                         context[r1].Primitive.Long = context[r2].Primitive.Ulong <= context[r3].Primitive.Ulong ? 1L : 0L;
                         break;
+
+
+                    case OpCode.Toeq:
+                        context[r1].Primitive.Long = context[r2].Object == context[r3].Object ? 1L : 0L;
+                        break;
+
+
+                    case OpCode.Tone:
+                        context[r1].Primitive.Long = context[r2].Object != context[r3].Object ? 1L : 0L;
+                        break;
+
+
+                    case OpCode.Tonull:
+                        context[r1].Primitive.Long = context[r2].Object == null ? 1L : 0L;
+                        break;
+
+
+                    case OpCode.Tonnull:
+                        context[r1].Primitive.Long = context[r2].Object != null ? 1L : 0L;
+                        break;
                     #endregion
 
 
