@@ -373,14 +373,12 @@ namespace SnowRabbit.RuntimeEngine
 
 
         /// <summary>
-        /// レジスタが示す周辺機器関数を呼び出します：Peripheral #Ra -> Call #Rb( ArgNum #Rc )
-        /// [CallPeripheralFunction]
+        /// レジスタが示す周辺機器関数を呼び出します：Peripheral Ra = Call Rb( ArgNum Rc )
         /// </summary>
         Cpf = 0xF1,
 
         /// <summary>
-        /// レジスタと即値が示す周辺機器関数を呼び出します：Peripheral #Ra -> Call #Rb( ArgNum Imm )
-        /// [CallPeripheralFunction Literal argnum]
+        /// レジスタと即値が示す周辺機器関数を呼び出します：Peripheral Ra = Call Rb( ArgNum Imm )
         /// </summary>
         Cpfl = 0xF2,
         #endregion

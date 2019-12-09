@@ -16,6 +16,7 @@
 using System;
 using System.Diagnostics;
 using SnowRabbit.Diagnostics.Logging;
+using SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral;
 
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
 {
@@ -187,26 +188,47 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Execute process ID={process.ProcessID}");
 
 
-            // もしプロセスが 停止 または 一時停止 または パニックなら
-            if ((process.ProcessState & (SrProcessStatus.Stopped | SrProcessStatus.Suspended | SrProcessStatus.Panic)) != 0)
+            // もしプロセスが 停止 または パニックなら
+            if ((process.ProcessState & (SrProcessStatus.Stopped | SrProcessStatus.Panic)) != 0)
             {
                 // 何もせず終了
                 SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Execute stopped, for Process status is '{process.ProcessState}'.");
                 return;
             }
+            else if (process.ProcessState == SrProcessStatus.Suspended)
+            {
+                // プロセスが一時停止中なら、プロセスのタスクの状態を確認して未完了なら
+                if (process.Task == null || !process.Task.IsCompleted)
+                {
+                    // まだプロセスは再開できない
+                    SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Execute paused, for Process status is '{process.ProcessState}'.");
+                    return;
+                }
+
+
+                // タスクが完了しているのなら結果を受け取ってタスクや関連情報をクリアしつつ開始状態にする
+                process.ProcessorContext[process.ResultReceiveRegisterNumber] = process.PeripheralFunction.GetResult();
+                process.PeripheralFunction = null;
+                process.Task = null;
+                process.ProcessState = SrProcessStatus.Running;
+
+
+                // 再開イベントを呼ぶ
+                OnProcessResume(process);
+            }
             else if (process.ProcessState == SrProcessStatus.Ready)
             {
                 // プロセスが準備完了状態なら、プロセスの動作開始イベントを実行して開始状態にする
                 SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Startup process ID={process.ProcessID}");
-                OnProcessStartup(process);
                 process.ProcessState = SrProcessStatus.Running;
+                OnProcessStartup(process);
             }
             else if (process.ProcessState == SrProcessStatus.ResumeRequested)
             {
                 // プロセスが再開要求状態なら、プロセスの動作再開イベントを実行して開始状態にする
                 SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Resume process ID={process.ProcessID}");
-                OnProcessResume(process);
                 process.ProcessState = SrProcessStatus.Running;
+                OnProcessResume(process);
             }
 
 
@@ -653,59 +675,23 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
                     case OpCode.Cpf:
-                        break;
-
-
                     case OpCode.Cpfl:
+                        var function = context[r2].Object as SrPeripheralFunction;
+                        var task = process.PeripheralFunction.Call(memory, context[RegisterSPIndex].Primitive.Int, instruction.OpCode == OpCode.Cpf ? context[r3].Primitive.Int : instruction.Int, process.ProcessID);
+                        if (task.IsCompleted)
+                        {
+                            context[r1] = function.GetResult();
+                        }
+                        else
+                        {
+                            running = false;
+                            process.PeripheralFunction = function;
+                            process.Task = task;
+                            process.ResultReceiveRegisterNumber = r1;
+                            process.ProcessState = SrProcessStatus.Suspended;
+                            OnProcessSuspended(process);
+                        }
                         break;
-
-
-                    //case OpCode.Cpf:
-                    //    var peripheral = Machine.Firmware.GetPeripheral((int)context[r1]);
-                    //    var function = peripheral.GetFunction((int)context[r2]);
-                    //    var stackFrame = memory.Slice((int)context[RegisterSPIndex], (int)context[r3]);
-                    //    var result = function(new SrStackFrame(process.ID, context, stackFrame, process.ObjectMemory));
-                    //    if (result == HostFunctionResult.Pause)
-                    //    {
-                    //        execution = false;
-                    //        process.ProcessStatus = SrProcessStatus.Suspended;
-                    //    }
-                    //    break;
-
-
-                    //case OpCode.Cpfl:
-                    //    peripheral = Machine.Firmware.GetPeripheral((int)context[r1]);
-                    //    function = peripheral.GetFunction((int)context[r2]);
-                    //    stackFrame = memory.Slice((int)context[RegisterSPIndex], instruction.Int);
-                    //    result = function(new SrStackFrame(process.ID, context, stackFrame, process.ObjectMemory));
-                    //    if (result == HostFunctionResult.Pause)
-                    //    {
-                    //        execution = false;
-                    //        process.ProcessStatus = SrProcessStatus.Suspended;
-                    //    }
-                    //    break;
-
-
-                    //case OpCode.Gpid:
-                    //    context[r1] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[(int)context[r2]].Value);
-                    //    break;
-
-
-                    //case OpCode.Gpidl:
-                    //    context[r1] = Machine.Firmware.GetPeripheralID((string)process.ObjectMemory[instruction.Int].Value);
-                    //    break;
-
-
-                    //case OpCode.Gpfid:
-                    //    peripheral = Machine.Firmware.GetPeripheral((int)context[r2]);
-                    //    context[r1] = peripheral.GetFunctionID((string)process.ObjectMemory[(int)context[r3]].Value);
-                    //    break;
-
-
-                    //case OpCode.Gpfidl:
-                    //    peripheral = Machine.Firmware.GetPeripheral((int)context[r2]);
-                    //    context[r1] = peripheral.GetFunctionID((string)process.ObjectMemory[instruction.Int].Value);
-                    //    break;
                     #endregion
 
 

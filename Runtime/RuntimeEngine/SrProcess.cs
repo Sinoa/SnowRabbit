@@ -14,6 +14,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System.Diagnostics;
+using System.Threading.Tasks;
+using SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral;
 
 namespace SnowRabbit.RuntimeEngine
 {
@@ -26,6 +28,9 @@ namespace SnowRabbit.RuntimeEngine
         internal readonly MemoryBlock<SrValue> ProcessorContext;
         internal readonly SrVirtualMemory VirtualMemory;
         internal readonly Stopwatch RunningStopwatch;
+        internal SrPeripheralFunction PeripheralFunction;
+        internal Task Task;
+        internal int ResultReceiveRegisterNumber;
 
 
 
