@@ -28,7 +28,6 @@
     <Optimize>false</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Source\**" />
     <None Remove="**/*.meta" />
     <None Remove="**/*.asmdef" />
   </ItemGroup>
