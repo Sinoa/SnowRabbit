@@ -13,16 +13,12 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using System.Collections.Generic;
-using TextProcessorLib;
-
-namespace CarrotCompilerCollection.Compiler
+namespace SnowRabbit.Compiler.Lexer
 {
-    #region Kind
     /// <summary>
-    /// Carrot スクリプトにおけるトークン種別の定数を持ったクラスです
+    /// SnowRabbit スクリプトにおけるトークン種別の定数を持ったクラスです
     /// </summary>
-    public class CccTokenKind : TokenKind
+    public class SrTokenKind : TokenKind
     {
         /// <summary>
         /// キーワードオフセット
@@ -53,6 +49,11 @@ namespace CarrotCompilerCollection.Compiler
         /// string
         /// </summary>
         public const int TypeString = KeywordOffset + 20;
+
+        /// <summary>
+        /// object
+        /// </summary>
+        public const int TypeObject = KeywordOffset + 21;
 
         /// <summary>
         /// end
@@ -119,42 +120,4 @@ namespace CarrotCompilerCollection.Compiler
         /// </summary>
         public const int Break = KeywordOffset + 90;
     }
-    #endregion
-
-
-
-    #region Lexer
-    /// <summary>
-    /// Carrot スクリプト用レキサクラスです
-    /// </summary>
-    public class CccLexer : TokenReader
-    {
-        /// <summary>
-        /// Carrot スクリプトで使用するトークンをセットアップします
-        /// </summary>
-        /// <param name="tokenTable">セットアップするトークンテーブル</param>
-        protected override void SetupToken(Dictionary<string, int> tokenTable)
-        {
-            // キーワードトークンの追加
-            tokenTable["using"] = CccTokenKind.Using;
-            tokenTable["void"] = CccTokenKind.TypeVoid;
-            tokenTable["int"] = CccTokenKind.TypeInt;
-            tokenTable["number"] = CccTokenKind.TypeNumber;
-            tokenTable["string"] = CccTokenKind.TypeString;
-            tokenTable["end"] = CccTokenKind.End;
-            tokenTable["function"] = CccTokenKind.Function;
-            tokenTable["global"] = CccTokenKind.Global;
-            tokenTable["local"] = CccTokenKind.Local;
-            tokenTable["if"] = CccTokenKind.If;
-            tokenTable["else"] = CccTokenKind.Else;
-            tokenTable["for"] = CccTokenKind.For;
-            tokenTable["while"] = CccTokenKind.While;
-            tokenTable["link"] = CccTokenKind.Link;
-            tokenTable["compile"] = CccTokenKind.Compile;
-            tokenTable["const"] = CccTokenKind.Const;
-            tokenTable["return"] = CccTokenKind.Return;
-            tokenTable["break"] = CccTokenKind.Break;
-        }
-    }
-    #endregion
 }

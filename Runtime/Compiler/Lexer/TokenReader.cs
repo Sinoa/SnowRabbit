@@ -18,407 +18,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace TextProcessorLib
+namespace SnowRabbit.Compiler.Lexer
 {
-    #region Token struct
-    /// <summary>
-    /// トークンの表現を定義している構造体です
-    /// </summary>
-    public readonly struct Token
-    {
-        /// <summary>
-        /// トークンの種別
-        /// </summary>
-        public readonly int Kind;
-
-        /// <summary>
-        /// トークンの文字列本体
-        /// </summary>
-        public readonly string Text;
-
-        /// <summary>
-        /// トークンが整数で表現される時の整数値
-        /// </summary>
-        public readonly long Integer;
-
-        /// <summary>
-        /// トークンが実数で表現される時の実数値
-        /// </summary>
-        public readonly double Number;
-
-        /// <summary>
-        /// トークンが現れた行番号
-        /// </summary>
-        public readonly int LineNumber;
-
-        /// <summary>
-        /// トークンが現れた最初の列番号
-        /// </summary>
-        public readonly int ColumnNumber;
-
-
-
-        /// <summary>
-        /// Token 構造体のインスタンスを初期化します
-        /// </summary>
-        /// <param name="kind">トークンの種別</param>
-        /// <param name="text">トークン文字列</param>
-        /// <param name="integer">トークン整数</param>
-        /// <param name="number">トークン実数</param>
-        /// <param name="lineNumber">出現行番号</param>
-        /// <param name="columnNumber">出現列番号</param>
-        public Token(int kind, string text, long integer, double number, int lineNumber, int columnNumber)
-        {
-            // 各種メンバ変数の初期化
-            Kind = kind;
-            Text = text;
-            Integer = integer;
-            Number = number;
-            LineNumber = lineNumber;
-            ColumnNumber = columnNumber;
-        }
-    }
-    #endregion
-
-
-
-    #region TokenKind
-    /// <summary>
-    /// トークンの種別を表現した定数を保持しているクラスです。
-    /// </summary>
-    /// <remarks>
-    /// 独自の追加トークンを定義する場合は、このクラスを継承して追加の定義を行って下さい。
-    /// ただし、必ず UserDefineOffset 以上の正の整数を用いて下さい
-    /// </remarks>
-    public class TokenKind
-    {
-        #region Special
-        /// <summary>
-        /// 追加のトークン定義を行うためのオフセット
-        /// </summary>
-        public const int UserDefineOffset = 1000;
-
-        /// <summary>
-        /// 不明なトークン(通常は無効値として扱われ無効な識別子としても扱います)
-        /// invalid token kind and invalid identifier.
-        /// </summary>
-        public const int Unknown = 0;
-
-        /// <summary>
-        /// これ以上のトークンは存在しないトークン
-        /// </summary>
-        public const int EndOfToken = -1;
-
-        /// <summary>
-        /// 行末を示すトークン
-        /// </summary>
-        public const int EndOfLine = -2;
-        #endregion
-
-        #region Typical
-        /// <summary>
-        /// 識別子
-        /// identifier | hogemoge | _identifier | hoge123
-        /// </summary>
-        public const int Identifier = -100;
-
-        /// <summary>
-        /// 文字列
-        /// "a" or "abc" or 'a' or 'abc'
-        /// </summary>
-        public const int String = -101;
-
-        /// <summary>
-        /// 整数
-        /// 1234 | 0xABCD
-        /// </summary>
-        public const int Integer = -102;
-
-        /// <summary>
-        /// 実数
-        /// 1234.0 | 1234.56
-        /// </summary>
-        public const int Number = -103;
-        #endregion
-
-        #region SingleSymbol
-        /// <summary>
-        /// オープンパーレン
-        /// (
-        /// </summary>
-        public const int OpenParen = -500;
-
-        /// <summary>
-        /// クローズパーレン
-        /// )
-        /// </summary>
-        public const int CloseParen = -501;
-
-        /// <summary>
-        /// オープンアングル
-        /// <
-        /// </summary>
-        public const int OpenAngle = -502;
-
-        /// <summary>
-        /// クローズアングル
-        /// >
-        /// </summary>
-        public const int CloseAngle = -503;
-
-        /// <summary>
-        /// オープンブラケット
-        /// [
-        /// </summary>
-        public const int OpenBracket = -504;
-
-        /// <summary>
-        /// クローズブラケット
-        /// ]
-        /// </summary>
-        public const int CloseBracket = -505;
-
-        /// <summary>
-        /// オープンブレス
-        /// {
-        /// </summary>
-        public const int OpenBrace = -506;
-
-        /// <summary>
-        /// クローズブレス
-        /// }
-        /// </summary>
-        public const int CloseBrace = -507;
-
-        /// <summary>
-        /// コロン
-        /// :
-        /// </summary>
-        public const int Colon = -508;
-
-        /// <summary>
-        /// セミコロン
-        /// ;
-        /// </summary>
-        public const int Semicolon = -509;
-
-        /// <summary>
-        /// シャープ
-        /// #
-        /// </summary>
-        public const int Sharp = -510;
-
-        /// <summary>
-        /// カンマ
-        /// ,
-        /// </summary>
-        public const int Comma = -511;
-
-        /// <summary>
-        /// ピリオド
-        /// .
-        /// </summary>
-        public const int Period = -512;
-
-        /// <summary>
-        /// イコール
-        /// =
-        /// </summary>
-        public const int Equal = -513;
-
-        /// <summary>
-        /// プラス
-        /// +
-        /// </summary>
-        public const int Plus = -514;
-
-        /// <summary>
-        /// マイナス
-        /// -
-        /// </summary>
-        public const int Minus = -515;
-
-        /// <summary>
-        /// アスタリスク
-        /// *
-        /// </summary>
-        public const int Asterisk = -516;
-
-        /// <summary>
-        /// スラッシュ
-        /// /
-        /// </summary>
-        public const int Slash = -517;
-
-        /// <summary>
-        /// パーセント
-        /// %
-        /// </summary>
-        public const int Percent = -518;
-
-        /// <summary>
-        /// エクスクラメーション
-        /// !
-        /// </summary>
-        public const int Exclamation = -519;
-
-        /// <summary>
-        /// クエスチョン
-        /// ?
-        /// </summary>
-        public const int Question = -520;
-
-        /// <summary>
-        /// バーティカルバー
-        /// |
-        /// </summary>
-        public const int Verticalbar = -521;
-
-        /// <summary>
-        /// アンド
-        /// &
-        /// </summary>
-        public const int And = -522;
-
-        /// <summary>
-        /// ドル
-        /// $
-        /// </summary>
-        public const int Dollar = -523;
-
-        /// <summary>
-        /// サーカムフレックス
-        /// ^
-        /// </summary>
-        public const int Circumflex = -524;
-
-        /// <summary>
-        /// チルダ
-        /// ~
-        /// </summary>
-        public const int Tilde = -525;
-
-        /// <summary>
-        /// アットサイン
-        /// @
-        /// </summary>
-        public const int AtSign = -526;
-        #endregion
-
-        #region DoubleSymbol
-        /// <summary>
-        /// ダブルイコール
-        /// ==
-        /// </summary>
-        public const int DoubleEqual = -600;
-
-        /// <summary>
-        /// ノットイコール
-        /// !=
-        /// </summary>
-        public const int NotEqual = -601;
-
-        /// <summary>
-        /// レッサーイコール
-        /// <=
-        /// </summary>
-        public const int LesserEqual = -602;
-
-        /// <summary>
-        /// グレイターイコール
-        /// >=
-        /// </summary>
-        public const int GreaterEqual = -603;
-
-        /// <summary>
-        /// プラスイコール
-        /// +=
-        /// </summary>
-        public const int PlusEqual = -604;
-
-        /// <summary>
-        /// マイナスイコール
-        /// -=
-        /// </summary>
-        public const int MinusEqual = -605;
-
-        /// <summary>
-        /// アスタリスクイコール
-        /// *=
-        /// </summary>
-        public const int AsteriskEqual = -606;
-
-        /// <summary>
-        /// スラッシュイコール
-        /// /=
-        /// </summary>
-        public const int SlashEqual = -607;
-
-        /// <summary>
-        /// 右矢印
-        /// ->
-        /// </summary>
-        public const int RightArrow = -607;
-
-        /// <summary>
-        /// 左矢印
-        /// <-
-        /// </summary>
-        public const int LeftArrow = -608;
-
-        /// <summary>
-        /// ダブルアンド
-        /// &&
-        /// </summary>
-        public const int DoubleAnd = -609;
-
-        /// <summary>
-        /// ダブルバーティカルバー
-        /// ||
-        /// </summary>
-        public const int DoubleVerticalbar = -610;
-
-        /// <summary>
-        /// ダブルオープンアングル
-        /// <<
-        /// </summary>
-        public const int DoubleOpenAngle = -611;
-
-        /// <summary>
-        /// ダブルクローズアングル
-        /// >>
-        /// </summary>
-        public const int DoubleCloseAngle = -612;
-
-        /// <summary>
-        /// ダブルプラス
-        /// ++
-        /// </summary>
-        public const int DoublePlus = -613;
-
-        /// <summary>
-        /// ダブルマイナス
-        /// --
-        /// </summary>
-        public const int DoubleMinus = -614;
-        #endregion
-    }
-    #endregion
-
-
-
-    #region TokenReader
     /// <summary>
     /// ストリームからトークンを読み込むリーダークラスです
     /// </summary>
-    public abstract class TokenReader : IDisposable
+    public class TokenReader : IDisposable
     {
         // 定数定義
         public const int EndOfStream = -1;
 
         // クラス変数定義
-        public static readonly TokenReader EmptyReader;
-        private static readonly Dictionary<Type, Dictionary<string, int>> KeywordTableTable;
+        private static readonly Dictionary<Type, Dictionary<string, int>> KeywordTableTable = new Dictionary<Type, Dictionary<string, int>>();
 
         // メンバ変数定義
         private bool disposed;
@@ -462,17 +73,6 @@ namespace TextProcessorLib
 
 
         #region Constructor and Dispose and Initializer
-        /// <summary>
-        /// TokenReader クラスの初期化をします
-        /// </summary>
-        static TokenReader()
-        {
-            // キーワードテーブルのテーブルを生成する
-            KeywordTableTable = new Dictionary<Type, Dictionary<string, int>>();
-            EmptyReader = new EmptyTokenReader();
-        }
-
-
         /// <summary>
         /// TokenReader クラスのインスタンスを初期化します
         /// </summary>
@@ -588,7 +188,7 @@ namespace TextProcessorLib
 
             // リーダーインスタンスを生成して書くメンバ変数の初期化
             reader = textReader ?? throw new ArgumentNullException(nameof(textReader));
-            tokenReadBuffer = tokenReadBuffer ?? new StringBuilder();
+            tokenReadBuffer ??= new StringBuilder();
             lastReadChara = ' ';
             currentLineNumber = 1;
             currentColumnNumber = 0;
@@ -619,7 +219,7 @@ namespace TextProcessorLib
         /// 必要最低限の標準トークンテーブルを生成します
         /// </summary>
         /// <returns>標準のトークンテーブルを返します</returns>
-        protected Dictionary<string, int> CreateDefaultTokenTable()
+        protected static Dictionary<string, int> CreateDefaultTokenTable()
         {
             // 標準のキーワードテーブルを生成して返す
             return new Dictionary<string, int>()
@@ -665,7 +265,7 @@ namespace TextProcessorLib
         public bool ReadNextToken()
         {
             // 読み込まれたトークンパラメータを破棄するだけの呼び出しを行う
-            return ReadNextToken(out var dummy);
+            return ReadNextToken(out _);
         }
 
 
@@ -1115,17 +715,5 @@ namespace TextProcessorLib
             }
         }
         #endregion
-
-
-
-        #region EmptyTokenReader
-        /// <summary>
-        /// 追加のトークン解析が無いトークンリーダークラスです
-        /// </summary>
-        private class EmptyTokenReader : TokenReader
-        {
-        }
-        #endregion
     }
-    #endregion
 }
