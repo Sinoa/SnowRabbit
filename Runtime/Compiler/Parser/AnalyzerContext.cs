@@ -56,6 +56,7 @@ namespace SnowRabbit.Compiler.Parser
         public CompileUnitContext PopCompileUnitContext()
         {
             // スタックが空なら null を返して、ポップ出来るならそのまま返す
+            SrLogger.Trace(nameof(AnalyzerContext), $"Pop compile unit context. Count={compileUnitContexts.Count}");
             return compileUnitContexts.Count == 0 ? null : compileUnitContexts.Pop();
         }
     }
