@@ -15,24 +15,26 @@
 
 using SnowRabbit.Compiler.Lexer;
 
-namespace SnowRabbit.Compiler.Parser.SyntaxTokens
+namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 実数構文トークンクラスです
+    /// 実数を表す構文ノードクラスです
     /// </summary>
-    public class NumberSyntaxToken : SyntaxToken
+    public class NumberSyntaxNode : SyntaxNode
     {
         /// <summary>
-        /// 実数の値
+        /// 実数としての値
         /// </summary>
         public double Value => token.Number;
 
 
 
         /// <summary>
-        /// NumberSyntaxToken クラスのインスタンスを初期化します
+        /// NumberSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="token">対応するトークン</param>
-        public NumberSyntaxToken(in Token token) : base(token) { }
+        public NumberSyntaxNode(in Token token) : base(token)
+        {
+        }
     }
 }

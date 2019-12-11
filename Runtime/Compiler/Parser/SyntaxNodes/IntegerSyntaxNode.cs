@@ -15,39 +15,26 @@
 
 using SnowRabbit.Compiler.Lexer;
 
-namespace SnowRabbit.Compiler.Parser.SyntaxTokens
+namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 構文上に登場するトークンを表現する構文トークン抽象クラスです
+    /// 整数を表す構文ノードクラスです
     /// </summary>
-    public abstract class SyntaxToken
+    public class IntegerSyntaxNode : SyntaxNode
     {
-        // メンバ変数定義
-        protected Token token;
+        /// <summary>
+        /// 整数としての値
+        /// </summary>
+        public long Value => token.Integer;
 
 
 
         /// <summary>
-        /// トークンが現れた行番号
+        /// IntegerSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
-        public int LineNumber => token.LineNumber;
-
-
-        /// <summary>
-        /// トークンが現れた列番号
-        /// </summary>
-        public int ColumnNumber => token.ColumnNumber;
-
-
-
-        /// <summary>
-        /// SyntaxToken クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="token">適応するトークンへの参照</param>
-        protected SyntaxToken(in Token token)
+        /// <param name="token">対応するトークン</param>
+        public IntegerSyntaxNode(in Token token) : base(token)
         {
-            // トークンを受け取る
-            this.token = token;
         }
     }
 }

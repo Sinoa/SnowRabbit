@@ -15,24 +15,26 @@
 
 using SnowRabbit.Compiler.Lexer;
 
-namespace SnowRabbit.Compiler.Parser.SyntaxTokens
+namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 文字列構文トークンクラスです
+    /// 文字列を表す構文ノードクラスです
     /// </summary>
-    public class StringSyntaxToken : SyntaxToken
+    public class StringSyntaxNode : SyntaxNode
     {
         /// <summary>
-        /// 文字列の値
+        /// 文字列としての値
         /// </summary>
         public string Value => token.Text;
 
 
 
         /// <summary>
-        /// StringSyntaxToken クラスのインスタンスを初期化します
+        /// StringSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
-        /// <param name="token">対応するトークン</param>
-        public StringSyntaxToken(in Token token) : base(token) { }
+        /// <param name="token"></param>
+        public StringSyntaxNode(in Token token) : base(token)
+        {
+        }
     }
 }
