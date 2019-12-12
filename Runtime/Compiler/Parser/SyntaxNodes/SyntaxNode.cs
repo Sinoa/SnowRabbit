@@ -39,6 +39,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         public int ColumnNumber => token.ColumnNumber;
 
 
+        /// <summary>
+        /// トークンとして解釈した部分の文字列
+        /// </summary>
+        public string RawText => token.Text;
+
+
 
         /// <summary>
         /// SyntaxNode クラスのインスタンスを初期化します
