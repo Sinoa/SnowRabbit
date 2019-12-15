@@ -44,7 +44,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         public const byte RegisterR15Index = 15; // FullGeneral Register[R15]
         public const byte RegisterIPIndex = 30; // InstructionPointer Register[IP]
         public const byte RegisterZeroIndex = 31; // Zero Register[ZERO]
-        public const byte RegisterCount = RegisterZeroIndex + 1;
+        public const byte TotalRegisterCount = RegisterZeroIndex + 1;
 
 
 
@@ -54,7 +54,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         /// </summary>
         /// <param name="process">初期化するプロセス</param>
         /// <exception cref="ArgumentNullException">process が null です</exception>
-        internal unsafe void InitializeProcessorContext(SrProcess process)
+        internal static unsafe void InitializeProcessorContext(SrProcess process)
         {
             // null を渡されたらむり
             if (process == null) throw new ArgumentNullException(nameof(process));
@@ -62,7 +62,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
             // 末尾のレジスタインデックスまでループ
             SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, "InitializeProcessorContext");
-            for (var i = 0; i < RegisterCount; ++i)
+            for (var i = 0; i < TotalRegisterCount; ++i)
             {
                 // プロセッサコンテキストの値を初期化する
                 process.ProcessorContext[i] = default;
