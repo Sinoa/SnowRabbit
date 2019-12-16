@@ -186,8 +186,7 @@
 ## Expression syntax
 
 ### expression
-    : '(' expression ')'
-    | simple_expression
+    : simple_expression
 
 ### simple_expression
     : assignment_expression
@@ -257,11 +256,15 @@
     | '!' primary_expression
 
 ### primary_expression
-    : global_var_name
+    : paren_expression
+    | global_var_name
     | local_var_name
     | argument_name
     | literal
     | function_call
+
+### paren_expression
+    : '(' expression ')'
 
 ### literal
     : '<integer>'
