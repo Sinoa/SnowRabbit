@@ -56,6 +56,11 @@ namespace SnowRabbit.Compiler.Lexer
         public const int TypeObject = KeywordOffset + 21;
 
         /// <summary>
+        /// bool
+        /// </summary>
+        public const int TypeBool = KeywordOffset + 22;
+
+        /// <summary>
         /// end
         /// </summary>
         public const int End = KeywordOffset + 25;
@@ -119,5 +124,15 @@ namespace SnowRabbit.Compiler.Lexer
         /// break
         /// </summary>
         public const int Break = KeywordOffset + 90;
+
+        /// <summary>
+        /// true
+        /// </summary>
+        public const int True = KeywordOffset + 95;
+
+        /// <summary>
+        /// false
+        /// </summary>
+        public const int False = KeywordOffset + 100;
     }
 }

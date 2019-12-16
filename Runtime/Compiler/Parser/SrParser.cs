@@ -33,6 +33,7 @@
     | 'number'
     | 'string'
     | 'object'
+    | 'bool'
 
 ### types
     : 'void'
@@ -53,18 +54,18 @@
     | 'const' constant_var_name constant_value
 
 ### link_object_name
-    : \<string>
+    : '<string>'
 
 ### script_name
-    : \<string>
+    : '<string>'
 
 ### constant_var_name
-    : \<identifier>
+    : '<identifier>'
 
 ### constant_value
-    : \<integer>
-    | \<number>
-    | \<string>
+    : '<integer>'
+    | '<number>'
+    | '<string>'
 
 
 ## Peripheral syntax
@@ -73,13 +74,13 @@
     : 'using' peripheral_function_name '=' return_type import_peripheral_name '.' import_peripheral_function_name '(' [type_list] ')' ';' 
 
 ### peripheral_function_name
-    : \<identifier>
+    : '<identifier>'
 
 ### import_peripheral_name
-    : \<identifier>
+    : '<identifier>'
 
 ### import_peripheral_function_name
-    : \<identifier>
+    : '<identifier>'
 
 ### type_list
     : non_void_types { ',' non_void_types }
@@ -91,7 +92,7 @@
     : 'global' non_void_types global_var_name ';'
 
 ### global_var_name
-    : \<identifier>
+    : '<identifier>'
 
 
 ## Function declare syntax
@@ -100,7 +101,7 @@
     : 'function' return_type function_name '(' [argument_list] ')' { block } 'end'
 
 ### function_name
-    : \<identifier>
+    : '<identifier>'
 
 ### argument_list
     : argument { ',' argument }
@@ -109,7 +110,7 @@
     : non_void_types argument_name
 
 ### argument_name
-    : \<identifier>
+    : '<identifier>'
 
 
 ## Block syntax
@@ -134,7 +135,7 @@
     : 'local' non_void_types local_var_name ';'
 
 ### local_var_name
-    : \<identifier>
+    : '<identifier>'
 
 
 ## For statement syntax
@@ -185,49 +186,94 @@
 ## Expression syntax
 
 ### expression
-    : simple_expression
+    : '(' expression ')'
+    | simple_expression
 
 ### simple_expression
-    : '(' expression ')'
-    | unary_operation expression
+    : assignment_expression
+    | condition_or_expression
+
+### assignment_expression
+    : unary_expression '=' expression
+    | unary_expression '+=' expression
+    | unary_expression '-=' expression
+    | unary_expression '*=' expression
+    | unary_expression '/=' expression
+    | unary_expression '&=' expression
+    | unary_expression '|=' expression
+    | unary_expression '^=' expression
+
+### condition_or_expression
+    : condition_and_expression
+    | condition_or_expression { '||' condition_and_expression }
+
+### condition_and_expression
+    : or_expression
+    | condition_and_expression { '&&' or_expression }
+
+### or_expression
+    : exclusive_or_expression
+    | or_expression { '|' exclusive_or_expression }
+
+### exclusive_or_expression
+    : and_expression
+    | exclusive_or_expression { '^' and_expression }
+
+### and_expression
+    : equality_expression
+    | and_expression { '&' equality_expression }
+
+### equality_expression
+    : relational_expression
+    | equality_expression { '==' relational_expression }
+    | equality_expression { '!=' relational_expression }
+
+### relational_expression
+    : shift_expression
+    | relational_expression { '<' shift_expression }
+    | relational_expression { '>' shift_expression }
+    | relational_expression { '<=' shift_expression }
+    | relational_expression { '>=' shift_expression }
+
+### shift_expression
+    : addsub_expression
+    | shift_expression { '<<' addsub_expression }
+    | shift_expression { '>>' addsub_expression }
+
+### addsub_expression
+    : muldiv_expression
+    | addsub_expression { '+' muldiv_expression }
+    | addsub_expression { '-' muldiv_expression }
+
+### muldiv_expression
+    : unary_expression
+    | muldiv_expression { '*' unary_expression }
+    | muldiv_expression { '/' unary_expression }
+
+### unary_expression
+    : primary_expression
+    | '+' primary_expression
+    | '-' primary_expression
+    | '!' primary_expression
+
+### primary_expression
+    : global_var_name
+    | local_var_name
+    | argument_name
     | literal
     | function_call
-    | expression binary_op expression
-
-### unary_operation
-    : '-'
-    | '!'
-    | '+'
 
 ### literal
-    : \<integer>
-    | \<number>
-    | \<string>
+    : '<integer>'
+    | '<number>'
+    | '<string>'
+    | 'true'
+    | 'false'
+
 
 ### function_call
-    : \<identifier> '(' [parameter_list] ')'
-
-### parameter_list
-    : expression { ',' expression }
-
-### binary_op
-    : '='
-    | '+'
-    | '-'
-    | '*'
-    | '/'
-    | '^'
-    | '%'
-    | '>>'
-    | '<<'
-    | '>'
-    | '>='
-    | '<'
-    | '<='
-    | '=='
-    | '&&'
-    | '||'
-    | '!='
+    : function_name '(' { expression } ')'
+    | import_peripheral_function_name '(' { expression } ')'
 
 */
 

@@ -35,6 +35,7 @@ namespace SnowRabbit.Compiler.Lexer
             tokenTable["number"] = SrTokenKind.TypeNumber;
             tokenTable["string"] = SrTokenKind.TypeString;
             tokenTable["object"] = SrTokenKind.TypeObject;
+            tokenTable["bool"] = SrTokenKind.TypeBool;
             tokenTable["end"] = SrTokenKind.End;
             tokenTable["function"] = SrTokenKind.Function;
             tokenTable["global"] = SrTokenKind.Global;
@@ -48,6 +49,8 @@ namespace SnowRabbit.Compiler.Lexer
             tokenTable["const"] = SrTokenKind.Const;
             tokenTable["return"] = SrTokenKind.Return;
             tokenTable["break"] = SrTokenKind.Break;
+            tokenTable["true"] = SrTokenKind.True;
+            tokenTable["false"] = SrTokenKind.False;
         }
     }
 }
