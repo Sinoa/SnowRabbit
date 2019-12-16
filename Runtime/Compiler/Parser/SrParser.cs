@@ -191,10 +191,10 @@
 
 ### simple_expression
     : assignment_expression
-    | condition_or_expression
 
 ### assignment_expression
-    : unary_expression '=' expression
+    : condition_or_expression
+    | unary_expression '=' expression
     | unary_expression '+=' expression
     | unary_expression '-=' expression
     | unary_expression '*=' expression
@@ -269,7 +269,6 @@
     | '<string>'
     | 'true'
     | 'false'
-
 
 ### function_call
     : function_name '(' { expression } ')'
