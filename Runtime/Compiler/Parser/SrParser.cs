@@ -12,6 +12,225 @@
 //    If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
+
+/*
+
+# 雪兎のスクリプト構文
+
+## Compile unit syntax
+
+### compile_unit
+    : directive
+    | peripheral_declare
+    | global_variable_declare
+    | function_declare
+
+
+## Common syntax
+
+### non_void_types
+    : 'int'
+    | 'number'
+    | 'string'
+    | 'object'
+
+### types
+    : 'void'
+    | non_void_types
+
+### return_type
+    : types
+
+
+## Pre-Processor directive syntax
+
+### directive
+    : '#' directives
+
+### directives
+    : 'link' link_object_name
+    | 'compile' script_name
+    | 'const' constant_var_name constant_value
+
+### link_object_name
+    : \<string>
+
+### script_name
+    : \<string>
+
+### constant_var_name
+    : \<identifier>
+
+### constant_value
+    : \<integer>
+    | \<number>
+    | \<string>
+
+
+## Peripheral syntax
+
+### peripheral_declare
+    : 'using' peripheral_function_name '=' return_type import_peripheral_name '.' import_peripheral_function_name '(' [type_list] ')' ';' 
+
+### peripheral_function_name
+    : \<identifier>
+
+### import_peripheral_name
+    : \<identifier>
+
+### import_peripheral_function_name
+    : \<identifier>
+
+### type_list
+    : non_void_types { ',' non_void_types }
+
+
+## GlobalVariable syntax
+
+### global_variable_declare
+    : 'global' non_void_types global_var_name ';'
+
+### global_var_name
+    : \<identifier>
+
+
+## Function declare syntax
+
+### function_declare
+    : 'function' return_type function_name '(' [argument_list] ')' { block } 'end'
+
+### function_name
+    : \<identifier>
+
+### argument_list
+    : argument { ',' argument }
+
+### argument
+    : non_void_types argument_name
+
+### argument_name
+    : \<identifier>
+
+
+## Block syntax
+
+### block
+    : statement_list
+
+### statement_list
+    : ';'
+    | local_var_declare
+    | for_statement
+    | while_statement
+    | if_statement
+    | break_statement
+    | return_statement
+    | expression
+
+
+## LocalVariable declare syntax
+
+### local_var_declare
+    : 'local' non_void_types local_var_name ';'
+
+### local_var_name
+    : \<identifier>
+
+
+## For statement syntax
+
+### for_statement
+    : 'for' '(' [for_initializer] ';' [for_condition] ';' [for_iterator] ')' { block } 'end'
+
+### for_initializer
+    : expression
+
+### for_condition
+    : expression
+
+### for_iterator
+    : expression
+
+
+## While statement syntax
+
+### while_statement
+    : 'while' '(' while_condition ')' { block } 'end'
+
+### while_condition
+    : expression
+
+
+## If statement syntax
+
+### if_statement
+    : 'if' '(' if_condition ')' { block } { 'else' 'if' '(' if_condition ')' { block } } 'end'
+
+### if_condition
+    : expression
+
+
+## Break statement syntax
+
+### break_statement
+    : 'break' ';'
+
+
+## Return statement syntax
+
+### return_statement
+    : 'return' [ expression ] ';'
+
+
+## Expression syntax
+
+### expression
+    : simple_expression
+
+### simple_expression
+    : '(' expression ')'
+    | unary_operation expression
+    | literal
+    | function_call
+    | expression binary_op expression
+
+### unary_operation
+    : '-'
+    | '!'
+    | '+'
+
+### literal
+    : \<integer>
+    | \<number>
+    | \<string>
+
+### function_call
+    : \<identifier> '(' [parameter_list] ')'
+
+### parameter_list
+    : expression { ',' expression }
+
+### binary_op
+    : '='
+    | '+'
+    | '-'
+    | '*'
+    | '/'
+    | '^'
+    | '%'
+    | '>>'
+    | '<<'
+    | '>'
+    | '>='
+    | '<'
+    | '<='
+    | '=='
+    | '&&'
+    | '||'
+    | '!='
+
+*/
+
 /*
 using System;
 using System.Collections.Generic;
