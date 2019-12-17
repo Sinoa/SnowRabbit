@@ -180,7 +180,7 @@
 ## Return statement syntax
 
 ### return_statement
-    : 'return' [ expression ] ';'
+    : 'return' [expression] ';'
 
 
 ## Expression syntax
@@ -275,8 +275,14 @@
     | 'null'
 
 ### function_call
-    : function_name '(' { expression } ')'
-    | import_peripheral_function_name '(' { expression } ')'
+    : function_name '(' [parameter_list] ')'
+    | import_peripheral_function_name '(' [parameter_list] ')'
+
+### parameter_list
+    : parameter { ',' parameter }
+
+### parameter
+    : expression
 
 */
 
