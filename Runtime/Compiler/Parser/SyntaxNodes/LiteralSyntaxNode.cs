@@ -18,22 +18,15 @@ using SnowRabbit.Compiler.Lexer;
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 整数を表す構文ノードクラスです
+    /// 定数構文を表す構文ノードクラスです
     /// </summary>
-    public class IntegerSyntaxNode : SyntaxNode
+    public class LiteralSyntaxNode : SyntaxNode
     {
         /// <summary>
-        /// 整数としての値
-        /// </summary>
-        public long Value => token.Integer;
-
-
-
-        /// <summary>
-        /// IntegerSyntaxNode クラスのインスタンスを初期化します
+        /// LiteralSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="token">対応するトークン</param>
-        public IntegerSyntaxNode(in Token token) : base(token)
+        public LiteralSyntaxNode(in Token token) : base(token)
         {
         }
     }
