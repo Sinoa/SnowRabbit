@@ -251,9 +251,9 @@
 
 ### unary_expression
     : primary_expression
-    | '+' primary_expression
-    | '-' primary_expression
-    | '!' primary_expression
+    | '+' unary_expression
+    | '-' unary_expression
+    | '!' unary_expression
 
 ### primary_expression
     : paren_expression
