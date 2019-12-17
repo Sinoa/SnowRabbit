@@ -51,6 +51,7 @@ namespace SnowRabbit.Compiler.Lexer
             tokenTable["break"] = SrTokenKind.Break;
             tokenTable["true"] = SrTokenKind.True;
             tokenTable["false"] = SrTokenKind.False;
+            tokenTable["null"] = SrTokenKind.Null;
         }
     }
 }

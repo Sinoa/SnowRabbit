@@ -134,5 +134,10 @@ namespace SnowRabbit.Compiler.Lexer
         /// false
         /// </summary>
         public const int False = KeywordOffset + 100;
+
+        /// <summary>
+        /// null
+        /// </summary>
+        public const int Null = KeywordOffset + 105;
     }
 }

@@ -272,6 +272,7 @@
     | '<string>'
     | 'true'
     | 'false'
+    | 'null'
 
 ### function_call
     : function_name '(' { expression } ')'
