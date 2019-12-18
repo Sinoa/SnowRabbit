@@ -89,7 +89,7 @@
 ## GlobalVariable syntax
 
 ### global_variable_declare
-    : 'global' non_void_types global_var_name ';'
+    : 'global' non_void_types global_var_name [ '=' expression ] ';'
 
 ### global_var_name
     : '<identifier>'
@@ -126,13 +126,13 @@
     | if_statement
     | break_statement
     | return_statement
-    | expression
+    | expression ';'
 
 
 ## LocalVariable declare syntax
 
 ### local_var_declare
-    : 'local' non_void_types local_var_name ';'
+    : 'local' non_void_types local_var_name [ '=' expression ] ';'
 
 ### local_var_name
     : '<identifier>'
