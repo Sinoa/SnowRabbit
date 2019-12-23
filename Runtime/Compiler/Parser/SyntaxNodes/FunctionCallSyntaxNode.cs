@@ -20,7 +20,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// 関数呼び出し構文を表す構文ノードクラスです
     /// </summary>
-    public class FunctionCallSyntaxNode : SyntaxNode
+    public class FunctionCallSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
         /// FunctionCallSyntaxNode クラスのインスタンスを初期化します

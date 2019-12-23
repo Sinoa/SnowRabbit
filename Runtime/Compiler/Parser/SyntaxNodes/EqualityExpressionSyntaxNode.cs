@@ -20,7 +20,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// 関係演算子構文を表現する構文ノードクラスです
     /// </summary>
-    public class EqualityExpressionSyntaxNode : SyntaxNode
+    public class EqualityExpressionSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
         /// EqualityExpressionSyntaxNode クラスのインスタンスを初期化します

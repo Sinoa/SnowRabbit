@@ -20,7 +20,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// 乗除算構文を表す構文ノードクラスです
     /// </summary>
-    public class MulDivExpressionSyntaxNode : SyntaxNode
+    public class MulDivExpressionSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
         /// MulDivExpressionSyntaxNode クラスのインスタンスを初期化します

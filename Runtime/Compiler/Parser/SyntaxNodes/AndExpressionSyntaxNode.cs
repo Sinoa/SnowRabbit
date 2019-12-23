@@ -20,7 +20,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// 論理積構文を表現する構文ノードクラスです
     /// </summary>
-    public class AndExpressionSyntaxNode : SyntaxNode
+    public class AndExpressionSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
         /// AndExpressionSyntaxNode クラスのインスタンスを初期化します

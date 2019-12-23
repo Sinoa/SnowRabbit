@@ -20,7 +20,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// 論理和演算構文を表す構文ノードクラスです
     /// </summary>
-    public class OrExpressionSyntaxNode : SyntaxNode
+    public class OrExpressionSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
         /// OrExpressionSyntaxNode クラスのインスタンスを初期化します

@@ -20,7 +20,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// 括弧に囲まれた式構文を表す構文ノードクラスです
     /// </summary>
-    public class ParenExpressionSyntaxNode : SyntaxNode
+    public class ParenExpressionSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
         /// ParenExpressionSyntaxNode クラスのインスタンスを初期化します

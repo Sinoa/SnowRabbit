@@ -20,7 +20,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// 加減算構文を表す構文ノードクラスです
     /// </summary>
-    public class AddSubExpressionSyntaxNode : SyntaxNode
+    public class AddSubExpressionSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
         /// AddSubExpressionSyntaxNode クラスのインスタンスを初期化します

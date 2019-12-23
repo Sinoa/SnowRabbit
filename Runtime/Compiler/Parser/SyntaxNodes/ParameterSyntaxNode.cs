@@ -20,7 +20,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// 引数構文を表す構文ノードクラスです
     /// </summary>
-    public class ParameterSyntaxNode : SyntaxNode
+    public class ParameterSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
         /// ParameterSyntaxNode クラスのインスタンスを初期化します

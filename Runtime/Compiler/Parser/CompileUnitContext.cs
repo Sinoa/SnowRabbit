@@ -13,6 +13,9 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
+using SnowRabbit.Compiler.Lexer;
+
 namespace SnowRabbit.Compiler.Parser
 {
     /// <summary>
@@ -20,5 +23,31 @@ namespace SnowRabbit.Compiler.Parser
     /// </summary>
     public class CompileUnitContext
     {
+        /// <summary>
+        /// このコンテキストを持つアナライザコンテキスト
+        /// </summary>
+        public AnalyzerContext AnalyzerContext { get; }
+
+
+        /// <summary>
+        /// 使用しているレキサ
+        /// </summary>
+        public TokenReader Lexer { get; }
+
+
+
+        /// <summary>
+        /// CompileUnitContext クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="lexer">この翻訳で使用するレキサ</param>
+        /// <param name="analyzerContext">この翻訳単位を持つアナライザコンテキスト</param>
+        /// <exception cref="ArgumentNullException">lexer が null です</exception>
+        /// <exception cref="ArgumentNullException">analyzerContext が null です</exception>
+        public CompileUnitContext(TokenReader lexer, AnalyzerContext analyzerContext)
+        {
+            // 参照を受け取る
+            AnalyzerContext = analyzerContext ?? throw new ArgumentNullException(nameof(analyzerContext));
+            Lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
+        }
     }
 }

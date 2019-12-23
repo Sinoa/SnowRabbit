@@ -55,5 +55,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             // トークンを受け取る
             this.token = token;
         }
+
+
+        /// <summary>
+        /// この構文ノードに対応する構文を解釈します
+        /// </summary>
+        /// <param name="context">構文解釈する対象となっている翻訳単位コンテキスト</param>
+        public virtual void Compile(CompileUnitContext context)
+        {
+        }
     }
 }

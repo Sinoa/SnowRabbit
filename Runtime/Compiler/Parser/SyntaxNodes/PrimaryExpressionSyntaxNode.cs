@@ -20,7 +20,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// 一次式構文を表す構文ノードクラスです
     /// </summary>
-    public class PrimaryExpressionSyntaxNode : SyntaxNode
+    public class PrimaryExpressionSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
         /// PrimaryExpressionSyntaxNode クラスのインスタンスを初期化します

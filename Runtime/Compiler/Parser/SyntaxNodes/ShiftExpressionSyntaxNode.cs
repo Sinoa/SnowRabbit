@@ -20,7 +20,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// ビットシフト演算構文を表す構文ノードをクラスです
     /// </summary>
-    public class ShiftExpressionSyntaxNode : SyntaxNode
+    public class ShiftExpressionSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
         /// ShiftExpressionSyntaxNode クラスのインスタンスを初期化します

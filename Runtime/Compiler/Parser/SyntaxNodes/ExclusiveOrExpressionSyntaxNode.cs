@@ -20,7 +20,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// 排他的論理和演算構文を表現する構文ノードクラスです
     /// </summary>
-    public class ExclusiveOrExpressionSyntaxNode : SyntaxNode
+    public class ExclusiveOrExpressionSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
         /// ExclusiveOrExpressionSyntaxNode クラスのインスタンスを初期化します
