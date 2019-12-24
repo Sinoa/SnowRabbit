@@ -26,7 +26,7 @@ namespace SnowRabbit.Compiler.Parser
         /// <summary>
         /// このコンテキストを持つアナライザコンテキスト
         /// </summary>
-        public AnalyzerContext AnalyzerContext { get; }
+        public ParserContext AnalyzerContext { get; }
 
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace SnowRabbit.Compiler.Parser
         /// <param name="analyzerContext">この翻訳単位を持つアナライザコンテキスト</param>
         /// <exception cref="ArgumentNullException">lexer が null です</exception>
         /// <exception cref="ArgumentNullException">analyzerContext が null です</exception>
-        public CompileUnitContext(TokenReader lexer, AnalyzerContext analyzerContext)
+        public CompileUnitContext(TokenReader lexer, ParserContext analyzerContext)
         {
             // 参照を受け取る
             AnalyzerContext = analyzerContext ?? throw new ArgumentNullException(nameof(analyzerContext));

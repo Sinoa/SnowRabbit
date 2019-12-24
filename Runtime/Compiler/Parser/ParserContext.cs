@@ -16,16 +16,18 @@
 using System;
 using System.Collections.Generic;
 using SnowRabbit.Diagnostics.Logging;
+using SnowRabbit.Compiler.IO;
 
 namespace SnowRabbit.Compiler.Parser
 {
     /// <summary>
     /// 構文解析器の状態を管理するコンテキストクラスです
     /// </summary>
-    public class AnalyzerContext
+    public class ParserContext
     {
         // メンバ変数定義
         private readonly Stack<CompileUnitContext> compileUnitContexts = new Stack<CompileUnitContext>();
+        private readonly ISrScriptStorage scriptStorage;
 
 
 
@@ -37,6 +39,17 @@ namespace SnowRabbit.Compiler.Parser
 
 
         /// <summary>
+        /// ParserContext クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="storage">コンパイラが使用するスクリプトストレージ</param>
+        public ParserContext(ISrScriptStorage storage)
+        {
+            // 参照を受け取る
+            scriptStorage = storage ?? throw new ArgumentNullException(nameof(storage));
+        }
+
+
+        /// <summary>
         /// 新しい翻訳単位コンテキストをプッシュします。翻訳単位コンテキストがプッシュされた場合は現在の翻訳単位コンテキストの参照も変わります。
         /// </summary>
         /// <param name="context">プッシュする翻訳単位コンテキスト</param>
@@ -44,7 +57,7 @@ namespace SnowRabbit.Compiler.Parser
         public void PushCompileUnitContext(CompileUnitContext context)
         {
             // 新しいコンテキストをプッシュする
-            SrLogger.Trace(nameof(AnalyzerContext), $"Push new compile unit context.");
+            SrLogger.Trace(nameof(ParserContext), $"Push new compile unit context.");
             compileUnitContexts.Push(context ?? throw new ArgumentNullException(nameof(context)));
         }
 
@@ -56,7 +69,7 @@ namespace SnowRabbit.Compiler.Parser
         public CompileUnitContext PopCompileUnitContext()
         {
             // スタックが空なら null を返して、ポップ出来るならそのまま返す
-            SrLogger.Trace(nameof(AnalyzerContext), $"Pop compile unit context. Count={compileUnitContexts.Count}");
+            SrLogger.Trace(nameof(ParserContext), $"Pop compile unit context. Count={compileUnitContexts.Count}");
             return compileUnitContexts.Count == 0 ? null : compileUnitContexts.Pop();
         }
     }
