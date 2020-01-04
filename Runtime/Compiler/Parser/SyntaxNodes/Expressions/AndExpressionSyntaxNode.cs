@@ -15,7 +15,7 @@
 
 using SnowRabbit.Compiler.Lexer;
 
-namespace SnowRabbit.Compiler.Parser.SyntaxNodes
+namespace SnowRabbit.Compiler.Parser.SyntaxNodes.Expressions
 {
     /// <summary>
     /// 論理積構文を表現する構文ノードクラスです
