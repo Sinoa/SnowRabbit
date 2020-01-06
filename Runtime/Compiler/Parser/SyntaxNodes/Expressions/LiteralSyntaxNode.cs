@@ -36,7 +36,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes.Expressions
         /// </summary>
         /// <param name="context">コンパイルする対象となる翻訳単位コンテキスト</param>
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
-        public static SyntaxNode Create(CompileUnitContext context)
+        public static SyntaxNode Create(LocalCompileContext context)
         {
             // リテラルとして処理できるかどうかを調べる
             var token = context.Lexer.LastReadToken;

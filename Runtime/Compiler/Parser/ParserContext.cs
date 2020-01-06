@@ -26,7 +26,7 @@ namespace SnowRabbit.Compiler.Parser
     public class ParserContext
     {
         // メンバ変数定義
-        private readonly Stack<CompileUnitContext> compileUnitContexts = new Stack<CompileUnitContext>();
+        private readonly Stack<LocalCompileContext> compileUnitContexts = new Stack<LocalCompileContext>();
         private readonly ISrScriptStorage scriptStorage;
 
 
@@ -34,7 +34,7 @@ namespace SnowRabbit.Compiler.Parser
         /// <summary>
         /// 現在の翻訳単位コンテキスト
         /// </summary>
-        public CompileUnitContext CurrentCompileUnitContext => compileUnitContexts.Peek();
+        public LocalCompileContext CurrentCompileUnitContext => compileUnitContexts.Peek();
 
 
 
@@ -54,7 +54,7 @@ namespace SnowRabbit.Compiler.Parser
         /// </summary>
         /// <param name="context">プッシュする翻訳単位コンテキスト</param>
         /// <exception cref="ArgumentNullException">context が null です</exception>
-        public void PushCompileUnitContext(CompileUnitContext context)
+        public void PushCompileUnitContext(LocalCompileContext context)
         {
             // 新しいコンテキストをプッシュする
             SrLogger.Trace(nameof(ParserContext), $"Push new compile unit context.");
@@ -66,7 +66,7 @@ namespace SnowRabbit.Compiler.Parser
         /// 現在スタックに積まれている翻訳単位コンテキストをポップします
         /// </summary>
         /// <returns>ポップされた翻訳単位コンテキストを返しますが、スタックが空の場合は null を返します</returns>
-        public CompileUnitContext PopCompileUnitContext()
+        public LocalCompileContext PopCompileUnitContext()
         {
             // スタックが空なら null を返して、ポップ出来るならそのまま返す
             SrLogger.Trace(nameof(ParserContext), $"Pop compile unit context. Count={compileUnitContexts.Count}");

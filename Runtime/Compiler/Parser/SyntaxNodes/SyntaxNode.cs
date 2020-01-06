@@ -51,7 +51,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// </summary>
         /// <param name="context">構文解釈する対象となっている翻訳単位コンテキスト</param>
         /// <returns>解釈した結果の構文ノードを返しますが、正しく解釈出来なかった場合は null を返します。</returns>
-        public virtual SyntaxNode Compile(CompileUnitContext context)
+        public virtual SyntaxNode Compile(LocalCompileContext context)
         {
             // 既定は null を返す
             SrLogger.Trace(nameof(SyntaxNode), $"'{GetType().Name}' is not implemented 'Compile' method.");
