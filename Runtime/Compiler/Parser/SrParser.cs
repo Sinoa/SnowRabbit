@@ -28,6 +28,11 @@
 
 ## Common syntax
 
+### constant_types
+    : 'int'
+    | 'number'
+    | 'string'
+
 ### non_void_types
     : 'int'
     | 'number'
@@ -51,7 +56,7 @@
 ### directives
     : 'link' link_object_name
     | 'compile' script_name
-    | 'const' constant_var_name constant_value
+    | 'const' constant_types constant_var_name constant_value
 
 ### link_object_name
     : '<string>'
