@@ -29,21 +29,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
         /// <summary>
-        /// トークンが現れた行番号
+        /// 現れたトークンへの参照
         /// </summary>
-        public int LineNumber => token.LineNumber;
-
-
-        /// <summary>
-        /// トークンが現れた列番号
-        /// </summary>
-        public int ColumnNumber => token.ColumnNumber;
-
-
-        /// <summary>
-        /// トークンとして解釈した部分の文字列
-        /// </summary>
-        public string RawText => token.Text;
+        public ref Token Token => ref token;
 
 
 
