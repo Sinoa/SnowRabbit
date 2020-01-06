@@ -16,38 +16,17 @@
 namespace SnowRabbit.Compiler.Parser.Symbols
 {
     /// <summary>
-    /// シンボル種別を表します
+    /// 定数定義された抽象定数シンボルクラスです
     /// </summary>
-    public enum SrSymbolKind
+    public abstract class SrConstantSymbol : SrSymbol
     {
         /// <summary>
-        /// 周辺機器関数シンボル
+        /// SrConstantSymbol クラスのインスタンスを初期化します
         /// </summary>
-        PeripheralFunction,
-
-        /// <summary>
-        /// スクリプト内実装関数シンボル
-        /// </summary>
-        ScriptFunction,
-
-        /// <summary>
-        /// ローカル変数シンボル
-        /// </summary>
-        LocalVariable,
-
-        /// <summary>
-        /// 引数変数シンボル
-        /// </summary>
-        ArgumentVariable,
-
-        /// <summary>
-        /// グローバル変数シンボル
-        /// </summary>
-        GlobalVariable,
-
-        /// <summary>
-        /// 定数シンボル
-        /// </summary>
-        Constant,
+        /// <param name="name">シンボル名</param>
+        /// <param name="initialAddress">初期アドレス</param>
+        protected SrConstantSymbol(string name, int initialAddress) : base(name, initialAddress)
+        {
+        }
     }
 }

@@ -25,12 +25,6 @@ namespace SnowRabbit.Compiler.Parser.Symbols
 
 
         /// <summary>
-        /// シンボルの種別
-        /// </summary>
-        public SrSymbolKind Kind { get; private set; }
-
-
-        /// <summary>
         /// シンボルのアドレス
         /// </summary>
         public int Address { get => symbolAddress; set => UpdateAddress(value); }
@@ -52,13 +46,13 @@ namespace SnowRabbit.Compiler.Parser.Symbols
         /// <summary>
         /// SrSymbol のインスタンスを初期化します
         /// </summary>
-        /// <param name="kind">シンボル種別</param>
         /// <param name="name">シンボル名</param>
-        protected SrSymbol(SrSymbolKind kind, string name)
+        /// <param name="initialAddress">初期アドレス</param>
+        protected SrSymbol(string name, int initialAddress)
         {
             // 種別と名前はそのまま覚える
-            Kind = kind;
             Name = name;
+            symbolAddress = initialAddress;
         }
 
 
