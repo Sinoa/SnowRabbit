@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using SnowRabbit.Compiler.Lexer;
+using SnowRabbit.Diagnostics.Logging;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
@@ -61,8 +62,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// この構文ノードに対応する構文を解釈します
         /// </summary>
         /// <param name="context">構文解釈する対象となっている翻訳単位コンテキスト</param>
-        public virtual void Compile(CompileUnitContext context)
+        /// <returns>解釈した結果の構文ノードを返しますが、正しく解釈出来なかった場合は null を返します。</returns>
+        public virtual SyntaxNode Compile(CompileUnitContext context)
         {
+            // 既定は null を返す
+            SrLogger.Trace(nameof(SyntaxNode), $"'{GetType().Name}' is not implemented 'Compile' method.");
+            return null;
         }
     }
 }
