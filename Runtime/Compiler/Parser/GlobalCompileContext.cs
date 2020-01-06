@@ -15,18 +15,18 @@
 
 using System;
 using System.Collections.Generic;
-using SnowRabbit.Diagnostics.Logging;
 using SnowRabbit.Compiler.IO;
+using SnowRabbit.Diagnostics.Logging;
 
 namespace SnowRabbit.Compiler.Parser
 {
     /// <summary>
-    /// 構文解析器の状態を管理するコンテキストクラスです
+    /// 構文解析器全体の状態を管理するグローバルコンパイルコンテキストクラスです
     /// </summary>
-    public class ParserContext
+    public class GlobalCompileContext
     {
         // メンバ変数定義
-        private readonly Stack<LocalCompileContext> compileUnitContexts = new Stack<LocalCompileContext>();
+        private readonly Stack<LocalCompileContext> LocalCompileContexts = new Stack<LocalCompileContext>();
         private readonly ISrScriptStorage scriptStorage;
 
 
@@ -34,15 +34,15 @@ namespace SnowRabbit.Compiler.Parser
         /// <summary>
         /// 現在の翻訳単位コンテキスト
         /// </summary>
-        public LocalCompileContext CurrentCompileUnitContext => compileUnitContexts.Peek();
+        public LocalCompileContext CurrentLocalCompileContext => LocalCompileContexts.Peek();
 
 
 
         /// <summary>
-        /// ParserContext クラスのインスタンスを初期化します
+        /// GlobalCompileContext クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="storage">コンパイラが使用するスクリプトストレージ</param>
-        public ParserContext(ISrScriptStorage storage)
+        public GlobalCompileContext(ISrScriptStorage storage)
         {
             // 参照を受け取る
             scriptStorage = storage ?? throw new ArgumentNullException(nameof(storage));
@@ -57,8 +57,8 @@ namespace SnowRabbit.Compiler.Parser
         public void PushCompileUnitContext(LocalCompileContext context)
         {
             // 新しいコンテキストをプッシュする
-            SrLogger.Trace(nameof(ParserContext), $"Push new compile unit context.");
-            compileUnitContexts.Push(context ?? throw new ArgumentNullException(nameof(context)));
+            SrLogger.Trace(nameof(GlobalCompileContext), $"Push new compile unit context.");
+            LocalCompileContexts.Push(context ?? throw new ArgumentNullException(nameof(context)));
         }
 
 
@@ -69,8 +69,8 @@ namespace SnowRabbit.Compiler.Parser
         public LocalCompileContext PopCompileUnitContext()
         {
             // スタックが空なら null を返して、ポップ出来るならそのまま返す
-            SrLogger.Trace(nameof(ParserContext), $"Pop compile unit context. Count={compileUnitContexts.Count}");
-            return compileUnitContexts.Count == 0 ? null : compileUnitContexts.Pop();
+            SrLogger.Trace(nameof(GlobalCompileContext), $"Pop compile unit context. Count={LocalCompileContexts.Count}");
+            return LocalCompileContexts.Count == 0 ? null : LocalCompileContexts.Pop();
         }
     }
 }

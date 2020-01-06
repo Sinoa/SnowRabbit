@@ -19,14 +19,14 @@ using SnowRabbit.Compiler.Lexer;
 namespace SnowRabbit.Compiler.Parser
 {
     /// <summary>
-    /// 翻訳単位毎のコンテキストです
+    /// 実際に翻訳する単位となる、ローカルコンパイルコンテキストクラスです
     /// </summary>
     public class LocalCompileContext
     {
         /// <summary>
-        /// このコンテキストを持つアナライザコンテキスト
+        /// このコンテキストを持つグローバルコンパイルコンテキスト
         /// </summary>
-        public ParserContext AnalyzerContext { get; }
+        public GlobalCompileContext GlobalCompileContext { get; }
 
 
         /// <summary>
@@ -37,16 +37,16 @@ namespace SnowRabbit.Compiler.Parser
 
 
         /// <summary>
-        /// CompileUnitContext クラスのインスタンスを初期化します
+        /// LocalCompileContext クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="lexer">この翻訳で使用するレキサ</param>
-        /// <param name="analyzerContext">この翻訳単位を持つアナライザコンテキスト</param>
+        /// <param name="globalCompileContext">このコンテキストを持つグローバルコンパイルコンテキスト</param>
         /// <exception cref="ArgumentNullException">lexer が null です</exception>
-        /// <exception cref="ArgumentNullException">analyzerContext が null です</exception>
-        public LocalCompileContext(TokenReader lexer, ParserContext analyzerContext)
+        /// <exception cref="ArgumentNullException">globalCompileContext が null です</exception>
+        public LocalCompileContext(TokenReader lexer, GlobalCompileContext globalCompileContext)
         {
             // 参照を受け取る
-            AnalyzerContext = analyzerContext ?? throw new ArgumentNullException(nameof(analyzerContext));
+            GlobalCompileContext = globalCompileContext ?? throw new ArgumentNullException(nameof(globalCompileContext));
             Lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
         }
     }
