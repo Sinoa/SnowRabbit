@@ -15,10 +15,15 @@
 namespace SnowRabbit.Compiler.Parser
 {
     /// <summary>
-    /// SnowRabbit が扱う数値の型を表現します
+    /// SnowRabbit が扱うデータの型を表現します
     /// </summary>
     public enum SrValueType
     {
+        /// <summary>
+        /// ボイド型
+        /// </summary>
+        Void,
+
         /// <summary>
         /// 整数型
         /// </summary>
