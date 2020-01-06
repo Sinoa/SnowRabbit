@@ -287,52 +287,76 @@ namespace SnowRabbit.Compiler.Lexer
         public const int SlashEqual = -607;
 
         /// <summary>
+        /// アンドイコール
+        /// &=
+        /// </summary>
+        public const int AndEqual = -608;
+
+        /// <summary>
+        /// バーティカルバーイコール
+        /// |=
+        /// </summary>
+        public const int VerticalbarEqual = -609;
+
+        /// <summary>
+        /// サーカムフレックスイコール
+        /// ^=
+        /// </summary>
+        public const int CircumflexEqual = -610;
+
+        /// <summary>
+        /// エクスクラメーションイコール
+        /// !=
+        /// </summary>
+        public const int ExclamationEqual = -611;
+
+        /// <summary>
         /// 右矢印
         /// ->
         /// </summary>
-        public const int RightArrow = -607;
+        public const int RightArrow = -612;
 
         /// <summary>
         /// 左矢印
         /// <-
         /// </summary>
-        public const int LeftArrow = -608;
+        public const int LeftArrow = -613;
 
         /// <summary>
         /// ダブルアンド
         /// &&
         /// </summary>
-        public const int DoubleAnd = -609;
+        public const int DoubleAnd = -614;
 
         /// <summary>
         /// ダブルバーティカルバー
         /// ||
         /// </summary>
-        public const int DoubleVerticalbar = -610;
+        public const int DoubleVerticalbar = -615;
 
         /// <summary>
         /// ダブルオープンアングル
         /// <<
         /// </summary>
-        public const int DoubleOpenAngle = -611;
+        public const int DoubleOpenAngle = -616;
 
         /// <summary>
         /// ダブルクローズアングル
         /// >>
         /// </summary>
-        public const int DoubleCloseAngle = -612;
+        public const int DoubleCloseAngle = -617;
 
         /// <summary>
         /// ダブルプラス
         /// ++
         /// </summary>
-        public const int DoublePlus = -613;
+        public const int DoublePlus = -618;
 
         /// <summary>
         /// ダブルマイナス
         /// --
         /// </summary>
-        public const int DoubleMinus = -614;
+        public const int DoubleMinus = -619;
         #endregion
     }
 }
