@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
+using System.Collections.Generic;
 using SnowRabbit.Compiler.Lexer;
 using SnowRabbit.Diagnostics.Logging;
 
@@ -24,7 +26,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     public abstract class SyntaxNode
     {
         // メンバ変数定義
-        protected Token token;
+        private Token token;
+        private List<SyntaxNode> children;
 
 
 
@@ -32,6 +35,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// 現れたトークンへの参照
         /// </summary>
         public ref Token Token => ref token;
+
+
+        /// <summary>
+        /// この構文にぶら下がる子構文ノードリスト
+        /// </summary>
+        public IReadOnlyList<SyntaxNode> Children { get; }
 
 
 
@@ -42,6 +51,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
             // トークンは既定値を使用（既定値のトークンは不明トークン[Kind == 0]として扱われる）
             token = default;
+            children = new List<SyntaxNode>();
+            Children = children.AsReadOnly();
         }
 
 
@@ -53,6 +64,20 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
             // トークンを受け取る
             this.token = token;
+            children = new List<SyntaxNode>();
+            Children = children.AsReadOnly();
+        }
+
+
+        /// <summary>
+        /// 子構文ノードを追加します
+        /// </summary>
+        /// <param name="node">追加する子構文ノード</param>
+        /// <exception cref="ArgumentNullException">node が null です</exception>
+        public void Add(SyntaxNode node)
+        {
+            // 追加する
+            children.Add(node ?? throw new ArgumentNullException(nameof(node)));
         }
 
 
