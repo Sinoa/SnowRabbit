@@ -13,21 +13,12 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using SnowRabbit.Compiler.Lexer;
-
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
     /// 関数呼び出し構文を表す構文ノードクラスです
     /// </summary>
-    public class FunctionCallSyntaxNode : ExpressionSyntaxNode
+    public class FunctionCallSyntaxNode : SyntaxNode
     {
-        /// <summary>
-        /// FunctionCallSyntaxNode クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="token">対応するトークン</param>
-        public FunctionCallSyntaxNode(in Token token) : base(token)
-        {
-        }
     }
 }

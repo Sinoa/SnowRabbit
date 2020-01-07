@@ -13,21 +13,21 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using SnowRabbit.Compiler.Lexer;
-
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
     /// 単純式構文を表す構文ノードクラスです
     /// </summary>
-    public class SimpleExpressionSyntaxNode : ExpressionSyntaxNode
+    public class SimpleExpressionSyntaxNode : SyntaxNode
     {
         /// <summary>
-        /// SimpleExpressionSyntaxNode クラスのインスタンスを初期化します
+        /// この構文ノードが対応する構文ノードを生成します
         /// </summary>
-        /// <param name="token">対応するトークン</param>
-        public SimpleExpressionSyntaxNode(in Token token) : base(token)
+        /// <param name="context">コンパイルする対象となる翻訳単位コンテキスト</param>
+        /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
+        public static SyntaxNode Create(LocalCompileContext context)
         {
+            return null;
         }
     }
 }
