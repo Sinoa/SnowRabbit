@@ -15,6 +15,7 @@
 
 using System;
 using SnowRabbit.Compiler.Lexer;
+using SnowRabbit.Compiler.Parser.SyntaxErrors;
 
 namespace SnowRabbit.Compiler.Parser
 {
@@ -48,6 +49,17 @@ namespace SnowRabbit.Compiler.Parser
             // 参照を受け取る
             GlobalCompileContext = globalCompileContext ?? throw new ArgumentNullException(nameof(globalCompileContext));
             Lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
+        }
+
+
+        /// <summary>
+        /// 構文エラー例外をスローします
+        /// </summary>
+        /// <param name="exception">スローする構文エラー例外</param>
+        public void ThrowSyntaxError(SrSyntaxErrorException exception)
+        {
+            // 渡された例外を投げる
+            throw exception;
         }
     }
 }
