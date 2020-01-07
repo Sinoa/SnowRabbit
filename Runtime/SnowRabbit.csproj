@@ -31,4 +31,7 @@
     <None Remove="**/*.meta" />
     <None Remove="**/*.asmdef" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
 </Project>
