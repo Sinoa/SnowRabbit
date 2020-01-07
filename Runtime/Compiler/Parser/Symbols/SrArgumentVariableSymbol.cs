@@ -26,22 +26,12 @@ namespace SnowRabbit.Compiler.Parser.Symbols
 
 
         /// <summary>
-        /// ローカル変数を持つ関数シンボル
-        /// </summary>
-        public SrFunctionSymbol FunctionSymbol { get; }
-
-
-
-        /// <summary>
         /// SrArgumentVariableSymbol クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
-        /// <param name="functionSymbol">この引数変数を持つ関数シンボル</param>
-        protected SrArgumentVariableSymbol(string name, int initialAddress, SrFunctionSymbol functionSymbol) : base(name, initialAddress)
+        protected SrArgumentVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
         {
-            // 所属する関数シンボルを覚える
-            FunctionSymbol = functionSymbol;
         }
 
 
@@ -52,7 +42,7 @@ namespace SnowRabbit.Compiler.Parser.Symbols
         protected override string Mangling()
         {
             // マングリング済みならそのまま返して、まだなら引数変数固有のマングリンク結果をそのまま返す
-            return mangledName ?? (mangledName = $"___SR_AV_{FunctionSymbol.Name}_{Name}___");
+            return mangledName ?? (mangledName = $"___SR_AV_{Name}___");
         }
     }
 
@@ -69,8 +59,7 @@ namespace SnowRabbit.Compiler.Parser.Symbols
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
-        /// <param name="functionSymbol">この引数変数を持つ関数シンボル</param>
-        public SrArgumentVariableSymbol(string name, int initialAddress, SrFunctionSymbol functionSymbol) : base(name, initialAddress, functionSymbol)
+        public SrArgumentVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
         {
         }
     }
