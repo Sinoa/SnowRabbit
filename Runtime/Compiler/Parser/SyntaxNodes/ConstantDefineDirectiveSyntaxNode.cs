@@ -18,9 +18,9 @@ using SnowRabbit.Compiler.Lexer;
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// ディレクティブ構文の構文ノードクラスです
+    /// 定数定義構文を表す構文ノードクラスです
     /// </summary>
-    public class DirectiveSyntaxNode : SyntaxNode
+    public class ConstantDefineDirectiveSyntaxNode : SyntaxNode
     {
         /// <summary>
         /// この構文ノードが対応する構文ノードを生成します
@@ -29,16 +29,26 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            // もしシャープのトークンではないのならこの構文ノードは生成されない
+            // const トークンではないなら構文ノードは生成出来ない
             ref var token = ref context.Lexer.LastReadToken;
-            if (token.Kind != TokenKind.Sharp) return null;
+            if (token.Kind != SrTokenKind.Const) return null;
 
 
-            // 次のトークンを読み取ってディレクティブ定義構文を呼び出して自身に追加して返す
-            context.Lexer.ReadNextToken();
-            var directive = new DirectiveSyntaxNode();
-            directive.Add(DirectivesSyntaxNode.Create(context));
-            return directive;
+            // 定数型、定数名、定数値の構文ノードを生成する
+            var constantType = ConstantTypesSyntaxNode.Create(context);
+            var constantName = ConstantVarNameSyntaxNode.Create(context);
+            var constantValue = ConstantValueSyntaxNode.Create(context);
+
+
+            // 生成したノードを追加する
+            var constantDefine = new ConstantDefineDirectiveSyntaxNode();
+            constantDefine.Add(constantType);
+            constantDefine.Add(constantName);
+            constantDefine.Add(constantValue);
+
+
+            // 自身を返す
+            return constantDefine;
         }
     }
 }

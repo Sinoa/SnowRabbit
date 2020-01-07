@@ -14,14 +14,20 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using SnowRabbit.Compiler.Lexer;
+using SnowRabbit.Compiler.Parser.SyntaxErrors;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// ディレクティブ構文の構文ノードクラスです
+    /// オブジェクトのリンク構文を表す構文ノードクラスです
     /// </summary>
-    public class DirectiveSyntaxNode : SyntaxNode
+    public class LinkObjectDirectiveSyntaxNode : SyntaxNode
     {
+        // メンバ変数定義
+        private Token objectName;
+
+
+
         /// <summary>
         /// この構文ノードが対応する構文ノードを生成します
         /// </summary>
@@ -29,16 +35,29 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            // もしシャープのトークンではないのならこの構文ノードは生成されない
+            // もし link トークンではないなら構文ノードは生成出来ない
             ref var token = ref context.Lexer.LastReadToken;
-            if (token.Kind != TokenKind.Sharp) return null;
+            if (token.Kind != SrTokenKind.Link) return null;
 
 
-            // 次のトークンを読み取ってディレクティブ定義構文を呼び出して自身に追加して返す
+            // 次のトークンを読み込んで文字列でないなら構文エラー
             context.Lexer.ReadNextToken();
-            var directive = new DirectiveSyntaxNode();
-            directive.Add(DirectivesSyntaxNode.Create(context));
-            return directive;
+            if (token.Kind != TokenKind.String)
+            {
+                // 不明なトークンとして処理する
+                context.ThrowSyntaxError(new SrUnknownTokenSyntaxErrorException(ref token));
+                return null;
+            }
+
+
+            // 読み込んだ文字列トークンをもとに構文ノードを生成
+            var linkObjectDirective = new LinkObjectDirectiveSyntaxNode();
+            linkObjectDirective.objectName = token;
+
+
+            // 次のトークンを読み込んで結果を返す
+            context.Lexer.ReadNextToken();
+            return linkObjectDirective;
         }
     }
 }

@@ -54,15 +54,18 @@
     : '#' directives
 
 ### directives
-    : 'link' link_object_name
-    | 'compile' script_name
-    | 'const' constant_types constant_var_name constant_value
+    : link_object_directive
+    | script_compile_directive
+    | constant_define_directive
 
-### link_object_name
-    : '<string>'
+### link_object_directive
+    : 'link' '<string>'
 
-### script_name
-    : '<string>'
+### script_compile_directive
+    : 'compile' '<string>'
+
+### constant_define_directive
+    : 'const' constant_types constant_var_name constant_value
 
 ### constant_var_name
     : '<identifier>'
@@ -261,7 +264,8 @@
     | '!' unary_expression
 
 ### primary_expression
-    : paren_expression
+    : constant_var_name
+    | paren_expression
     | global_var_name
     | local_var_name
     | argument_name

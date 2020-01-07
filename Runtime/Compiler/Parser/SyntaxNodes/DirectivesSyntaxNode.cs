@@ -13,14 +13,14 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using SnowRabbit.Compiler.Lexer;
+using SnowRabbit.Compiler.Parser.SyntaxErrors;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// ディレクティブ構文の構文ノードクラスです
+    /// ディレクティブの宣言構文を表す構文ノードクラスです
     /// </summary>
-    public class DirectiveSyntaxNode : SyntaxNode
+    public class DirectivesSyntaxNode : SyntaxNode
     {
         /// <summary>
         /// この構文ノードが対応する構文ノードを生成します
@@ -29,16 +29,30 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            // もしシャープのトークンではないのならこの構文ノードは生成されない
-            ref var token = ref context.Lexer.LastReadToken;
-            if (token.Kind != TokenKind.Sharp) return null;
+            // オブジェクトのリンク構文の生成に失敗したら
+            var result = LinkObjectDirectiveSyntaxNode.Create(context);
+            if (result == null)
+            {
+                // スクリプトコンパイル構文の生成に失敗したら
+                result = ScriptCompileDirectiveSyntaxNode.Create(context);
+                if (result == null)
+                {
+                    // 定数定義構文の生成に失敗したら
+                    result = ConstantDefineDirectiveSyntaxNode.Create(context);
+                    if (result == null)
+                    {
+                        // もしすべての構文ノードの生成に失敗したのなら不明なディレクティブ指定であるコンパイルエラーを出す
+                        context.ThrowSyntaxError(new SrUnknownDirectiveSyntaxErrorException(ref context.Lexer.LastReadToken));
+                        return null;
+                    }
+                }
+            }
 
 
-            // 次のトークンを読み取ってディレクティブ定義構文を呼び出して自身に追加して返す
-            context.Lexer.ReadNextToken();
-            var directive = new DirectiveSyntaxNode();
-            directive.Add(DirectivesSyntaxNode.Create(context));
-            return directive;
+            // 自身を生成して構文ノードを追加して返す
+            var directives = new DirectivesSyntaxNode();
+            directives.Add(result);
+            return directives;
         }
     }
 }
