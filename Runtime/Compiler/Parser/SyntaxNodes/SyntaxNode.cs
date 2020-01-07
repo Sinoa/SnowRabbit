@@ -38,6 +38,16 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <summary>
         /// SyntaxNode クラスのインスタンスを初期化します
         /// </summary>
+        protected SyntaxNode()
+        {
+            // トークンは既定値を使用（既定値のトークンは不明トークン[Kind == 0]として扱われる）
+            token = default;
+        }
+
+
+        /// <summary>
+        /// SyntaxNode クラスのインスタンスを初期化します
+        /// </summary>
         /// <param name="token">適応するトークンへの参照</param>
         protected SyntaxNode(in Token token)
         {
