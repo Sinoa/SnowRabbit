@@ -23,7 +23,7 @@ namespace SnowRabbit.Compiler.Lexer
     /// <summary>
     /// ストリームからトークンを読み込むリーダークラスです
     /// </summary>
-    public class TokenReader : IDisposable
+    public abstract class TokenReader : IDisposable
     {
         // 定数定義
         public const int EndOfStream = -1;
@@ -76,7 +76,7 @@ namespace SnowRabbit.Compiler.Lexer
         /// <summary>
         /// TokenReader クラスのインスタンスを初期化します
         /// </summary>
-        public TokenReader() : this(TextReader.Null, true)
+        protected TokenReader() : this(TextReader.Null, true)
         {
         }
 
@@ -86,7 +86,7 @@ namespace SnowRabbit.Compiler.Lexer
         /// </summary>
         /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
         /// <exception cref="ArgumentNullException">textReader が null です</exception>
-        public TokenReader(TextReader textReader) : this(textReader, false)
+        protected TokenReader(TextReader textReader) : this(textReader, false)
         {
         }
 
@@ -97,7 +97,7 @@ namespace SnowRabbit.Compiler.Lexer
         /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
         /// <param name="leaveOpen">このインスタンスが破棄される時に textReader を開いたままにする場合は true を、閉じる場合は false</param>
         /// <exception cref="ArgumentNullException">textReader が null です</exception>
-        public TokenReader(TextReader textReader, bool leaveOpen)
+        protected TokenReader(TextReader textReader, bool leaveOpen)
         {
             // 状態リセットを呼ぶ
             Reset(textReader, leaveOpen);
