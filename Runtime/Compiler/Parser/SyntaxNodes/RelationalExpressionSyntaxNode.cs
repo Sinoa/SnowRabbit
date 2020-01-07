@@ -1,4 +1,5 @@
-﻿//
+﻿// zlib/libpng License
+//
 // Copyright(c) 2019 Sinoa
 //
 // This software is provided 'as-is', without any express or implied warranty.
@@ -12,41 +13,21 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-namespace SnowRabbit.Compiler.Parser
+using SnowRabbit.Compiler.Lexer;
+
+namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// SnowRabbit が扱うデータの型を表現します
+    /// 関係演算子構文を表現する構文ノードクラスです
     /// </summary>
-    public enum SrValueType
+    public class RelationalExpressionSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
-        /// ボイド型
+        /// RelationalExpressionSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
-        Void,
-
-        /// <summary>
-        /// 整数型
-        /// </summary>
-        Integer,
-
-        /// <summary>
-        /// 実数型
-        /// </summary>
-        Number,
-
-        /// <summary>
-        /// 文字列型
-        /// </summary>
-        String,
-
-        /// <summary>
-        /// ブーリアン型
-        /// </summary>
-        Boolean,
-
-        /// <summary>
-        /// オブジェクト型
-        /// </summary>
-        Object,
+        /// <param name="token">対応するトークン</param>
+        public RelationalExpressionSyntaxNode(in Token token) : base(token)
+        {
+        }
     }
 }

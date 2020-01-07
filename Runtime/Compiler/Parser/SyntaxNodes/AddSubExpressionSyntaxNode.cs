@@ -15,18 +15,18 @@
 
 using SnowRabbit.Compiler.Lexer;
 
-namespace SnowRabbit.Compiler.Parser.SyntaxNodes.Expressions
+namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 式構文を表す構文ノードクラスです
+    /// 加減算構文を表す構文ノードクラスです
     /// </summary>
-    public class ExpressionSyntaxNode : SyntaxNode
+    public class AddSubExpressionSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
-        /// ExpressionSyntaxNode クラスのインスタンスを初期化します
+        /// AddSubExpressionSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="token">対応するトークン</param>
-        public ExpressionSyntaxNode(in Token token) : base(token)
+        public AddSubExpressionSyntaxNode(in Token token) : base(token)
         {
         }
     }

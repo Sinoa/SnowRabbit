@@ -15,18 +15,18 @@
 
 using SnowRabbit.Compiler.Lexer;
 
-namespace SnowRabbit.Compiler.Parser.SyntaxNodes.Expressions
+namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 単純式構文を表す構文ノードクラスです
+    /// 排他的論理和演算構文を表現する構文ノードクラスです
     /// </summary>
-    public class SimpleExpressionSyntaxNode : ExpressionSyntaxNode
+    public class ExclusiveOrExpressionSyntaxNode : ExpressionSyntaxNode
     {
         /// <summary>
-        /// SimpleExpressionSyntaxNode クラスのインスタンスを初期化します
+        /// ExclusiveOrExpressionSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="token">対応するトークン</param>
-        public SimpleExpressionSyntaxNode(in Token token) : base(token)
+        public ExclusiveOrExpressionSyntaxNode(in Token token) : base(token)
         {
         }
     }
