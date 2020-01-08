@@ -21,13 +21,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     public class ExpressionSyntaxNode : SyntaxNode
     {
         /// <summary>
-        /// 単純式
-        /// </summary>
-        public SimpleExpressionSyntaxNode SimpleExpression { get; private set; }
-
-
-
-        /// <summary>
         /// この構文ノードが対応する構文ノードを生成します
         /// </summary>
         /// <param name="context">コンパイルする対象となる翻訳単位コンテキスト</param>
@@ -41,7 +34,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             // 結果を自分にぶら下げて返す
             var expression = new ExpressionSyntaxNode();
-            expression.SimpleExpression = (SimpleExpressionSyntaxNode)simpleExpression;
+            expression.Add(simpleExpression);
             return expression;
         }
     }

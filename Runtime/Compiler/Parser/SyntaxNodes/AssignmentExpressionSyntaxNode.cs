@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Lexer;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -20,6 +22,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class AssignmentExpressionSyntaxNode : SyntaxNode
     {
+        // メンバ変数定義
+        private Token operation;
+
+
+
         /// <summary>
         /// この構文ノードが対応する構文ノードを生成します
         /// </summary>
@@ -27,7 +34,61 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            throw new System.NotImplementedException();
+            // トークンの参照を取得
+            ref var token = ref context.Lexer.LastReadToken;
+
+
+            // 条件論理和構文ノードの生成をして null なら null を返す
+            var expression = ConditionOrExpressionSyntaxNode.Create(context);
+            if (expression == null) return null;
+
+
+            // 代入記号が存在する間ループ
+            while (IsAssignmentSimbol(ref token))
+            {
+                // この段階で実行するべき代入演算を覚える
+                var operation = token;
+
+
+                // 次のトークンを読み込んで式構文の生成をする（左辺の式）
+                context.Lexer.ReadNextToken();
+                var leftExpression = ExpressionSyntaxNode.Create(context);
+
+
+                // 代入式構文ノードを生成する
+                var assignmentExpression = new AssignmentExpressionSyntaxNode();
+                assignmentExpression.operation = operation;
+                assignmentExpression.Add(leftExpression);
+                assignmentExpression.Add(expression);
+
+
+                // 自身が右辺になる
+                expression = assignmentExpression;
+            }
+
+
+            // 最終的に決定された式を返す
+            return expression;
+        }
+
+
+        /// <summary>
+        /// 指定されたトークンが代入記号かどうかを判断します
+        /// </summary>
+        /// <param name="token">判断するトークンへの参照</param>
+        /// <returns>トークンが代入記号ならば true を、異なる場合は false を返します</returns>
+        private static bool IsAssignmentSimbol(ref Token token)
+        {
+            // 代入記号のいづれかに一致するかを返す
+            return
+                token.Kind == TokenKind.Equal ||
+                token.Kind == TokenKind.PlusEqual ||
+                token.Kind == TokenKind.MinusEqual ||
+                token.Kind == TokenKind.AsteriskEqual ||
+                token.Kind == TokenKind.SlashEqual ||
+                token.Kind == TokenKind.AndEqual ||
+                token.Kind == TokenKind.VerticalbarEqual ||
+                token.Kind == TokenKind.CircumflexEqual;
         }
     }
 }

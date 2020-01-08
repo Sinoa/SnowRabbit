@@ -21,20 +21,19 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     public class SimpleExpressionSyntaxNode : SyntaxNode
     {
         /// <summary>
-        /// 代入式
-        /// </summary>
-        public AssignmentExpressionSyntaxNode AssignmentExpression { get; private set; }
-
-
-
-        /// <summary>
         /// この構文ノードが対応する構文ノードを生成します
         /// </summary>
         /// <param name="context">コンパイルする対象となる翻訳単位コンテキスト</param>
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            throw new System.NotImplementedException();
+            // 代入式構文の生成関数を呼んで null が返ってきたら null を返す
+            var assignmentExpression = AssignmentExpressionSyntaxNode.Create(context);
+            if (assignmentExpression == null) return null;
+
+
+            // 単純式構文は自身を生成せず返ってきたノードをそのまま返す
+            return assignmentExpression;
         }
     }
 }

@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Lexer;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -20,5 +22,39 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class ConditionOrExpressionSyntaxNode : SyntaxNode
     {
+        /// <summary>
+        /// この構文ノードが対応する構文ノードを生成します
+        /// </summary>
+        /// <param name="context">コンパイルする対象となる翻訳単位コンテキスト</param>
+        /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
+        public static SyntaxNode Create(LocalCompileContext context)
+        {
+            // トークンの参照を取得する
+            ref var token = ref context.Lexer.LastReadToken;
+
+
+            // 条件論理積構文の構文ノードを生成して条件論理和トークンが続く間ループする
+            var expression = ConditionAndExpressionSyntaxNode.Create(context);
+            while (token.Kind == TokenKind.DoubleVerticalbar)
+            {
+                // 次のトークンを読み込んで条件論理積構文の構文ノードを生成する
+                context.Lexer.ReadNextToken();
+                var rightExpression = ConditionAndExpressionSyntaxNode.Create(context);
+
+
+                // 条件論理和構文ノードを生成して式をぶら下げる
+                var conditionOrExpression = new ConditionOrExpressionSyntaxNode();
+                conditionOrExpression.Add(expression);
+                conditionOrExpression.Add(rightExpression);
+
+
+                // 自身が左辺になる
+                expression = conditionOrExpression;
+            }
+
+
+            // 最終的な式を返す
+            return expression;
+        }
     }
 }

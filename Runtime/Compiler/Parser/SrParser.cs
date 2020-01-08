@@ -28,11 +28,6 @@
 
 ## Common syntax
 
-### constant_types
-    : 'int'
-    | 'number'
-    | 'string'
-
 ### non_void_types
     : 'int'
     | 'number'
@@ -42,10 +37,11 @@
 
 ### types
     : 'void'
-    | non_void_types
-
-### return_type
-    : types
+    | 'int'
+    | 'number'
+    | 'string'
+    | 'object'
+    | 'bool'
 
 
 ## Pre-Processor directive syntax
@@ -65,10 +61,12 @@
     : 'compile' '<string>'
 
 ### constant_define_directive
-    : 'const' constant_types constant_var_name constant_value
+    : 'const' constant_types '<identifier>' constant_value
 
-### constant_var_name
-    : '<identifier>'
+### constant_types
+    : 'int'
+    | 'number'
+    | 'string'
 
 ### constant_value
     : '<integer>'
@@ -79,16 +77,7 @@
 ## Peripheral syntax
 
 ### peripheral_declare
-    : 'using' peripheral_function_name '=' return_type import_peripheral_name '.' import_peripheral_function_name '(' [type_list] ')' ';' 
-
-### peripheral_function_name
-    : '<identifier>'
-
-### import_peripheral_name
-    : '<identifier>'
-
-### import_peripheral_function_name
-    : '<identifier>'
+    : 'using' '<identifier>' '=' types '<identifier>' '.' '<identifier>' '(' [type_list] ')' ';' 
 
 ### type_list
     : non_void_types { ',' non_void_types }
@@ -97,36 +86,26 @@
 ## GlobalVariable syntax
 
 ### global_variable_declare
-    : 'global' non_void_types global_var_name [ '=' expression ] ';'
-
-### global_var_name
-    : '<identifier>'
-
+    : 'global' non_void_types '<identifier>' ';'
 
 ## Function declare syntax
 
 ### function_declare
-    : 'function' return_type function_name '(' [argument_list] ')' { block } 'end'
-
-### function_name
-    : '<identifier>'
+    : 'function' types '<identifier>' '(' [argument_list] ')' { block } 'end'
 
 ### argument_list
     : argument { ',' argument }
 
 ### argument
-    : non_void_types argument_name
-
-### argument_name
-    : '<identifier>'
+    : non_void_types '<identifier>'
 
 
 ## Block syntax
 
 ### block
-    : statement_list
+    : statement
 
-### statement_list
+### statement
     : ';'
     | local_var_declare
     | for_statement

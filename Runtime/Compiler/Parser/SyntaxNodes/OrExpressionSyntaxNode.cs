@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Lexer;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -27,7 +29,32 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            throw new System.NotImplementedException();
+            // トークンの参照を取得する
+            ref var token = ref context.Lexer.LastReadToken;
+
+
+            // 排他的論理和式構文を生成して論理和トークンが続く間ループ
+            var expression = ExclusiveOrExpressionSyntaxNode.Create(context);
+            while (token.Kind == TokenKind.Verticalbar)
+            {
+                // トークンを読み込んで排他的理和式構文を生成する
+                context.Lexer.ReadNextToken();
+                var rightExpression = ExclusiveOrExpressionSyntaxNode.Create(context);
+
+
+                // 論理和構文を生成する
+                var orExpression = new OrExpressionSyntaxNode();
+                orExpression.Add(expression);
+                orExpression.Add(rightExpression);
+
+
+                // 自身が左辺になる
+                expression = orExpression;
+            }
+
+
+            // 最終的な式を返す
+            return expression;
         }
     }
 }
