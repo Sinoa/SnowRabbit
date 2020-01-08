@@ -119,10 +119,7 @@
 ## LocalVariable declare syntax
 
 ### local_var_declare
-    : 'local' non_void_types local_var_name [ '=' expression ] ';'
-
-### local_var_name
-    : '<identifier>'
+    : 'local' non_void_types '<identifier>' [ '=' expression ] ';'
 
 
 ## For statement syntax
@@ -174,13 +171,10 @@
 
 ### expression
     : simple_expression
-
-### simple_expression
-    : assignment_expression
+    | assignment_expression
 
 ### assignment_expression
-    : condition_or_expression
-    | unary_expression '=' expression
+    : unary_expression '=' expression
     | unary_expression '+=' expression
     | unary_expression '-=' expression
     | unary_expression '*=' expression
@@ -188,6 +182,9 @@
     | unary_expression '&=' expression
     | unary_expression '|=' expression
     | unary_expression '^=' expression
+
+### simple_expression
+    : condition_or_expression
 
 ### condition_or_expression
     : condition_and_expression
@@ -238,17 +235,15 @@
 
 ### unary_expression
     : primary_expression
+    | condition_or_expression
     | '+' unary_expression
     | '-' unary_expression
     | '!' unary_expression
 
 ### primary_expression
-    : constant_var_name
+    : literal
+    | '<identifier>'
     | paren_expression
-    | global_var_name
-    | local_var_name
-    | argument_name
-    | literal
     | function_call
 
 ### paren_expression
@@ -264,7 +259,6 @@
 
 ### function_call
     : function_name '(' [parameter_list] ')'
-    | import_peripheral_function_name '(' [parameter_list] ')'
 
 ### parameter_list
     : parameter { ',' parameter }

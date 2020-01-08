@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Lexer;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -20,6 +22,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class ShiftExpressionSyntaxNode : SyntaxNode
     {
+        // メンバ変数定義
+        private Token operation;
+
+
+
         /// <summary>
         /// この構文ノードが対応する構文ノードを生成します
         /// </summary>
@@ -27,7 +34,37 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            throw new System.NotImplementedException();
+            // トークンの参照を取得する
+            ref var token = ref context.Lexer.LastReadToken;
+
+
+            // 次の優先順位の高い式を生成して自身の式に対応するトークンが続く間ループ
+            var expression = AddSubExpressionSyntaxNode.Create(context);
+            while (token.Kind == TokenKind.DoubleOpenAngle || token.Kind == TokenKind.DoubleCloseAngle)
+            {
+                // 実行するべきオペレーションを覚える
+                var operation = token;
+
+
+                // トークンを読み込んでもう一度次の優先順位の高い式を生成する
+                context.Lexer.ReadNextToken();
+                var leftExpression = AddSubExpressionSyntaxNode.Create(context);
+
+
+                // 自身の構文を生成する
+                var relationalExpression = new ShiftExpressionSyntaxNode();
+                relationalExpression.Add(leftExpression);
+                relationalExpression.Add(expression);
+                relationalExpression.operation = operation;
+
+
+                // 自身が右辺になる
+                expression = relationalExpression;
+            }
+
+
+            // 最終的な式を返す
+            return expression;
         }
     }
 }
