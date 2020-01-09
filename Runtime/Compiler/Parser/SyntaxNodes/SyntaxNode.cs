@@ -74,11 +74,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// 子構文ノードを追加します
         /// </summary>
         /// <param name="node">追加する子構文ノード</param>
-        /// <exception cref="ArgumentNullException">node が null です</exception>
         public void Add(SyntaxNode node)
         {
             // 追加する
-            children.Add(node ?? throw new ArgumentNullException(nameof(node)));
+            children.Add(node);
         }
 
 

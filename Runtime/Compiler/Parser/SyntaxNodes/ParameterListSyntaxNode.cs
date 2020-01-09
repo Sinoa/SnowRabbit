@@ -48,7 +48,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
             // 自身を返す
-            context.Lexer.ReadNextToken();
             return parameterList;
         }
     }

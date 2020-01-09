@@ -41,10 +41,21 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             // types <identifier> '(' [argument_list] ')' { block } 'end' を解析する
             var functionDeclare = new FunctionDeclareSyntaxNode();
             context.Lexer.ReadNextToken();
-            CheckSyntaxAndAddNode(TypesSyntaxNode.Create(context), functionDeclare, context);
-            CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), functionDeclare, context);
+            functionDeclare.CheckSyntaxAndAddNode(TypesSyntaxNode.Create(context), context);
+            functionDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
             CheckTokenAndReadNext(TokenKind.OpenParen, context);
-            CheckSyntaxAndAddNode(ArgumentListSyntaxNode.Create(context), functionDeclare, context);
+
+
+            if (token.Kind != TokenKind.CloseParen)
+            {
+                functionDeclare.CheckSyntaxAndAddNode(ArgumentListSyntaxNode.Create(context), context);
+            }
+            else
+            {
+                functionDeclare.Add(new ArgumentListSyntaxNode());
+            }
+
+
             CheckTokenAndReadNext(TokenKind.CloseParen, context);
 
 
@@ -52,34 +63,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             while (token.Kind != SrTokenKind.End)
             {
                 // ブロック構文ノードの生成
-                CheckSyntaxAndAddNode(BlockSyntaxNode.Create(context), functionDeclare, context);
+                functionDeclare.CheckSyntaxAndAddNode(BlockSyntaxNode.Create(context), context);
             }
 
 
             // 自身を返す
+            context.Lexer.ReadNextToken();
             return functionDeclare;
-        }
-
-
-        /// <summary>
-        /// node が null でないなら parentNode に追加し null の場合はコンパイルエラーを出します
-        /// </summary>
-        /// <param name="node">チェックする構文ノード</param>
-        /// <param name="parentNode">チェックをパスした場合にノードを持つ親ノード</param>
-        /// <param name="context">現在のコンテキスト</param>
-        private static void CheckSyntaxAndAddNode(SyntaxNode node, SyntaxNode parentNode, LocalCompileContext context)
-        {
-            // ノードが null なら
-            if (node == null)
-            {
-                // 不明なトークンとしてコンパイルエラーを出す
-                context.ThrowSyntaxError(new SrUnknownTokenSyntaxErrorException(ref context.Lexer.LastReadToken));
-                return;
-            }
-
-
-            // null でないなら素直に追加
-            parentNode.Add(node);
         }
     }
 }

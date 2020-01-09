@@ -36,7 +36,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             // 一次式構文ノードを生成して失敗したら null を返す
             var primaryExpression = PrimaryExpressionSyntaxNode.Create(context);
-            if (primaryExpression != null) return null;
+            if (primaryExpression == null) return null;
 
 
             // もしオープンパーレントークンが来ていないなら
@@ -48,23 +48,22 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
             // 引数リスト構文ノードを生成する
-            var parameterList = ParameterListSyntaxNode.Create(context);
+            context.Lexer.ReadNextToken();
+            SyntaxNode parameterList = null;
+            if (token.Kind != TokenKind.CloseParen)
+            {
+                parameterList = ParameterListSyntaxNode.Create(context);
+            }
 
 
             // 最後にクローズパーレンが来ていないなら
-            if (token.Kind != TokenKind.CloseParen)
-            {
-                // 対応記号がない構文エラーを吐く
-                context.ThrowSyntaxError(new SrNotClosedSymbolSyntaxErrorException("(", ")"));
-                return null;
-            }
+            CheckTokenAndReadNext(TokenKind.CloseParen, context, new SrNotClosedSymbolSyntaxErrorException("(", ")"));
 
 
             // 関数呼び出しノードを生成して返す
             var functionCall = new FunctionCallSyntaxNode();
             functionCall.Add(primaryExpression);
             functionCall.Add(parameterList);
-            context.Lexer.ReadNextToken();
             return functionCall;
         }
     }
