@@ -170,21 +170,18 @@
 ## Expression syntax
 
 ### expression
-    : simple_expression
-    | assignment_expression
+    : assignment_expression
 
 ### assignment_expression
-    : unary_expression '=' expression
-    | unary_expression '+=' expression
-    | unary_expression '-=' expression
-    | unary_expression '*=' expression
-    | unary_expression '/=' expression
-    | unary_expression '&=' expression
-    | unary_expression '|=' expression
-    | unary_expression '^=' expression
-
-### simple_expression
     : condition_or_expression
+    | assignment_expression '=' condition_or_expression
+    | assignment_expression '+=' condition_or_expression
+    | assignment_expression '-=' condition_or_expression
+    | assignment_expression '*=' condition_or_expression
+    | assignment_expression '/=' condition_or_expression
+    | assignment_expression '&=' condition_or_expression
+    | assignment_expression '|=' condition_or_expression
+    | assignment_expression '^=' condition_or_expression
 
 ### condition_or_expression
     : condition_and_expression

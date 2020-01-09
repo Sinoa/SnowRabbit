@@ -38,31 +38,27 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             ref var token = ref context.Lexer.LastReadToken;
 
 
-            // 条件論理和構文ノードの生成をして null なら null を返す
+            // 条件論理和構文ノードの生成をして代入記号が存在する間ループ
             var expression = ConditionOrExpressionSyntaxNode.Create(context);
-            if (expression == null) return null;
-
-
-            // 代入記号が存在する間ループ
             while (IsAssignmentSimbol(ref token))
             {
                 // この段階で実行するべき代入演算を覚える
                 var operation = token;
 
 
-                // 次のトークンを読み込んで式構文の生成をする（左辺の式）
+                // 次のトークンを読み込んで条件論理和構文の生成をする
                 context.Lexer.ReadNextToken();
-                var leftExpression = ExpressionSyntaxNode.Create(context);
+                var rightExpression = ConditionOrExpressionSyntaxNode.Create(context);
 
 
                 // 代入式構文ノードを生成する
                 var assignmentExpression = new AssignmentExpressionSyntaxNode();
                 assignmentExpression.operation = operation;
-                assignmentExpression.Add(leftExpression);
+                assignmentExpression.Add(rightExpression);
                 assignmentExpression.Add(expression);
 
 
-                // 自身が右辺になる
+                // 自身が左辺になる
                 expression = assignmentExpression;
             }
 

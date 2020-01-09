@@ -27,15 +27,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            // 単純式構文の生成関数を呼んで null が返ってきたら null を返す
-            var simpleExpression = SimpleExpressionSyntaxNode.Create(context);
-            if (simpleExpression == null) return null;
-
-
-            // 結果を自分にぶら下げて返す
-            var expression = new ExpressionSyntaxNode();
-            expression.Add(simpleExpression);
-            return expression;
+            // 代入式構文の生成関数を呼んでそのまま返す
+            return AssignmentExpressionSyntaxNode.Create(context);
         }
     }
 }
