@@ -2,5 +2,6 @@
 /.vs/
 /Runtime/.*/
 /.NativeTest/.*/
+/.SampleApplication/.*/
 
 *.meta

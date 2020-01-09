@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <Authors>Sinoa</Authors>
-    <Copyright>Copyright(c) 2019 Sinoa</Copyright>
+    <Copyright>Copyright(c) 2019 - 2020 Sinoa</Copyright>
     <Description>Pure CSharp host script engine</Description>
     <Version>0.0.1</Version>
     <PackageLicenseExpression>Zlib</PackageLicenseExpression>
