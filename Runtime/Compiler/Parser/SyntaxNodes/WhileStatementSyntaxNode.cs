@@ -18,10 +18,7 @@ using SnowRabbit.Compiler.Parser.SyntaxErrors;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
-    /// <summary>
-    /// ブロック構文を表す構文ノードクラスです
-    /// </summary>
-    public class BlockSyntaxNode : SyntaxNode
+    public class WhileStatementSyntaxNode : SyntaxNode
     {
         /// <summary>
         /// この構文ノードが対応する構文ノードを生成します
@@ -30,8 +27,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            // ステートメント構文の生成をそのまま返す
-            return StatementSyntaxNode.Create(context);
+            throw new System.NotImplementedException();
         }
     }
 }

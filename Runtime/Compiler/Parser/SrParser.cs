@@ -125,34 +125,19 @@
 ## For statement syntax
 
 ### for_statement
-    : 'for' '(' [for_initializer] ';' [for_condition] ';' [for_iterator] ')' { block } 'end'
-
-### for_initializer
-    : expression
-
-### for_condition
-    : expression
-
-### for_iterator
-    : expression
+    : 'for' '(' [expression] ';' [expression] ';' [expression] ')' { block } 'end'
 
 
 ## While statement syntax
 
 ### while_statement
-    : 'while' '(' while_condition ')' { block } 'end'
-
-### while_condition
-    : expression
+    : 'while' '(' expression ')' { block } 'end'
 
 
 ## If statement syntax
 
 ### if_statement
-    : 'if' '(' if_condition ')' { block } { 'else' 'if' '(' if_condition ')' { block } } 'end'
-
-### if_condition
-    : expression
+    : 'if' '(' expression ')' { block } { 'else' 'if' '(' if_condition ')' { block } } 'end'
 
 
 ## Break statement syntax
