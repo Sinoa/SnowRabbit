@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Lexer;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -27,7 +29,27 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            throw new System.NotImplementedException();
+            // トークンの参照を取得する
+            ref var token = ref context.Lexer.LastReadToken;
+
+
+            // 式ノードを生成して自身に追加
+            var parameterList = new ParameterListSyntaxNode();
+            parameterList.Add(ExpressionSyntaxNode.Create(context));
+
+
+            // カンマが続く間ループする
+            while (token.Kind == TokenKind.Comma)
+            {
+                // 次のトークンを読み込んで式ノードを自身に追加
+                context.Lexer.ReadNextToken();
+                parameterList.Add(ExpressionSyntaxNode.Create(context));
+            }
+
+
+            // 自身を返す
+            context.Lexer.ReadNextToken();
+            return parameterList;
         }
     }
 }

@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using SnowRabbit.Compiler.Lexer;
+using SnowRabbit.Compiler.Parser.SyntaxErrors;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
@@ -38,6 +39,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             ref var token = ref context.Lexer.LastReadToken;
 
 
+            // 関数呼び出し構文ノードを生成して成功したらそれを返す
+            var functionCall = FunctionCallSyntaxNode.Create(context);
+            if (functionCall != null) return functionCall;
+
+
             // 単項式として処理する演算がある場合は
             if (token.Kind == TokenKind.Plus || token.Kind == TokenKind.Minus || token.Kind == TokenKind.Exclamation)
             {
@@ -55,6 +61,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 unaryExpression.Add(expression);
                 return unaryExpression;
             }
+
+
+            // ここまで来たら不明なトークンとしてコンパイルエラーを吐く
+            context.ThrowSyntaxError(new SrUnknownTokenSyntaxErrorException(ref token));
+            return null;
         }
     }
 }

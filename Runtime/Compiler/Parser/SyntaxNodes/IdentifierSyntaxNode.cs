@@ -13,13 +13,24 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Lexer;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 引数構文を表す構文ノードクラスです
+    /// 識別子構文を表す構文ノードクラスです
     /// </summary>
-    public class ParameterSyntaxNode : SyntaxNode
+    public class IdentifierSyntaxNode : SyntaxNode
     {
+        /// <summary>
+        /// IdentifierSyntaxNode クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="token">対応するトークン</param>
+        public IdentifierSyntaxNode(in Token token) : base(token)
+        {
+        }
+
+
         /// <summary>
         /// この構文ノードが対応する構文ノードを生成します
         /// </summary>
@@ -27,7 +38,15 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            throw new System.NotImplementedException();
+            // トークンが識別子出ないなら null を返す
+            ref var token = ref context.Lexer.LastReadToken;
+            if (token.Kind != TokenKind.Identifier) return null;
+
+
+            // 識別子トークンを覚えて自身を返す
+            var identifier = new IdentifierSyntaxNode(in token);
+            context.Lexer.ReadNextToken();
+            return identifier;
         }
     }
 }

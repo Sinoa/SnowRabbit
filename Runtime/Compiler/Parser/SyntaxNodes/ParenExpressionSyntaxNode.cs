@@ -13,6 +13,9 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Lexer;
+using SnowRabbit.Compiler.Parser.SyntaxErrors;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -27,7 +30,30 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            throw new System.NotImplementedException();
+            // トークンの参照を取得する
+            ref var token = ref context.Lexer.LastReadToken;
+
+
+            // もしオープンパーレンから始まっていないのなら構文ノードは生成しない
+            if (token.Kind != TokenKind.OpenParen) return null;
+
+
+            // 式を生成する
+            var expression = ExpressionSyntaxNode.Create(context);
+
+
+            // 最後にクローズパーレンで終わっていなければ
+            if (token.Kind != TokenKind.CloseParen)
+            {
+                // 正しく閉じられていないコンパイルエラーを吐く
+                context.ThrowSyntaxError(new SrNotClosedSymbolSyntaxErrorException("(", ")"));
+                return null;
+            }
+
+
+            // 次のトークンを読み込んで式を返す
+            context.Lexer.ReadNextToken();
+            return expression;
         }
     }
 }

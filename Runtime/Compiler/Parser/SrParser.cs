@@ -234,20 +234,19 @@
     | muldiv_expression { '/' unary_expression }
 
 ### unary_expression
-    : primary_expression
-    | condition_or_expression
+    : function_call
     | '+' unary_expression
     | '-' unary_expression
     | '!' unary_expression
+
+### function_call
+    : primary_expression
+    | primary_expression '(' [parameter_list] ')'
 
 ### primary_expression
     : literal
     | '<identifier>'
     | paren_expression
-    | function_call
-
-### paren_expression
-    : '(' expression ')'
 
 ### literal
     : '<integer>'
@@ -257,14 +256,11 @@
     | 'false'
     | 'null'
 
-### function_call
-    : function_name '(' [parameter_list] ')'
+### paren_expression
+    : '(' expression ')'
 
 ### parameter_list
-    : parameter { ',' parameter }
-
-### parameter
-    : expression
+    : expression { ',' expression }
 
 */
 
