@@ -41,63 +41,20 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             // <identifier> '=' types <identifier> '.' <identifier> '(' [type_list] ')' ';' を解析する
             var peripheralDeclare = new PeripheralDeclareSyntaxNode();
             context.Lexer.ReadNextToken();
-            CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), peripheralDeclare, context);
+            peripheralDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
             CheckTokenAndReadNext(TokenKind.Equal, context);
-            CheckSyntaxAndAddNode(TypesSyntaxNode.Create(context), peripheralDeclare, context);
-            CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), peripheralDeclare, context);
+            peripheralDeclare.CheckSyntaxAndAddNode(TypesSyntaxNode.Create(context), context);
+            peripheralDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
             CheckTokenAndReadNext(TokenKind.Period, context);
-            CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), peripheralDeclare, context);
+            peripheralDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
             CheckTokenAndReadNext(TokenKind.OpenParen, context);
-            CheckSyntaxAndAddNode(TypeListSyntaxNode.Create(context), peripheralDeclare, context);
+            peripheralDeclare.CheckSyntaxAndAddNode(TypeListSyntaxNode.Create(context), context);
             CheckTokenAndReadNext(TokenKind.CloseAngle, context);
             CheckTokenAndReadNext(TokenKind.Semicolon, context);
 
 
             // 自身を返す
             return peripheralDeclare;
-        }
-
-
-        /// <summary>
-        /// node が null でないなら parentNode に追加し null の場合はコンパイルエラーを出します
-        /// </summary>
-        /// <param name="node">チェックする構文ノード</param>
-        /// <param name="parentNode">チェックをパスした場合にノードを持つ親ノード</param>
-        /// <param name="context">現在のコンテキスト</param>
-        private static void CheckSyntaxAndAddNode(SyntaxNode node, SyntaxNode parentNode, LocalCompileContext context)
-        {
-            // ノードが null なら
-            if (node == null)
-            {
-                // 不明なトークンとしてコンパイルエラーを出す
-                context.ThrowSyntaxError(new SrUnknownTokenSyntaxErrorException(ref context.Lexer.LastReadToken));
-                return;
-            }
-
-
-            // null でないなら素直に追加
-            parentNode.Add(node);
-        }
-
-
-        /// <summary>
-        /// 該当のトークンが登場しているかチェックして問題がなければ次のトークンを読み込みます
-        /// </summary>
-        /// <param name="tokenKind">チェックするトークン種別</param>
-        /// <param name="context">現在のコンテキスト</param>
-        private static void CheckTokenAndReadNext(int tokenKind, LocalCompileContext context)
-        {
-            // 該当トークンで無いなら
-            ref var token = ref context.Lexer.LastReadToken;
-            if (token.Kind != tokenKind)
-            {
-                // 不明なトークンとしてコンパイルエラーとする
-                context.ThrowSyntaxError(new SrUnknownTokenSyntaxErrorException(ref token));
-            }
-
-
-            // 次のトークンを読み込む
-            context.Lexer.ReadNextToken();
         }
     }
 }

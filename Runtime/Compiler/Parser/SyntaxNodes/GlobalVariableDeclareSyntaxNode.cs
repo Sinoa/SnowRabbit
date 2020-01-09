@@ -41,56 +41,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             // non_void_types <identifier> ';' を解析する
             var globalVariableDeclare = new GlobalVariableDeclareSyntaxNode();
             context.Lexer.ReadNextToken();
-            CheckSyntaxAndAddNode(NonVoidTypesSyntaxNode.Create(context), globalVariableDeclare, context);
-            CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), globalVariableDeclare, context);
+            globalVariableDeclare.CheckSyntaxAndAddNode(NonVoidTypesSyntaxNode.Create(context), context);
+            globalVariableDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
             CheckTokenAndReadNext(TokenKind.Semicolon, context);
 
 
             // 結果を返す
             return globalVariableDeclare;
-        }
-
-
-        /// <summary>
-        /// node が null でないなら parentNode に追加し null の場合はコンパイルエラーを出します
-        /// </summary>
-        /// <param name="node">チェックする構文ノード</param>
-        /// <param name="parentNode">チェックをパスした場合にノードを持つ親ノード</param>
-        /// <param name="context">現在のコンテキスト</param>
-        private static void CheckSyntaxAndAddNode(SyntaxNode node, SyntaxNode parentNode, LocalCompileContext context)
-        {
-            // ノードが null なら
-            if (node == null)
-            {
-                // 不明なトークンとしてコンパイルエラーを出す
-                context.ThrowSyntaxError(new SrUnknownTokenSyntaxErrorException(ref context.Lexer.LastReadToken));
-                return;
-            }
-
-
-            // null でないなら素直に追加
-            parentNode.Add(node);
-        }
-
-
-        /// <summary>
-        /// 該当のトークンが登場しているかチェックして問題がなければ次のトークンを読み込みます
-        /// </summary>
-        /// <param name="tokenKind">チェックするトークン種別</param>
-        /// <param name="context">現在のコンテキスト</param>
-        private static void CheckTokenAndReadNext(int tokenKind, LocalCompileContext context)
-        {
-            // 該当トークンで無いなら
-            ref var token = ref context.Lexer.LastReadToken;
-            if (token.Kind != tokenKind)
-            {
-                // 不明なトークンとしてコンパイルエラーとする
-                context.ThrowSyntaxError(new SrUnknownTokenSyntaxErrorException(ref token));
-            }
-
-
-            // 次のトークンを読み込む
-            context.Lexer.ReadNextToken();
         }
     }
 }
