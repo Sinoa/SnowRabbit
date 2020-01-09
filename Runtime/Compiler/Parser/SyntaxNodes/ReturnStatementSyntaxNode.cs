@@ -27,7 +27,24 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            throw new System.NotImplementedException();
+            // 'return' [expression] ';' を解析する
+            ref var token = ref context.Lexer.LastReadToken;
+            if (token.Kind != SrTokenKind.Return) return null;
+            context.Lexer.ReadNextToken();
+
+
+            // セミコロンが来ていないなら
+            var returnStatement = new ReturnStatementSyntaxNode();
+            if (token.Kind != TokenKind.Semicolon)
+            {
+                // 式構文ノードを作って自身にぶら下げる
+                returnStatement.Add(ExpressionSyntaxNode.Create(context));
+            }
+
+
+            // セミコロンチェックをして結果を返す
+            CheckTokenAndReadNext(TokenKind.Semicolon, context);
+            return returnStatement;
         }
     }
 }

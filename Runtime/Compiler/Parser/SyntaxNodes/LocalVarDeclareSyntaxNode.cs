@@ -27,7 +27,27 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            throw new System.NotImplementedException();
+            // local で無いなら null を返す
+            ref var token = ref context.Lexer.LastReadToken;
+            if (token.Kind != SrTokenKind.Local) return null;
+
+
+            // 'local' non_void_types <identifier> [ '=' expression ] ';'
+            var localVarDeclare = new LocalVarDeclareSyntaxNode();
+            CheckTokenAndReadNext(SrTokenKind.Local, context);
+            localVarDeclare.CheckSyntaxAndAddNode(NonVoidTypesSyntaxNode.Create(context), context);
+            localVarDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
+
+
+            if (token.Kind == TokenKind.Equal)
+            {
+                context.Lexer.ReadNextToken();
+                localVarDeclare.CheckSyntaxAndAddNode(ExpressionSyntaxNode.Create(context), context);
+            }
+
+
+            CheckTokenAndReadNext(TokenKind.Semicolon, context);
+            return localVarDeclare;
         }
     }
 }

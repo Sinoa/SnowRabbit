@@ -27,7 +27,30 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            throw new System.NotImplementedException();
+            // while で無いなら null を返す
+            ref var token = ref context.Lexer.LastReadToken;
+            if (token.Kind != SrTokenKind.While) return null;
+
+
+            // 'while' '(' expression ')' { block } 'end' を解析する
+            var whileStatement = new WhileStatementSyntaxNode();
+            CheckTokenAndReadNext(SrTokenKind.While, context);
+            CheckTokenAndReadNext(TokenKind.OpenParen, context);
+            whileStatement.CheckSyntaxAndAddNode(ExpressionSyntaxNode.Create(context), context);
+            CheckTokenAndReadNext(TokenKind.CloseParen, context);
+
+
+            // end が出るまでループ
+            while (token.Kind != SrTokenKind.End)
+            {
+                // 次のトークンを読みこんでブロックノードを自身に追加
+                context.Lexer.ReadNextToken();
+                whileStatement.CheckSyntaxAndAddNode(BlockSyntaxNode.Create(context), context);
+            }
+
+
+            // 完成品を返す
+            return whileStatement;
         }
     }
 }

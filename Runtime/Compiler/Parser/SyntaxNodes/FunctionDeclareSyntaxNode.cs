@@ -81,26 +81,5 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             // null でないなら素直に追加
             parentNode.Add(node);
         }
-
-
-        /// <summary>
-        /// 該当のトークンが登場しているかチェックして問題がなければ次のトークンを読み込みます
-        /// </summary>
-        /// <param name="tokenKind">チェックするトークン種別</param>
-        /// <param name="context">現在のコンテキスト</param>
-        private static void CheckTokenAndReadNext(int tokenKind, LocalCompileContext context)
-        {
-            // 該当トークンで無いなら
-            ref var token = ref context.Lexer.LastReadToken;
-            if (token.Kind != tokenKind)
-            {
-                // 不明なトークンとしてコンパイルエラーとする
-                context.ThrowSyntaxError(new SrUnknownTokenSyntaxErrorException(ref token));
-            }
-
-
-            // 次のトークンを読み込む
-            context.Lexer.ReadNextToken();
-        }
     }
 }
