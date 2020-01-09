@@ -55,13 +55,13 @@
     | constant_define_directive
 
 ### link_object_directive
-    : 'link' '<string>'
+    : 'link' <string>
 
 ### script_compile_directive
-    : 'compile' '<string>'
+    : 'compile' <string>
 
 ### constant_define_directive
-    : 'const' constant_types '<identifier>' constant_value
+    : 'const' constant_types <identifier> constant_value
 
 ### constant_types
     : 'int'
@@ -69,15 +69,15 @@
     | 'string'
 
 ### constant_value
-    : '<integer>'
-    | '<number>'
-    | '<string>'
+    : <integer>
+    | <number>
+    | <string>
 
 
 ## Peripheral syntax
 
 ### peripheral_declare
-    : 'using' '<identifier>' '=' types '<identifier>' '.' '<identifier>' '(' [type_list] ')' ';' 
+    : 'using' <identifier> '=' types <identifier> '.' <identifier> '(' [type_list] ')' ';' 
 
 ### type_list
     : non_void_types { ',' non_void_types }
@@ -86,18 +86,18 @@
 ## GlobalVariable syntax
 
 ### global_variable_declare
-    : 'global' non_void_types '<identifier>' ';'
+    : 'global' non_void_types <identifier> ';'
 
 ## Function declare syntax
 
 ### function_declare
-    : 'function' types '<identifier>' '(' [argument_list] ')' { block } 'end'
+    : 'function' types <identifier> '(' [argument_list] ')' { block } 'end'
 
 ### argument_list
     : argument { ',' argument }
 
 ### argument
-    : non_void_types '<identifier>'
+    : non_void_types <identifier>
 
 
 ## Block syntax
@@ -119,7 +119,7 @@
 ## LocalVariable declare syntax
 
 ### local_var_declare
-    : 'local' non_void_types '<identifier>' [ '=' expression ] ';'
+    : 'local' non_void_types <identifier> [ '=' expression ] ';'
 
 
 ## For statement syntax
@@ -242,13 +242,13 @@
 
 ### primary_expression
     : literal
-    | '<identifier>'
+    | <identifier>
     | paren_expression
 
 ### literal
-    : '<integer>'
-    | '<number>'
-    | '<string>'
+    : <integer>
+    | <number>
+    | <string>
     | 'true'
     | 'false'
     | 'null'

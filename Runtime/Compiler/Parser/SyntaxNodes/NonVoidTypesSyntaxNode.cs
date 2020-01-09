@@ -19,15 +19,15 @@ using SnowRabbit.Compiler.Parser.SyntaxErrors;
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 型構文を表現する構文ノードクラスです
+    /// voidを含まない型構文を表現する構文ノードクラスです
     /// </summary>
-    public class TypesSyntaxNode : SyntaxNode
+    public class NonVoidTypesSyntaxNode : SyntaxNode
     {
         /// <summary>
-        /// TypesSyntaxNode クラスのインスタンスを初期化します
+        /// NonVoidTypesSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="token">対応するトークン</param>
-        public TypesSyntaxNode(in Token token) : base(token)
+        public NonVoidTypesSyntaxNode(in Token token) : base(token)
         {
         }
 
@@ -39,10 +39,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            // void, int, number, string, object, bool のいずれかどうかを判断する
+            // int, number, string, object, bool のいずれかどうかを判断する
             ref var token = ref context.Lexer.LastReadToken;
             var isType =
-                token.Kind == SrTokenKind.TypeVoid ||
                 token.Kind == SrTokenKind.TypeInt ||
                 token.Kind == SrTokenKind.TypeNumber ||
                 token.Kind == SrTokenKind.TypeString ||
@@ -60,7 +59,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
             // 扱えるならノードを生成してトークンを覚える
-            var types = new TypesSyntaxNode(in token);
+            var types = new NonVoidTypesSyntaxNode(in token);
             context.Lexer.ReadNextToken();
             return types;
         }

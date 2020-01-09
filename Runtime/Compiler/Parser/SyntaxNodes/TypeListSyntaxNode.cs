@@ -14,24 +14,14 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using SnowRabbit.Compiler.Lexer;
-using SnowRabbit.Compiler.Parser.SyntaxErrors;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 型構文を表現する構文ノードクラスです
+    /// 型リスト構文を表す構文ノードクラスです
     /// </summary>
-    public class TypesSyntaxNode : SyntaxNode
+    public class TypeListSyntaxNode : SyntaxNode
     {
-        /// <summary>
-        /// TypesSyntaxNode クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="token">対応するトークン</param>
-        public TypesSyntaxNode(in Token token) : base(token)
-        {
-        }
-
-
         /// <summary>
         /// この構文ノードが対応する構文ノードを生成します
         /// </summary>
@@ -39,30 +29,27 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            // void, int, number, string, object, bool のいずれかどうかを判断する
+            // トークンの参照を取得する
             ref var token = ref context.Lexer.LastReadToken;
-            var isType =
-                token.Kind == SrTokenKind.TypeVoid ||
-                token.Kind == SrTokenKind.TypeInt ||
-                token.Kind == SrTokenKind.TypeNumber ||
-                token.Kind == SrTokenKind.TypeString ||
-                token.Kind == SrTokenKind.TypeObject ||
-                token.Kind == SrTokenKind.TypeBool;
 
 
-            // 扱える型でないなら
-            if (!isType)
+            // void以外の型ノードを生成して自身に追加
+            var parameterList = new TypeListSyntaxNode();
+            parameterList.Add(NonVoidTypesSyntaxNode.Create(context));
+
+
+            // カンマが続く間ループする
+            while (token.Kind == TokenKind.Comma)
             {
-                // コンパイルエラーとして処理する
-                context.ThrowSyntaxError(new SrUnknownTokenSyntaxErrorException(ref token));
-                return null;
+                // 次のトークンを読み込んでvoid以外の型ノードを自身に追加
+                context.Lexer.ReadNextToken();
+                parameterList.Add(NonVoidTypesSyntaxNode.Create(context));
             }
 
 
-            // 扱えるならノードを生成してトークンを覚える
-            var types = new TypesSyntaxNode(in token);
+            // 自身を返す
             context.Lexer.ReadNextToken();
-            return types;
+            return parameterList;
         }
     }
 }
