@@ -39,17 +39,6 @@ namespace SnowRabbit.Compiler.Parser
 
 
         /// <summary>
-        /// GlobalCompileContext クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="storage">コンパイラが使用するスクリプトストレージ</param>
-        public GlobalCompileContext(ISrScriptStorage storage)
-        {
-            // 参照を受け取る
-            scriptStorage = storage ?? throw new ArgumentNullException(nameof(storage));
-        }
-
-
-        /// <summary>
         /// 新しい翻訳単位コンテキストをプッシュします。翻訳単位コンテキストがプッシュされた場合は現在の翻訳単位コンテキストの参照も変わります。
         /// </summary>
         /// <param name="context">プッシュする翻訳単位コンテキスト</param>

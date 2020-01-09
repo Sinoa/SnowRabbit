@@ -246,6 +246,10 @@
 
 */
 
+using SnowRabbit.Compiler.IO;
+using SnowRabbit.Compiler.Lexer;
+using SnowRabbit.Compiler.Parser.SyntaxNodes;
+
 namespace SnowRabbit.Compiler.Parser
 {
     /// <summary>
@@ -253,5 +257,29 @@ namespace SnowRabbit.Compiler.Parser
     /// </summary>
     public class SrParser
     {
+        private readonly ISrScriptStorage scriptStorage;
+        private GlobalCompileContext compileContext;
+
+
+
+        public SrParser(ISrScriptStorage storage)
+        {
+            scriptStorage = storage;
+            compileContext = new GlobalCompileContext();
+        }
+
+
+        public void Compile(string scriptName)
+        {
+            var stream = scriptStorage.OpenRead(scriptName);
+            var lexer = new SrLexer();
+            lexer.Reset(stream);
+            var localContext = new LocalCompileContext(lexer, compileContext);
+            compileContext.PushCompileUnitContext(localContext);
+
+
+            localContext.Lexer.ReadNextToken();
+            var rootNode = CompileUnitSyntaxNode.Create(localContext);
+        }
     }
 }
