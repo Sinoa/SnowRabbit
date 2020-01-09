@@ -19,9 +19,9 @@ using SnowRabbit.Compiler.Parser.SyntaxErrors;
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// スクリプト関数定義構文を表す構文ノードクラスです
+    /// 引数構文を表す構文ノードクラスです
     /// </summary>
-    public class FunctionDeclareSyntaxNode : SyntaxNode
+    public class ArgumentSyntaxNode : SyntaxNode
     {
         /// <summary>
         /// この構文ノードが対応する構文ノードを生成します
@@ -34,30 +34,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             ref var token = ref context.Lexer.LastReadToken;
 
 
-            // function で始まっていないのなら生成出来ない
-            if (token.Kind != SrTokenKind.Function) return null;
+            // non_void_types <identifier> を解析する
+            var argument = new ArgumentSyntaxNode();
+            CheckSyntaxAndAddNode(NonVoidTypesSyntaxNode.Create(context), argument, context);
+            CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), argument, context);
 
 
-            // types <identifier> '(' [argument_list] ')' { block } 'end' を解析する
-            var functionDeclare = new FunctionDeclareSyntaxNode();
-            context.Lexer.ReadNextToken();
-            CheckSyntaxAndAddNode(TypesSyntaxNode.Create(context), functionDeclare, context);
-            CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), functionDeclare, context);
-            CheckTokenAndReadNext(TokenKind.OpenParen, context);
-            CheckSyntaxAndAddNode(ArgumentListSyntaxNode.Create(context), functionDeclare, context);
-            CheckTokenAndReadNext(TokenKind.CloseParen, context);
-
-
-            // end が来るまでループ
-            while (token.Kind != SrTokenKind.End)
-            {
-                // ブロック構文ノードの生成
-                CheckSyntaxAndAddNode(BlockSyntaxNode.Create(context), functionDeclare, context);
-            }
-
-
-            // 自身を返す
-            return functionDeclare;
+            // 結果を返す
+            return argument;
         }
 
 
@@ -80,27 +64,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             // null でないなら素直に追加
             parentNode.Add(node);
-        }
-
-
-        /// <summary>
-        /// 該当のトークンが登場しているかチェックして問題がなければ次のトークンを読み込みます
-        /// </summary>
-        /// <param name="tokenKind">チェックするトークン種別</param>
-        /// <param name="context">現在のコンテキスト</param>
-        private static void CheckTokenAndReadNext(int tokenKind, LocalCompileContext context)
-        {
-            // 該当トークンで無いなら
-            ref var token = ref context.Lexer.LastReadToken;
-            if (token.Kind != tokenKind)
-            {
-                // 不明なトークンとしてコンパイルエラーとする
-                context.ThrowSyntaxError(new SrUnknownTokenSyntaxErrorException(ref token));
-            }
-
-
-            // 次のトークンを読み込む
-            context.Lexer.ReadNextToken();
         }
     }
 }
