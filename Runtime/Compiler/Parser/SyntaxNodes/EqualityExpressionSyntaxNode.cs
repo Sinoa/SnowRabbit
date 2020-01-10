@@ -40,7 +40,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             // 次の優先順位の高い式を生成して自身の式に対応するトークンが続く間ループ
             var expression = RelationalExpressionSyntaxNode.Create(context);
-            while (token.Kind == TokenKind.DoubleEqual || token.Kind == TokenKind.ExclamationEqual)
+            while (token.Kind == TokenKind.DoubleEqual || token.Kind == TokenKind.NotEqual)
             {
                 // 実行するべきオペレーションを覚える
                 var operation = token;

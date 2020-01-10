@@ -20,7 +20,8 @@
 ## Compile unit syntax
 
 ### compile_unit
-    : { directive }
+    : { directives }
+    | { constant_define }
     | { peripheral_declare }
     | { global_variable_declare }
     | { function_declare }
@@ -46,21 +47,20 @@
 
 ## Pre-Processor directive syntax
 
-### directive
-    : '#' directives
-
 ### directives
-    : link_object_directive
-    | script_compile_directive
-    | constant_define_directive
-
-### link_object_directive
-    : 'link' <string>
+    : script_compile_directive
+    | link_object_directive
 
 ### script_compile_directive
-    : 'compile' <string>
+    : '#' 'compile' <string>
 
-### constant_define_directive
+### link_object_directive
+    : '#' 'link' <string>
+
+
+## Constant define syntax
+
+### constant_define
     : 'const' constant_types <identifier> constant_value
 
 ### constant_types
@@ -72,7 +72,6 @@
     : <integer>
     | <number>
     | <string>
-
 
 ## Peripheral syntax
 
@@ -272,8 +271,7 @@ namespace SnowRabbit.Compiler.Parser
         public void Compile(string scriptName)
         {
             var stream = scriptStorage.OpenRead(scriptName);
-            var lexer = new SrLexer();
-            lexer.Reset(stream);
+            var lexer = new SrLexer(scriptName, stream);
             var localContext = new LocalCompileContext(lexer, compileContext);
             compileContext.PushCompileUnitContext(localContext);
 
