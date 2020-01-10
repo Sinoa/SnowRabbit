@@ -34,6 +34,7 @@ namespace SnowRabbit.Compiler.Lexer
         // メンバ変数定義
         private bool disposed;
         private bool leaveOpen;
+        private string name;
         private Dictionary<string, int> keywordTable;
         private TextReader reader;
         private StringBuilder tokenReadBuffer;
@@ -60,14 +61,7 @@ namespace SnowRabbit.Compiler.Lexer
         /// <summary>
         /// 最後に読み込んだトークンの参照を取得します
         /// </summary>
-        public ref Token LastReadToken
-        {
-            get
-            {
-                // 最後に読み込んだトークンの参照を返す
-                return ref lastReadToken;
-            }
-        }
+        public ref Token LastReadToken => ref lastReadToken;
         #endregion
 
 
@@ -76,17 +70,9 @@ namespace SnowRabbit.Compiler.Lexer
         /// <summary>
         /// TokenReader クラスのインスタンスを初期化します
         /// </summary>
-        protected TokenReader() : this(TextReader.Null, true)
-        {
-        }
-
-
-        /// <summary>
-        /// TokenReader クラスのインスタンスを初期化します
-        /// </summary>
         /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
         /// <exception cref="ArgumentNullException">textReader が null です</exception>
-        protected TokenReader(TextReader textReader) : this(textReader, false)
+        protected TokenReader(string name, TextReader textReader) : this(name, textReader, false)
         {
         }
 
@@ -97,10 +83,28 @@ namespace SnowRabbit.Compiler.Lexer
         /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
         /// <param name="leaveOpen">このインスタンスが破棄される時に textReader を開いたままにする場合は true を、閉じる場合は false</param>
         /// <exception cref="ArgumentNullException">textReader が null です</exception>
-        protected TokenReader(TextReader textReader, bool leaveOpen)
+        protected TokenReader(string name, TextReader textReader, bool leaveOpen)
         {
-            // 状態リセットを呼ぶ
-            Reset(textReader, leaveOpen);
+            // リーダーインスタンスを生成して書くメンバ変数の初期化
+            reader = textReader ?? throw new ArgumentNullException(nameof(textReader));
+            tokenReadBuffer = new StringBuilder();
+            lastReadChara = ' ';
+            currentLineNumber = 1;
+            currentColumnNumber = 0;
+            lastReadToken = new Token(TokenKind.Unknown, null, 0, 0.0, name, currentLineNumber, currentColumnNumber);
+            this.leaveOpen = leaveOpen;
+            this.name = name;
+
+
+            // キーワードテーブルを取得するが、失敗したら
+            var myType = GetType();
+            if (!KeywordTableTable.TryGetValue(myType, out keywordTable))
+            {
+                // 新しくトークンテーブルを生成してトークンの追加を行いトークンテーブルを登録する
+                keywordTable = CreateDefaultTokenTable();
+                SetupToken(keywordTable);
+                KeywordTableTable[myType] = keywordTable;
+            }
         }
 
 
@@ -139,79 +143,16 @@ namespace SnowRabbit.Compiler.Lexer
             }
 
 
-            // マネージド解放なら
-            if (disposing)
+            // マネージド解放 かつ leaveOpen が false なら
+            if (disposing && !leaveOpen)
             {
-                // leaveOpen が false なら
-                if (!leaveOpen)
-                {
-                    // リーダーの解放をする
-                    reader.Dispose();
-                }
+                // リーダーの解放をする
+                reader.Dispose();
             }
 
 
             // 破棄済みをマーク
             disposed = true;
-        }
-
-
-        /// <summary>
-        /// TokenReader のインスタンス状態をリセットします。
-        /// これにより、新たにインスタンスを生成しなくても、トークンの再取得が可能になります。
-        /// </summary>
-        /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
-        /// <exception cref="ArgumentNullException">textReader が null です</exception>
-        public void Reset(TextReader textReader)
-        {
-            // textReaderを閉じるようにリセットをする
-            Reset(textReader, false);
-        }
-
-
-        /// <summary>
-        /// TokenReader のインスタンス状態をリセットします。
-        /// これにより、新たにインスタンスを生成しなくても、トークンの再取得が可能になります。
-        /// </summary>
-        /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
-        /// <param name="leaveOpen">このインスタンスが破棄される時に textReader を開いたままにする場合は true を、閉じる場合は false</param>
-        /// <exception cref="ArgumentNullException">textReader が null です</exception>
-        public void Reset(TextReader textReader, bool leaveOpen)
-        {
-            // 既に以前のテキストリーダーが存在しかつ現在の leaveOpen が false なら
-            if (reader != null && !this.leaveOpen)
-            {
-                // 現在持っているリーダーのDisposeを呼ぶ
-                reader.Dispose();
-            }
-
-
-            // リーダーインスタンスを生成して書くメンバ変数の初期化
-            reader = textReader ?? throw new ArgumentNullException(nameof(textReader));
-            tokenReadBuffer ??= new StringBuilder();
-            lastReadChara = ' ';
-            currentLineNumber = 1;
-            currentColumnNumber = 0;
-            lastReadToken = new Token(TokenKind.Unknown, string.Empty, 0, 0.0, 0, 0);
-            this.leaveOpen = leaveOpen;
-
-
-            // バッファのクリア
-            tokenReadBuffer.Clear();
-
-
-            // キーワードテーブルを取得するが、失敗したら
-            var myType = GetType();
-            if (!KeywordTableTable.TryGetValue(myType, out keywordTable))
-            {
-                // 新しくトークンテーブルを生成してトークンの追加を行う
-                keywordTable = CreateDefaultTokenTable();
-                SetupToken(keywordTable);
-
-
-                // トークンテーブルの登録
-                KeywordTableTable[myType] = keywordTable;
-            }
         }
 
 
@@ -225,22 +166,54 @@ namespace SnowRabbit.Compiler.Lexer
             return new Dictionary<string, int>()
             {
                 // 単独記号
-                { "(", TokenKind.OpenParen }, { ")", TokenKind.CloseParen }, { "<", TokenKind.OpenAngle }, { ">", TokenKind.CloseAngle },
-                { "[", TokenKind.OpenBracket }, { "]", TokenKind.CloseBracket }, { "{", TokenKind.OpenBrace }, { "}", TokenKind.CloseBrace },
-                { ":", TokenKind.Colon }, { ";", TokenKind.Semicolon }, { "#", TokenKind.Sharp }, { ",", TokenKind.Comma }, { ".", TokenKind.Period },
-                { "=", TokenKind.Equal }, { "+", TokenKind.Plus }, { "-", TokenKind.Minus }, { "*", TokenKind.Asterisk }, { "/", TokenKind.Slash },
-                { "%", TokenKind.Percent }, { "!", TokenKind.Exclamation }, { "?", TokenKind.Question }, { "|", TokenKind.Verticalbar },
-                { "&", TokenKind.And }, { "$", TokenKind.Dollar }, { "^", TokenKind.Circumflex }, { "~", TokenKind.Tilde }, { "@", TokenKind.AtSign },
+                { "(", TokenKind.OpenParen },
+                { ")", TokenKind.CloseParen },
+                { "<", TokenKind.OpenAngle },
+                { ">", TokenKind.CloseAngle },
+                { "[", TokenKind.OpenBracket },
+                { "]", TokenKind.CloseBracket },
+                { "{", TokenKind.OpenBrace },
+                { "}", TokenKind.CloseBrace },
+                { ":", TokenKind.Colon },
+                { ";", TokenKind.Semicolon },
+                { "#", TokenKind.Sharp },
+                { ",", TokenKind.Comma },
+                { ".", TokenKind.Period },
+                { "=", TokenKind.Equal },
+                { "+", TokenKind.Plus },
+                { "-", TokenKind.Minus },
+                { "*", TokenKind.Asterisk },
+                { "/", TokenKind.Slash },
+                { "%", TokenKind.Percent },
+                { "!", TokenKind.Exclamation },
+                { "?", TokenKind.Question },
+                { "|", TokenKind.Verticalbar },
+                { "&", TokenKind.And },
+                { "$", TokenKind.Dollar },
+                { "^", TokenKind.Circumflex },
+                { "~", TokenKind.Tilde },
+                { "@", TokenKind.AtSign },
 
                 // 二重記号
-                { "==", TokenKind.DoubleEqual }, { "!=", TokenKind.NotEqual },
-                { "<=", TokenKind.LesserEqual }, { ">=", TokenKind.GreaterEqual },
-                { "+=", TokenKind.PlusEqual }, { "-=", TokenKind.MinusEqual },
-                { "*=", TokenKind.AsteriskEqual }, { "/=", TokenKind.SlashEqual },
-                { "->", TokenKind.RightArrow }, { "<-", TokenKind.LeftArrow },
-                { "&&", TokenKind.DoubleAnd }, { "||", TokenKind.DoubleVerticalbar },
-                { "<<", TokenKind.DoubleOpenAngle }, { ">>", TokenKind.DoubleCloseAngle },
-                { "++", TokenKind.DoublePlus }, { "--", TokenKind.DoubleMinus },
+                { "==", TokenKind.DoubleEqual },
+                { "!=", TokenKind.NotEqual },
+                { "<=", TokenKind.LesserEqual },
+                { ">=", TokenKind.GreaterEqual },
+                { "+=", TokenKind.PlusEqual },
+                { "-=", TokenKind.MinusEqual },
+                { "*=", TokenKind.AsteriskEqual },
+                { "/=", TokenKind.SlashEqual },
+                { "&=", TokenKind.AndEqual },
+                { "|=", TokenKind.VerticalbarEqual },
+                { "^=", TokenKind.CircumflexEqual },
+                { "->", TokenKind.RightArrow },
+                { "<-", TokenKind.LeftArrow },
+                { "&&", TokenKind.DoubleAnd },
+                { "||", TokenKind.DoubleVerticalbar },
+                { "<<", TokenKind.DoubleOpenAngle },
+                { ">>", TokenKind.DoubleCloseAngle },
+                { "++", TokenKind.DoublePlus },
+                { "--", TokenKind.DoubleMinus },
             };
         }
 
@@ -295,7 +268,7 @@ namespace SnowRabbit.Compiler.Lexer
             if (readChara == EndOfStream)
             {
                 // 読み切ったトークンを設定してfalseを返す
-                token = new Token(TokenKind.EndOfToken, string.Empty, 0, 0.0, currentLineNumber, currentColumnNumber);
+                token = new Token(TokenKind.EndOfToken, string.Empty, 0, 0.0, name, currentLineNumber, currentColumnNumber);
                 lastReadToken = token;
                 return false;
             }
@@ -445,7 +418,7 @@ namespace SnowRabbit.Compiler.Lexer
                 if (!(char.IsDigit((char)readChara) || ('A' <= readChara && readChara <= 'F') || ('a' <= readChara && readChara <= 'f')))
                 {
                     // 何をしたいのか整数トークンとして解釈出来ない事を初期化する
-                    token = new Token(TokenKind.Unknown, $"16進数は最低でも1桁以上の入力が必要です '{tokenReadBuffer.ToString()}'", 0, 0.0, startLineNumber, startColumnNumber);
+                    token = new Token(TokenKind.Unknown, $"16進数は最低でも1桁以上の入力が必要です '{tokenReadBuffer.ToString()}'", 0, 0.0, name, startLineNumber, startColumnNumber);
                     return;
                 }
 
@@ -489,7 +462,7 @@ namespace SnowRabbit.Compiler.Lexer
 
 
                 // 整数トークンとして初期化をする（トークン文字列は16進数の文字列を入れる）
-                token = new Token(TokenKind.Integer, tokenReadBuffer.ToString(), result, 0.0, startLineNumber, startColumnNumber);
+                token = new Token(TokenKind.Integer, tokenReadBuffer.ToString(), result, result, name, startLineNumber, startColumnNumber);
                 return;
             }
 
@@ -498,7 +471,7 @@ namespace SnowRabbit.Compiler.Lexer
             if (readChara != '.')
             {
                 // そのまま整数トークンとして初期化をする
-                token = new Token(TokenKind.Integer, result.ToString(), result, 0.0, startLineNumber, startColumnNumber);
+                token = new Token(TokenKind.Integer, result.ToString(), result, result, name, startLineNumber, startColumnNumber);
                 return;
             }
 
@@ -512,7 +485,7 @@ namespace SnowRabbit.Compiler.Lexer
             if (!char.IsDigit((char)readChara))
             {
                 // どういうトークンなのかが不明になった
-                token = new Token(TokenKind.Unknown, $"実数はピリオドのみで終了することは出来ません '{tokenReadBuffer.ToString()}'", 0, 0.0, startLineNumber, startColumnNumber);
+                token = new Token(TokenKind.Unknown, $"実数はピリオドのみで終了することは出来ません '{tokenReadBuffer.ToString()}'", 0, 0.0, name, startLineNumber, startColumnNumber);
                 return;
             }
 
@@ -528,7 +501,7 @@ namespace SnowRabbit.Compiler.Lexer
 
             // 浮動小数点は素直にパースして実数トークンとして初期化をする（整数部は整数値を入れておく）
             var number = double.Parse(tokenReadBuffer.ToString());
-            token = new Token(TokenKind.Number, number.ToString(), result, number, startLineNumber, startColumnNumber);
+            token = new Token(TokenKind.Number, number.ToString(), result, number, name, startLineNumber, startColumnNumber);
         }
 
 
@@ -568,7 +541,7 @@ namespace SnowRabbit.Compiler.Lexer
 
 
             // 得られたトークン種別を用いて初期化する
-            token = new Token(kind, text, 0, 0.0, startLineNumber, startColumnNumber);
+            token = new Token(kind, text, 0, 0.0, name, startLineNumber, startColumnNumber);
         }
 
 
@@ -606,7 +579,7 @@ namespace SnowRabbit.Compiler.Lexer
 
                         // 上記以外の文字が来たら無効なエスケープ文字としてトークンを設定して終了
                         default:
-                            token = new Token(TokenKind.Unknown, $"無効なエスケープ文字 '{(char)readChara}' です", 0, 0.0, currentLineNumber, currentColumnNumber);
+                            token = new Token(TokenKind.Unknown, $"無効なエスケープ文字 '{(char)readChara}' です", 0, 0.0, name, currentLineNumber, currentColumnNumber);
                             return;
                     }
 
@@ -621,7 +594,7 @@ namespace SnowRabbit.Compiler.Lexer
                 if (readChara == EndOfStream)
                 {
                     // 無効な文字列設定として終了
-                    token = new Token(TokenKind.Unknown, "文字列が正しく終了していません", 0, 0.0, currentLineNumber, currentColumnNumber);
+                    token = new Token(TokenKind.Unknown, "文字列が正しく終了していません", 0, 0.0, name, currentLineNumber, currentColumnNumber);
                     return;
                 }
 
@@ -633,7 +606,7 @@ namespace SnowRabbit.Compiler.Lexer
 
 
             // 文字列トークンを生成して次の文字を読み取っておく
-            token = new Token(TokenKind.String, tokenReadBuffer.ToString(), 0, 0.0, startLineNumber, startColumnNumber);
+            token = new Token(TokenKind.String, tokenReadBuffer.ToString(), 0, 0.0, name, startLineNumber, startColumnNumber);
             ReadNextChara();
         }
 
@@ -649,7 +622,7 @@ namespace SnowRabbit.Compiler.Lexer
             if (firstChara == '\n')
             {
                 // ラインフィールドは無条件で行末トークンとして生成して次の文字を読み込む
-                token = new Token(TokenKind.EndOfLine, string.Empty, 0, 0.0, currentLineNumber, currentColumnNumber);
+                token = new Token(TokenKind.EndOfLine, string.Empty, 0, 0.0, name, currentLineNumber, currentColumnNumber);
                 ReadNextChara();
                 return;
             }
@@ -695,7 +668,7 @@ namespace SnowRabbit.Compiler.Lexer
 
 
             // 取得された種類と文字列でトークンを生成する
-            token = new Token(kind, tokenText, 0, 0.0, startLineNumber, startColumnNumber);
+            token = new Token(kind, tokenText, 0, 0.0, name, startLineNumber, startColumnNumber);
         }
         #endregion
 

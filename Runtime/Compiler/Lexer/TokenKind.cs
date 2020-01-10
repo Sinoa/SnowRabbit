@@ -24,7 +24,7 @@ namespace SnowRabbit.Compiler.Lexer
     /// </remarks>
     public abstract class TokenKind
     {
-        #region Special
+        #region Special [0 - -99]
         /// <summary>
         /// 追加のトークン定義を行うためのオフセット
         /// </summary>
@@ -47,7 +47,7 @@ namespace SnowRabbit.Compiler.Lexer
         public const int EndOfLine = -2;
         #endregion
 
-        #region Typical
+        #region Typical [-100 - -499]
         /// <summary>
         /// 識別子
         /// identifier | hogemoge | _identifier | hoge123
@@ -73,7 +73,7 @@ namespace SnowRabbit.Compiler.Lexer
         public const int Number = -103;
         #endregion
 
-        #region SingleSymbol
+        #region SingleSymbol [-500 - -599]
         /// <summary>
         /// オープンパーレン
         /// (
@@ -237,7 +237,7 @@ namespace SnowRabbit.Compiler.Lexer
         public const int AtSign = -526;
         #endregion
 
-        #region DoubleSymbol
+        #region DoubleSymbol [-600 - -699]
         /// <summary>
         /// ダブルイコール
         /// ==
@@ -303,12 +303,6 @@ namespace SnowRabbit.Compiler.Lexer
         /// ^=
         /// </summary>
         public const int CircumflexEqual = -610;
-
-        /// <summary>
-        /// エクスクラメーションイコール
-        /// !=
-        /// </summary>
-        public const int ExclamationEqual = -611;
 
         /// <summary>
         /// 右矢印

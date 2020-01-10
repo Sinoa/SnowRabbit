@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System.Collections.Generic;
+using System.IO;
 
 namespace SnowRabbit.Compiler.Lexer
 {
@@ -22,6 +23,16 @@ namespace SnowRabbit.Compiler.Lexer
     /// </summary>
     public class SrLexer : TokenReader
     {
+        /// <summary>
+        /// SrLexer クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="name">レキサの名前</param>
+        /// <param name="reader">字句解析に用いるテキストリーダー</param>
+        public SrLexer(string name, TextReader reader) : base(name, reader)
+        {
+        }
+
+
         /// <summary>
         /// Carrot スクリプトで使用するトークンをセットアップします
         /// </summary>

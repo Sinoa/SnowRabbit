@@ -43,6 +43,11 @@ namespace SnowRabbit.Compiler.Lexer
         public readonly double Number;
 
         /// <summary>
+        /// トークンを取り出したトークンリーダーの名前
+        /// </summary>
+        public readonly string ReaderName;
+
+        /// <summary>
         /// トークンが現れた行番号
         /// </summary>
         public readonly int LineNumber;
@@ -61,15 +66,17 @@ namespace SnowRabbit.Compiler.Lexer
         /// <param name="text">トークン文字列</param>
         /// <param name="integer">トークン整数</param>
         /// <param name="number">トークン実数</param>
+        /// <param name="readerName">このトークンを作り出したリーダー名</param>
         /// <param name="lineNumber">出現行番号</param>
         /// <param name="columnNumber">出現列番号</param>
-        public Token(int kind, string text, long integer, double number, int lineNumber, int columnNumber)
+        public Token(int kind, string text, long integer, double number, string readerName, int lineNumber, int columnNumber)
         {
             // 各種メンバ変数の初期化
             Kind = kind;
             Text = text;
             Integer = integer;
             Number = number;
+            ReaderName = readerName;
             LineNumber = lineNumber;
             ColumnNumber = columnNumber;
         }
@@ -85,6 +92,7 @@ namespace SnowRabbit.Compiler.Lexer
             Text == other.Text &&
             Integer == other.Integer &&
             Number == other.Number &&
+            ReaderName == other.ReaderName &&
             LineNumber == other.LineNumber &&
             ColumnNumber == other.ColumnNumber;
 
