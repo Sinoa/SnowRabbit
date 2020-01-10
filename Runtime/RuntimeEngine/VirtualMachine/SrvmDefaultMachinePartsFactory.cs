@@ -1,6 +1,6 @@
 ﻿// zlib/libpng License
 //
-// Copyright(c) 2019 Sinoa
+// Copyright(c) 2019 - 2020 Sinoa
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -16,47 +16,51 @@
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
 {
     /// <summary>
-    /// 仮想マシンが使用する各種マシンパーツクラスを生成するファクトリ抽象クラスです
+    /// SnowRabbit が提供する既定マシンパーツ生成クラスです
     /// </summary>
-    public abstract class SrvmMachinePartsFactory
+    internal class SrvmDefaultMachinePartsFactory : SrvmMachinePartsFactory
     {
-        // クラス変数宣言
-        private readonly static SrvmDefaultMachinePartsFactory defaultFactory = new SrvmDefaultMachinePartsFactory();
-
-
-
         /// <summary>
-        /// 既定のマシンパーツファクトリを取得します
+        /// ファームウェアを生成します
         /// </summary>
-        public static SrvmMachinePartsFactory Default => defaultFactory;
-
-
-
-        /// <summary>
-        /// プロセッサを生成します
-        /// </summary>
-        /// <returns>生成したプロセッサを返します</returns>
-        public abstract SrvmProcessor CreateProcessor();
+        /// <returns>生成したファームウェアを返します</returns>
+        public override SrvmFirmware CreateFirmware()
+        {
+            // 何も装飾しないファームウェアインスタンスを生成して返す
+            return new SrvmFirmware();
+        }
 
 
         /// <summary>
         /// メモリを生成します
         /// </summary>
         /// <returns>生成したメモリを返します</returns>
-        public abstract SrvmMemory CreateMemory();
+        public override SrvmMemory CreateMemory()
+        {
+            // 何も装飾しないメモリインスタンスを生成して返す
+            return new SrvmMemory();
+        }
 
 
         /// <summary>
-        /// ファームウェアを生成します
+        /// プロセッサを生成します
         /// </summary>
-        /// <returns>生成したファームウェアを返します</returns>
-        public abstract SrvmFirmware CreateFirmware();
+        /// <returns>生成したプロセッサを返します</returns>
+        public override SrvmProcessor CreateProcessor()
+        {
+            // 何も装飾しないプロセッサインスタンスを生成して返す
+            return new SrvmProcessor();
+        }
 
 
         /// <summary>
         /// ストレージを生成します
         /// </summary>
         /// <returns>生成したストレージを返します</returns>
-        public abstract SrvmStorage CreateStorage();
+        public override SrvmStorage CreateStorage()
+        {
+            // ファイルシステムストレージを生成して返す
+            return new SrvmFileSystemStorage();
+        }
     }
 }
