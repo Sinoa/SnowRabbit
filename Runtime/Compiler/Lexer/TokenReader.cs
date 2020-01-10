@@ -33,19 +33,25 @@ namespace SnowRabbit.Compiler.Lexer
 
         // メンバ変数定義
         private bool disposed;
-        private bool leaveOpen;
-        private string name;
-        private Dictionary<string, int> keywordTable;
-        private TextReader reader;
-        private StringBuilder tokenReadBuffer;
-        private int lastReadChara;
+        private readonly bool leaveOpen;
+        private readonly string name;
+        private readonly Dictionary<string, int> keywordTable;
+        private readonly TextReader reader;
+        private readonly StringBuilder tokenReadBuffer;
         private int currentLineNumber;
         private int currentColumnNumber;
+        private int lastReadChara;
         private Token lastReadToken;
 
 
 
         #region property
+        /// <summary>
+        /// 現在使用しているトークンリーダーの名前
+        /// </summary>
+        public string Name => name;
+
+
         /// <summary>
         /// ラインフィールド改行コードをトークンとして認めるかどうか
         /// </summary>
