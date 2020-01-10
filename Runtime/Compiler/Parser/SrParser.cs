@@ -17,26 +17,17 @@
 
 # 雪兎のスクリプト構文
 
-## Compile unit syntax
+## Simple syntax
 
-### compile_unit
-    : { directives }
-    | { constant_define }
-    | { peripheral_declare }
-    | { global_variable_declare }
-    | { function_declare }
+### literal
+    : <integer>
+    | <number>
+    | <string>
+    | 'true'
+    | 'false'
+    | 'null'
 
-
-## Common syntax
-
-### non_void_types
-    : 'int'
-    | 'number'
-    | 'string'
-    | 'object'
-    | 'bool'
-
-### types
+### type
     : 'void'
     | 'int'
     | 'number'
@@ -44,12 +35,39 @@
     | 'object'
     | 'bool'
 
+### parameter
+    : type <identifier>
+
+### argument
+    : expression
+
+### type_list
+    : type { ',' type }
+
+### parameter_list
+    : parameter { ',' parameter }
+
+### argument_list
+    : argument { ',' argument }
+
+
+
+## Compile unit syntax
+
+### compile_unit
+    : { directives }
+    | { peripheral_declare }
+    | { global_variable_declare }
+    | { function_declare }
+
+
 
 ## Pre-Processor directive syntax
 
 ### directives
     : script_compile_directive
     | link_object_directive
+    | constant_define_directive
 
 ### script_compile_directive
     : '#' 'compile' <string>
@@ -57,46 +75,25 @@
 ### link_object_directive
     : '#' 'link' <string>
 
+### constant_define_directive
+    : '#' 'const' <identifier> literal
 
-## Constant define syntax
 
-### constant_define
-    : 'const' constant_types <identifier> constant_value
 
-### constant_types
-    : 'int'
-    | 'number'
-    | 'string'
-
-### constant_value
-    : <integer>
-    | <number>
-    | <string>
-
-## Peripheral syntax
+## Define and Declare syntax
 
 ### peripheral_declare
-    : 'using' <identifier> '=' types <identifier> '.' <identifier> '(' [type_list] ')' ';' 
-
-### type_list
-    : non_void_types { ',' non_void_types }
-
-
-## GlobalVariable syntax
+    : 'using' <identifier> '=' type <identifier> '.' <identifier> '(' [type_list] ')' ';' 
 
 ### global_variable_declare
-    : 'global' non_void_types <identifier> ';'
+    : 'global' type <identifier> [ '=' literal ] ';'
 
-## Function declare syntax
+### local_variable_declare
+    : 'local' type <identifier> [ '=' expression ] ';'
 
 ### function_declare
-    : 'function' types <identifier> '(' [argument_list] ')' { block } 'end'
+    : 'function' type <identifier> '(' [parameter_list] ')' { block } 'end'
 
-### argument_list
-    : argument { ',' argument }
-
-### argument
-    : non_void_types <identifier>
 
 
 ## Block syntax
@@ -106,7 +103,7 @@
 
 ### statement
     : ';'
-    | local_var_declare
+    | local_variable_declare
     | for_statement
     | while_statement
     | if_statement
@@ -115,40 +112,25 @@
     | expression ';'
 
 
-## LocalVariable declare syntax
 
-### local_var_declare
-    : 'local' non_void_types <identifier> [ '=' expression ] ';'
-
-
-## For statement syntax
+## Statement syntax
 
 ### for_statement
-    : 'for' '(' [expression] ';' [expression] ';' [expression] ')' { block } 'end'
-
-
-## While statement syntax
+    : 'for' '(' [ expression ] ';' [ expression ] ';' [ expression ] ')' { block } 'end'
 
 ### while_statement
     : 'while' '(' expression ')' { block } 'end'
 
-
-## If statement syntax
-
 ### if_statement
-    : 'if' '(' expression ')' { block } { 'else' 'if' '(' if_condition ')' { block } } 'end'
-
-
-## Break statement syntax
+    : 'if' '(' expression ')' { block } 'end'
+    | 'if' '(' expression ')' { block } 'else' { block } 'end'
 
 ### break_statement
     : 'break' ';'
 
-
-## Return statement syntax
-
 ### return_statement
-    : 'return' [expression] ';'
+    : 'return' [ expression ] ';'
+
 
 
 ## Expression syntax
@@ -158,34 +140,34 @@
 
 ### assignment_expression
     : condition_or_expression
-    | assignment_expression '=' condition_or_expression
-    | assignment_expression '+=' condition_or_expression
-    | assignment_expression '-=' condition_or_expression
-    | assignment_expression '*=' condition_or_expression
-    | assignment_expression '/=' condition_or_expression
-    | assignment_expression '&=' condition_or_expression
-    | assignment_expression '|=' condition_or_expression
-    | assignment_expression '^=' condition_or_expression
+    | assignment_expression { '=' condition_or_expression }
+    | assignment_expression { '+=' condition_or_expression }
+    | assignment_expression { '-=' condition_or_expression }
+    | assignment_expression { '*=' condition_or_expression }
+    | assignment_expression { '/=' condition_or_expression }
+    | assignment_expression { '&=' condition_or_expression }
+    | assignment_expression { '|=' condition_or_expression }
+    | assignment_expression { '^=' condition_or_expression }
 
 ### condition_or_expression
     : condition_and_expression
     | condition_or_expression { '||' condition_and_expression }
 
 ### condition_and_expression
-    : or_expression
-    | condition_and_expression { '&&' or_expression }
+    : logical_or_expression
+    | condition_and_expression { '&&' logical_or_expression }
 
-### or_expression
-    : exclusive_or_expression
-    | or_expression { '|' exclusive_or_expression }
+### logical_or_expression
+    : logical_exclusive_or_expression
+    | logical_or_expression { '|' logical_exclusive_or_expression }
 
-### exclusive_or_expression
-    : and_expression
-    | exclusive_or_expression { '^' and_expression }
+### logical_exclusive_or_expression
+    : logical_and_expression
+    | logical_exclusive_or_expression { '^' logical_and_expression }
 
-### and_expression
+### logical_and_expression
     : equality_expression
-    | and_expression { '&' equality_expression }
+    | logical_and_expression { '&' equality_expression }
 
 ### equality_expression
     : relational_expression
@@ -222,26 +204,15 @@
 
 ### function_call
     : primary_expression
-    | primary_expression '(' [parameter_list] ')'
+    | primary_expression '(' [ argument_list ] ')'
 
 ### primary_expression
     : literal
     | <identifier>
     | paren_expression
 
-### literal
-    : <integer>
-    | <number>
-    | <string>
-    | 'true'
-    | 'false'
-    | 'null'
-
 ### paren_expression
     : '(' expression ')'
-
-### parameter_list
-    : expression { ',' expression }
 
 */
 
