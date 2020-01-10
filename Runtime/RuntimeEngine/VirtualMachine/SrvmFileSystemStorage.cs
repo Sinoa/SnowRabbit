@@ -24,23 +24,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
     /// </summary>
     public class SrvmFileSystemStorage : SrvmStorage
     {
-        // メンバ変数定義
-        private readonly DirectoryInfo mountDirectoryInfo;
-
-
-
-        /// <summary>
-        /// SrvmFileSystemStorage クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="mountDirectoryInfo">ストレージを割り当てるファイルシステムのマウント位置を指したディレクトリ情報</param>
-        public SrvmFileSystemStorage(DirectoryInfo mountDirectoryInfo)
-        {
-            // マウント位置として指定されたディレクトリ情報を受け取る
-            this.mountDirectoryInfo = mountDirectoryInfo ?? throw new ArgumentNullException(nameof(mountDirectoryInfo));
-            SrLogger.Trace(SharedString.LogTag.SR_VM_FS_STORAGE, $"Startup '{mountDirectoryInfo.FullName}'.");
-        }
-
-
         /// <summary>
         /// 指定されたパスのファイルをストリームとして開きます
         /// </summary>
@@ -57,28 +40,17 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             }
 
 
-            // ディレクトリ情報を更新してもディレクトリが存在しないなら
-            mountDirectoryInfo.Refresh();
-            if (!mountDirectoryInfo.Exists)
-            {
-                // エラーログ吐いてnullを返す
-                SrLogger.Error(SharedString.LogTag.SR_VM_FS_STORAGE, $"Mount target directory not found.");
-                return null;
-            }
-
-
             // 指定されたファイルパスにファイルが存在しないなら
-            var fullPath = Path.Combine(mountDirectoryInfo.FullName, path);
-            if (!File.Exists(fullPath))
+            if (!File.Exists(path))
             {
                 // エラーログ吐いてnullを返す
-                SrLogger.Error(SharedString.LogTag.SR_VM_FS_STORAGE, $"File '{fullPath}' not found.");
+                SrLogger.Error(SharedString.LogTag.SR_VM_FS_STORAGE, $"File '{path}' not found.");
                 return null;
             }
 
 
             // 存在しているなら16KBバッファでファイルを開く（16KBバッファは iOS 向けの小さく僅かな対策）
-            return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.None, 16 << 10);
+            return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 16 << 10);
         }
     }
 }
