@@ -343,6 +343,14 @@ namespace SnowRabbit.Compiler.Parser
 
         #region 全パース関数
         #region Simple syntax
+        private SyntaxNode ParseIdentifier()
+        {
+            if (!CheckToken(TokenKind.Identifier)) return null;
+            GetCurrentTokenAndReadNext(out var token);
+            return new IdentifierSyntaxNode(token);
+        }
+
+
         private SyntaxNode ParseLiteral()
         {
             if (CheckToken(TokenKind.Integer) ||
@@ -381,7 +389,16 @@ namespace SnowRabbit.Compiler.Parser
 
         private SyntaxNode ParseParameter()
         {
-            throw new NotImplementedException();
+            var type = ParseType();
+            if (type == null) return null;
+            var name = ParseIdentifier();
+            if (name == null) return null;
+
+
+            var node = new ParameterSyntaxNode();
+            node.Add(type);
+            node.Add(name);
+            return node;
         }
 
 
