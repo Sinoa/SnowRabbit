@@ -21,13 +21,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// 型構文を表現する構文ノードクラスです
     /// </summary>
-    public class TypesSyntaxNode : SyntaxNode
+    public class TypeSyntaxNode : SyntaxNode
     {
         /// <summary>
         /// TypesSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="token">対応するトークン</param>
-        public TypesSyntaxNode(in Token token) : base(token)
+        public TypeSyntaxNode(in Token token) : base(token)
         {
         }
 
@@ -60,7 +60,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
             // 扱えるならノードを生成してトークンを覚える
-            var types = new TypesSyntaxNode(in token);
+            var types = new TypeSyntaxNode(in token);
             context.Lexer.ReadNextToken();
             return types;
         }

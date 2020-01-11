@@ -43,7 +43,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.Lexer.ReadNextToken();
             peripheralDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
             CheckTokenAndReadNext(TokenKind.Equal, context);
-            peripheralDeclare.CheckSyntaxAndAddNode(TypesSyntaxNode.Create(context), context);
+            peripheralDeclare.CheckSyntaxAndAddNode(TypeSyntaxNode.Create(context), context);
             peripheralDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
             CheckTokenAndReadNext(TokenKind.Period, context);
             peripheralDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);

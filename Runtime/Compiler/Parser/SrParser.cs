@@ -282,6 +282,16 @@ namespace SnowRabbit.Compiler.Parser
 
         #region Utilities
         /// <summary>
+        /// 次のトークンを読み込みます
+        /// </summary>
+        private void ReadNextToken()
+        {
+            // 次のトークンを読み込むだけ
+            currentLexer.ReadNextToken();
+        }
+
+
+        /// <summary>
         /// 指定されたトークンかどうかを調べます
         /// </summary>
         /// <param name="tokenKind">調べるトークン</param>
@@ -305,6 +315,29 @@ namespace SnowRabbit.Compiler.Parser
             currentLexer.ReadNextToken();
             return result;
         }
+
+
+        /// <summary>
+        /// 現在の位置にいるトークンの参照を取得します
+        /// </summary>
+        /// <returns>現在の位置にいるトークンの参照を返します</returns>
+        private ref Token GetCurrentToken()
+        {
+            // 最後に読み取ったトークンの参照を返す
+            return ref currentLexer.LastReadToken;
+        }
+
+
+        /// <summary>
+        /// 現在の位置にいるトークンを取り出して、次のトークンを読み込みます
+        /// </summary>
+        /// <param name="token">取り出したトークンを設定する参照パラメータ</param>
+        private void GetCurrentTokenAndReadNext(out Token token)
+        {
+            // 最後に読み取ったトークンを設定して次のトークンを読み込む
+            token = currentLexer.LastReadToken;
+            currentLexer.ReadNextToken();
+        }
         #endregion
 
 
@@ -312,13 +345,37 @@ namespace SnowRabbit.Compiler.Parser
         #region Simple syntax
         private SyntaxNode ParseLiteral()
         {
-            throw new NotImplementedException();
+            if (CheckToken(TokenKind.Integer) ||
+                CheckToken(TokenKind.Number) ||
+                CheckToken(TokenKind.String) ||
+                CheckToken(SrTokenKind.True) ||
+                CheckToken(SrTokenKind.False) ||
+                CheckToken(SrTokenKind.Null))
+            {
+                GetCurrentTokenAndReadNext(out var token);
+                return new LiteralSyntaxNode(token);
+            }
+
+
+            return null;
         }
 
 
         private SyntaxNode ParseType()
         {
-            throw new NotImplementedException();
+            if (CheckToken(SrTokenKind.TypeVoid) ||
+                CheckToken(SrTokenKind.TypeInt) ||
+                CheckToken(SrTokenKind.TypeNumber) ||
+                CheckToken(SrTokenKind.TypeString) ||
+                CheckToken(SrTokenKind.TypeObject) ||
+                CheckToken(SrTokenKind.TypeBool))
+            {
+                GetCurrentTokenAndReadNext(out var token);
+                return new TypeSyntaxNode(token);
+            }
+
+
+            return null;
         }
 
 

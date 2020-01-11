@@ -41,7 +41,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             // types <identifier> '(' [argument_list] ')' { block } 'end' を解析する
             var functionDeclare = new FunctionDeclareSyntaxNode();
             context.Lexer.ReadNextToken();
-            functionDeclare.CheckSyntaxAndAddNode(TypesSyntaxNode.Create(context), context);
+            functionDeclare.CheckSyntaxAndAddNode(TypeSyntaxNode.Create(context), context);
             functionDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
             CheckTokenAndReadNext(TokenKind.OpenParen, context);
 
