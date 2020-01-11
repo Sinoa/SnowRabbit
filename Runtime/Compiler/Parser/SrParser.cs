@@ -216,6 +216,8 @@
 
 */
 
+using System;
+using System.Collections.Generic;
 using SnowRabbit.Compiler.IO;
 using SnowRabbit.Compiler.Lexer;
 using SnowRabbit.Compiler.Parser.SyntaxNodes;
@@ -223,32 +225,336 @@ using SnowRabbit.Compiler.Parser.SyntaxNodes;
 namespace SnowRabbit.Compiler.Parser
 {
     /// <summary>
-    /// SnowRabbit の構文を解析を行う構文解析クラスです
+    /// SnowRabbit の構文解析を行う構文解析クラスです
     /// </summary>
     public class SrParser
     {
+        // メンバ変数定義
         private readonly ISrScriptStorage scriptStorage;
-        private GlobalCompileContext compileContext;
+        private readonly Stack<SrLexer> lexerStack;
+        private SrLexer currentLexer;
 
 
 
+        #region コンストラクタとAPIインターフェイス
+        /// <summary>
+        /// SrParser クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="storage">構文解析するスクリプトを読み込むストレージ</param>
+        /// <exception cref="ArgumentNullException">storage が null です</exception>
         public SrParser(ISrScriptStorage storage)
         {
-            scriptStorage = storage;
-            compileContext = new GlobalCompileContext();
+            // 諸々初期化する
+            scriptStorage = storage ?? throw new ArgumentNullException(nameof(storage));
+            lexerStack = new Stack<SrLexer>();
         }
 
 
-        public void Compile(string scriptName)
+        /// <summary>
+        /// 指定されたパスにあるスクリプトの構文解析をします。
+        /// </summary>
+        /// <param name="path">構文解析する対象となるスクリプトのパス</param>
+        /// <returns>構文解析された抽象構文木のルートノードを返します</returns>
+        /// <exception cref="ScriptNotFoundException">スクリプト '{path}' が見つけられませんでした。</exception>
+        public SyntaxNode Parse(string path)
         {
-            var stream = scriptStorage.OpenRead(scriptName);
-            var lexer = new SrLexer(scriptName, stream);
-            var localContext = new LocalCompileContext(lexer, compileContext);
-            compileContext.PushCompileUnitContext(localContext);
+            // ストレージからスクリプトを開いてレキサを生成する
+            var textReader = scriptStorage.OpenRead(path);
+            using (var lexer = new SrLexer(path, textReader ?? throw new ScriptNotFoundException(path)))
+            {
+                // 現在処理中のレキサがいるのならスタックに積んでおいて、処理するべきレキサを切り替える
+                if (currentLexer != null) lexerStack.Push(currentLexer);
+                currentLexer = lexer;
 
 
-            localContext.Lexer.ReadNextToken();
-            var rootNode = CompileUnitSyntaxNode.Create(localContext);
+                // レキサに一番最初のトークンを読み込ませて、コンパイル単位の翻訳を始める
+                lexer.ReadNextToken();
+                var rootNode = ParseCompileUnit();
+
+
+                // スタックにレキサが積まれていればポップして処理するべきレキサを戻して、ルートノードを返す
+                currentLexer = lexerStack.Count > 0 ? lexerStack.Pop() : null;
+                return rootNode;
+            }
         }
+        #endregion
+
+
+        #region Utilities
+        /// <summary>
+        /// 指定されたトークンかどうかを調べます
+        /// </summary>
+        /// <param name="tokenKind">調べるトークン</param>
+        /// <returns>指定されたトークンの場合は true を、異なる場合は false を返します</returns>
+        private bool CheckToken(int tokenKind)
+        {
+            // そのまま比較結果を返す
+            return currentLexer.LastReadToken.Kind == tokenKind;
+        }
+
+
+        /// <summary>
+        /// 指定されたトークンかどうかを調べて、さらに次のトークンを読み込みます
+        /// </summary>
+        /// <param name="tokenKind">調べるトークン</param>
+        /// <returns>指定されたトークンの場合は true を、異なる場合は false を返します</returns>
+        private bool CheckTokenAndReadNext(int tokenKind)
+        {
+            // もしトークン比較結果をもらってから次のトークンを読み込む
+            var result = currentLexer.LastReadToken.Kind == tokenKind;
+            currentLexer.ReadNextToken();
+            return result;
+        }
+        #endregion
+
+
+        #region 全パース関数
+        #region Simple syntax
+        private SyntaxNode ParseLiteral()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseType()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseParameter()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseArgument()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseTypeList()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseParameterList()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseArgumentList()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+
+        #region Compile unit syntax
+        private SyntaxNode ParseCompileUnit()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+
+        #region Pre-Processor directive syntax
+        private SyntaxNode ParseDirectives()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseScriptCompileDirective()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseLinkObjectDirective()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseConstantDefineDirective()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+
+        #region Define and Declare syntax
+        private SyntaxNode ParsePeripheralDeclare()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseGlobalVariableDeclare()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseLocalVariableDeclare()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseFunctionDeclare()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+
+        #region Block syntax
+        private SyntaxNode ParseBlock()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseStatement()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+
+        #region Statement syntax
+        private SyntaxNode ParseForStatement()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseWhileStatement()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseIfStatement()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseBreakStatement()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseReturnStatement()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+
+        #region Expression syntax
+        private SyntaxNode ParseExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseAssignmentExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseConditionOrExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseConditionAndExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseLogicalOrExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseLogicalExclusiveOrExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseLogicalAndExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseEqualityExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseRelationalExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseShiftExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseAddSubExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseMulDivExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseUnaryExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseFunctionCall()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParsePrimaryExpression()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private SyntaxNode ParseParenExpression()
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+        #endregion
     }
 }

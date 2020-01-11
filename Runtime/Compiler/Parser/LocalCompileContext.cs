@@ -25,12 +25,6 @@ namespace SnowRabbit.Compiler.Parser
     public class LocalCompileContext
     {
         /// <summary>
-        /// このコンテキストを持つグローバルコンパイルコンテキスト
-        /// </summary>
-        public GlobalCompileContext GlobalCompileContext { get; }
-
-
-        /// <summary>
         /// 使用しているレキサ
         /// </summary>
         public TokenReader Lexer { get; }
@@ -41,13 +35,11 @@ namespace SnowRabbit.Compiler.Parser
         /// LocalCompileContext クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="lexer">この翻訳で使用するレキサ</param>
-        /// <param name="globalCompileContext">このコンテキストを持つグローバルコンパイルコンテキスト</param>
         /// <exception cref="ArgumentNullException">lexer が null です</exception>
         /// <exception cref="ArgumentNullException">globalCompileContext が null です</exception>
-        public LocalCompileContext(TokenReader lexer, GlobalCompileContext globalCompileContext)
+        public LocalCompileContext(TokenReader lexer)
         {
             // 参照を受け取る
-            GlobalCompileContext = globalCompileContext ?? throw new ArgumentNullException(nameof(globalCompileContext));
             Lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
         }
 

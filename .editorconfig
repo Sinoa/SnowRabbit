@@ -11,3 +11,6 @@ csharp_style_var_for_built_in_types = false:none
 
 # IDE0017: オブジェクトの初期化を簡略化します
 dotnet_style_object_initializer = true:none
+
+# IDE0063: 単純な 'using' ステートメントを使用する
+csharp_prefer_simple_using_statement = true:none
