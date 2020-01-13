@@ -404,25 +404,67 @@ namespace SnowRabbit.Compiler.Parser
 
         private SyntaxNode ParseArgument()
         {
-            throw new NotImplementedException();
+            var expression = ParseExpression();
+            if (expression == null) return null;
+
+
+            var argument = new ArgumentSyntaxNode();
+            argument.Add(expression);
+            return argument;
         }
 
 
         private SyntaxNode ParseTypeList()
         {
-            throw new NotImplementedException();
+            var type = ParseType();
+            if (type == null) return null;
+
+
+            var typeList = new TypeListSyntaxNode();
+            typeList.Add(type);
+            while ((type = ParseType()) != null)
+            {
+                typeList.Add(type);
+            }
+
+
+            return typeList;
         }
 
 
         private SyntaxNode ParseParameterList()
         {
-            throw new NotImplementedException();
+            var parameter = ParseParameter();
+            if (parameter == null) return null;
+
+
+            var parameterList = new ParameterListSyntaxNode();
+            parameterList.Add(parameter);
+            while ((parameter = ParseParameter()) != null)
+            {
+                parameterList.Add(parameter);
+            }
+
+
+            return parameterList;
         }
 
 
         private SyntaxNode ParseArgumentList()
         {
-            throw new NotImplementedException();
+            var argument = ParseArgument();
+            if (argument == null) return null;
+
+
+            var argumentList = new ArgumentListSyntaxNode();
+            argumentList.Add(argument);
+            while ((argument = ParseArgument()) != null)
+            {
+                argumentList.Add(argument);
+            }
+
+
+            return argumentList;
         }
         #endregion
 
