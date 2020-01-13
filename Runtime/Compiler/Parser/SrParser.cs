@@ -282,6 +282,17 @@ namespace SnowRabbit.Compiler.Parser
 
         #region Utilities
         /// <summary>
+        /// トークンが最後まで読み込まれたかどうかを調べます
+        /// </summary>
+        /// <returns>最後までトークンが読み込まれた場合は true を、まだ読み込まれていない場合は false を返します</returns>
+        private bool CheckEndOfToken()
+        {
+            // そのままのプロパティ値を返す
+            return currentLexer.EndOfToken;
+        }
+
+
+        /// <summary>
         /// 次のトークンを読み込みます
         /// </summary>
         private void ReadNextToken()
@@ -472,7 +483,23 @@ namespace SnowRabbit.Compiler.Parser
         #region Compile unit syntax
         private SyntaxNode ParseCompileUnit()
         {
-            throw new NotImplementedException();
+            var compileUnit = new CompileUnitSyntaxNode();
+            while (!CheckEndOfToken())
+            {
+                var node =
+                    ParseDirectives() ??
+                    ParsePeripheralDeclare() ??
+                    ParseGlobalVariableDeclare() ??
+                    ParseFunctionDeclare() ??
+                    null;
+
+
+                if (node == null) return null;
+                compileUnit.Add(node);
+            }
+
+
+            return compileUnit.Children.Count > 0 ? compileUnit : null;
         }
         #endregion
 
