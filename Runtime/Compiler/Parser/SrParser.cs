@@ -102,7 +102,7 @@
     : statement
 
 ### statement
-    : ';'
+    : empty_statement
     | local_variable_declare
     | for_statement
     | while_statement
@@ -114,6 +114,9 @@
 
 
 ## Statement syntax
+
+### empty_statement
+    : ';'
 
 ### for_statement
     : 'for' '(' [ expression ] ';' [ expression ] ';' [ expression ] ')' { block } 'end'
@@ -682,18 +685,39 @@ namespace SnowRabbit.Compiler.Parser
         #region Block syntax
         private SyntaxNode ParseBlock()
         {
-            throw new NotImplementedException();
+            return ParseStatement();
         }
 
 
         private SyntaxNode ParseStatement()
         {
-            throw new NotImplementedException();
+            var result =
+                ParseEmptyStatement() ??
+                ParseForStatement() ??
+                ParseWhileStatement() ??
+                ParseIfStatement() ??
+                ParseBreakStatement() ??
+                ParseReturnStatement() ??
+                null;
+            if (result != null) return result;
+
+
+            result = ParseExpression();
+            if (result == null || !CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
+            return result;
         }
         #endregion
 
 
         #region Statement syntax
+        private SyntaxNode ParseEmptyStatement()
+        {
+            if (!CheckToken(TokenKind.Semicolon)) return null;
+            GetCurrentTokenAndReadNext(out var token);
+            return new EmptyStatementSyntaxNode(token);
+        }
+
+
         private SyntaxNode ParseForStatement()
         {
             throw new NotImplementedException();
