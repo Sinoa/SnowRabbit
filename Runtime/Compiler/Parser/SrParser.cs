@@ -556,25 +556,125 @@ namespace SnowRabbit.Compiler.Parser
         #region Define and Declare syntax
         private SyntaxNode ParsePeripheralDeclare()
         {
-            throw new NotImplementedException();
+            if (!CheckTokenAndReadNext(SrTokenKind.Using)) return null;
+
+
+            var name = ParseIdentifier();
+            if (name == null) return null;
+            if (!CheckTokenAndReadNext(TokenKind.Equal)) return null;
+
+
+            var type = ParseType();
+            if (type == null) return null;
+
+
+            var peripheralName = ParseIdentifier();
+            if (peripheralName == null && !CheckTokenAndReadNext(TokenKind.Period)) return null;
+
+
+            var functionName = ParseIdentifier();
+            if (functionName == null && !CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
+
+
+            var typeList = ParseTypeList();
+            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
+
+
+            var peripheralDeclare = new PeripheralDeclareSyntaxNode();
+            peripheralDeclare.Add(name);
+            peripheralDeclare.Add(type);
+            peripheralDeclare.Add(peripheralName);
+            peripheralDeclare.Add(functionName);
+            peripheralDeclare.Add(typeList);
+            return peripheralDeclare;
         }
 
 
         private SyntaxNode ParseGlobalVariableDeclare()
         {
-            throw new NotImplementedException();
+            if (!CheckTokenAndReadNext(SrTokenKind.Global)) return null;
+
+
+            var type = ParseType();
+            if (type == null) return null;
+
+
+            var name = ParseIdentifier();
+            if (name == null) return null;
+
+
+            var globalVariableDeclare = new GlobalVariableDeclareSyntaxNode();
+            globalVariableDeclare.Add(type);
+            globalVariableDeclare.Add(name);
+
+
+            if (CheckTokenAndReadNext(TokenKind.Equal))
+            {
+                var literal = ParseLiteral();
+                if (literal == null) return null;
+                globalVariableDeclare.Add(literal);
+            }
+
+
+            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
+            return globalVariableDeclare;
         }
 
 
         private SyntaxNode ParseLocalVariableDeclare()
         {
-            throw new NotImplementedException();
+            if (!CheckTokenAndReadNext(SrTokenKind.Local)) return null;
+
+
+            var type = ParseType();
+            if (type == null) return null;
+
+
+            var name = ParseIdentifier();
+            if (name == null) return null;
+
+
+            var localVariableDeclare = new LocalVariableDeclareSyntaxNode();
+            localVariableDeclare.Add(type);
+            localVariableDeclare.Add(name);
+
+
+            if (CheckTokenAndReadNext(TokenKind.Equal))
+            {
+                var literal = ParseExpression();
+                if (literal == null) return null;
+                localVariableDeclare.Add(literal);
+            }
+
+
+            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
+            return localVariableDeclare;
         }
 
 
         private SyntaxNode ParseFunctionDeclare()
         {
-            throw new NotImplementedException();
+            if (!CheckTokenAndReadNext(SrTokenKind.Function)) return null;
+
+
+            var type = ParseType();
+            if (type == null) return null;
+            var name = ParseIdentifier();
+            if (name == null) return null;
+            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
+            var parameterList = ParseParameterList();
+            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
+            var block = ParseBlock();
+            if (!CheckTokenAndReadNext(SrTokenKind.End)) return null;
+
+
+            var functionDeclare = new FunctionDeclareSyntaxNode();
+            functionDeclare.Add(type);
+            functionDeclare.Add(name);
+            functionDeclare.Add(parameterList);
+            functionDeclare.Add(block);
+            return functionDeclare;
         }
         #endregion
 

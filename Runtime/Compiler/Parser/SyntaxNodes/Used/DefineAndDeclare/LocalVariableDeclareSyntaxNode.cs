@@ -18,7 +18,7 @@ using SnowRabbit.Compiler.Parser.SyntaxErrors;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
-    public class LocalVarDeclareSyntaxNode : SyntaxNode
+    public class LocalVariableDeclareSyntaxNode : SyntaxNode
     {
         /// <summary>
         /// この構文ノードが対応する構文ノードを生成します
@@ -33,7 +33,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
             // 'local' non_void_types <identifier> [ '=' expression ] ';'
-            var localVarDeclare = new LocalVarDeclareSyntaxNode();
+            var localVarDeclare = new LocalVariableDeclareSyntaxNode();
             CheckTokenAndReadNext(SrTokenKind.Local, context);
             localVarDeclare.CheckSyntaxAndAddNode(NonVoidTypesSyntaxNode.Create(context), context);
             localVarDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);

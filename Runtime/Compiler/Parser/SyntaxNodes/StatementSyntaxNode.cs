@@ -33,7 +33,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             // 各ステートメントの生成を試みて生成出来たものを返す
             return
                 EmptyStatementSyntaxNode.Create(context) ??
-                LocalVarDeclareSyntaxNode.Create(context) ??
+                LocalVariableDeclareSyntaxNode.Create(context) ??
                 WhileStatementSyntaxNode.Create(context) ??
                 IfStatementSyntaxNode.Create(context) ??
                 BreakStatementSyntaxNode.Create(context) ??
