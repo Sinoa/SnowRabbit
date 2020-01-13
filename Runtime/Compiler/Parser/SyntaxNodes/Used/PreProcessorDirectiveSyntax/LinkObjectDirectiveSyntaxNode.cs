@@ -23,8 +23,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class LinkObjectDirectiveSyntaxNode : SyntaxNode
     {
-        // メンバ変数定義
-        private Token objectName;
+        /// <summary>
+        /// LinkObjectDirectiveSyntaxNode クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="token">対応するトークン</param>
+        public LinkObjectDirectiveSyntaxNode(in Token token) : base(token)
+        {
+        }
 
 
 
@@ -35,29 +40,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
         public static SyntaxNode Create(LocalCompileContext context)
         {
-            // もし link トークンではないなら構文ノードは生成出来ない
-            ref var token = ref context.Lexer.LastReadToken;
-            if (token.Kind != SrTokenKind.Link) return null;
-
-
-            // 次のトークンを読み込んで文字列でないなら構文エラー
-            context.Lexer.ReadNextToken();
-            if (token.Kind != TokenKind.String)
-            {
-                // 不明なトークンとして処理する
-                context.ThrowSyntaxError(new SrUnknownTokenSyntaxErrorException(ref token));
-                return null;
-            }
-
-
-            // 読み込んだ文字列トークンをもとに構文ノードを生成
-            var linkObjectDirective = new LinkObjectDirectiveSyntaxNode();
-            linkObjectDirective.objectName = token;
-
-
-            // 次のトークンを読み込んで結果を返す
-            context.Lexer.ReadNextToken();
-            return linkObjectDirective;
+            return null;
         }
     }
 }

@@ -65,18 +65,18 @@
 ## Pre-Processor directive syntax
 
 ### directives
-    : script_compile_directive
-    | link_object_directive
-    | constant_define_directive
+    : '#' script_compile_directive
+    | '#' link_object_directive
+    | '#' constant_define_directive
 
 ### script_compile_directive
-    : '#' 'compile' <string>
+    : 'compile' <string>
 
 ### link_object_directive
-    : '#' 'link' <string>
+    : 'link' <string>
 
 ### constant_define_directive
-    : '#' 'const' <identifier> literal
+    : 'const' <identifier> literal
 
 
 
@@ -315,16 +315,16 @@ namespace SnowRabbit.Compiler.Parser
 
 
         /// <summary>
-        /// 指定されたトークンかどうかを調べて、さらに次のトークンを読み込みます
+        /// 指定されたトークンかどうかを調べて、指定されたトークンの場合は次のトークンを読み込みます
         /// </summary>
         /// <param name="tokenKind">調べるトークン</param>
         /// <returns>指定されたトークンの場合は true を、異なる場合は false を返します</returns>
         private bool CheckTokenAndReadNext(int tokenKind)
         {
-            // もしトークン比較結果をもらってから次のトークンを読み込む
-            var result = currentLexer.LastReadToken.Kind == tokenKind;
+            // もしトークン比較結果をもらって異なる場合はそのまま失敗を返す
+            if (!CheckToken(tokenKind)) return false;
             currentLexer.ReadNextToken();
-            return result;
+            return true;
         }
 
 
@@ -507,25 +507,48 @@ namespace SnowRabbit.Compiler.Parser
         #region Pre-Processor directive syntax
         private SyntaxNode ParseDirectives()
         {
-            throw new NotImplementedException();
+            if (!CheckTokenAndReadNext(TokenKind.Sharp)) return null;
+
+
+            return
+                ParseScriptCompileDirective() ??
+                ParseLinkObjectDirective() ??
+                ParseConstantDefineDirective() ??
+                null;
         }
 
 
         private SyntaxNode ParseScriptCompileDirective()
         {
-            throw new NotImplementedException();
+            if (!CheckTokenAndReadNext(SrTokenKind.Compile)) return null;
+            if (!CheckToken(TokenKind.String)) return null;
+            GetCurrentTokenAndReadNext(out var token);
+            return Parse(token.Text);
         }
 
 
         private SyntaxNode ParseLinkObjectDirective()
         {
-            throw new NotImplementedException();
+            if (!CheckTokenAndReadNext(SrTokenKind.Link)) return null;
+            if (!CheckToken(TokenKind.String)) return null;
+            GetCurrentTokenAndReadNext(out var token);
+            return new LinkObjectDirectiveSyntaxNode(token);
         }
 
 
         private SyntaxNode ParseConstantDefineDirective()
         {
-            throw new NotImplementedException();
+            if (!CheckTokenAndReadNext(SrTokenKind.Const)) return null;
+            var name = ParseIdentifier();
+            if (name == null) return null;
+            var literal = ParseLiteral();
+            if (literal == null) return null;
+
+
+            var constant = new ConstantDefineDirectiveSyntaxNode();
+            constant.Add(name);
+            constant.Add(literal);
+            return constant;
         }
         #endregion
 
