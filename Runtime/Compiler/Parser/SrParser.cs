@@ -659,24 +659,34 @@ namespace SnowRabbit.Compiler.Parser
         private SyntaxNode ParseFunctionDeclare()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Function)) return null;
+            var functionDeclare = new FunctionDeclareSyntaxNode();
 
 
             var type = ParseType();
             if (type == null) return null;
+            functionDeclare.Add(type);
+
+
             var name = ParseIdentifier();
             if (name == null) return null;
+            functionDeclare.Add(name);
+
+
             if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
             var parameterList = ParseParameterList();
-            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
-            var block = ParseBlock();
-            if (!CheckTokenAndReadNext(SrTokenKind.End)) return null;
-
-
-            var functionDeclare = new FunctionDeclareSyntaxNode();
-            functionDeclare.Add(type);
-            functionDeclare.Add(name);
             functionDeclare.Add(parameterList);
-            functionDeclare.Add(block);
+            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
+
+
+            while (!CheckToken(SrTokenKind.End))
+            {
+                var block = ParseBlock();
+                if (block == null) return null;
+                functionDeclare.Add(block);
+            }
+
+
+            ReadNextToken();
             return functionDeclare;
         }
         #endregion
@@ -720,31 +730,160 @@ namespace SnowRabbit.Compiler.Parser
 
         private SyntaxNode ParseForStatement()
         {
-            throw new NotImplementedException();
+            if (!CheckTokenAndReadNext(SrTokenKind.For)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
+            var forStatement = new ForStatementSyntaxNode();
+
+
+            if (CheckTokenAndReadNext(TokenKind.Semicolon))
+            {
+                forStatement.Add(null);
+            }
+            else
+            {
+                var initializeExpression = ParseExpression();
+                if (initializeExpression == null) return null;
+                forStatement.Add(initializeExpression);
+            }
+
+
+            if (CheckTokenAndReadNext(TokenKind.Semicolon))
+            {
+                forStatement.Add(null);
+            }
+            else
+            {
+                var conditionExpression = ParseExpression();
+                if (conditionExpression == null) return null;
+                forStatement.Add(conditionExpression);
+            }
+
+
+            if (CheckTokenAndReadNext(TokenKind.CloseParen))
+            {
+                forStatement.Add(null);
+            }
+            else
+            {
+                var loopExpression = ParseExpression();
+                if (loopExpression == null) return null;
+                forStatement.Add(loopExpression);
+            }
+
+
+            while (!CheckToken(SrTokenKind.End))
+            {
+                var block = ParseBlock();
+                if (block == null) return null;
+                forStatement.Add(block);
+            }
+
+
+            ReadNextToken();
+            return forStatement;
         }
 
 
         private SyntaxNode ParseWhileStatement()
         {
-            throw new NotImplementedException();
+            if (!CheckTokenAndReadNext(SrTokenKind.While)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
+            var whileStatement = new WhileStatementSyntaxNode();
+
+
+            var conditionExpression = ParseExpression();
+            if (conditionExpression == null) return null;
+            whileStatement.Add(conditionExpression);
+
+
+            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
+
+
+            while (!CheckToken(SrTokenKind.End))
+            {
+                var block = ParseBlock();
+                if (block == null) return null;
+                whileStatement.Add(block);
+            }
+
+
+            ReadNextToken();
+            return whileStatement;
         }
 
 
         private SyntaxNode ParseIfStatement()
         {
-            throw new NotImplementedException();
+            if (!CheckTokenAndReadNext(SrTokenKind.If)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
+            var ifStatement = new IfStatementSyntaxNode();
+
+
+            var expression = ParseExpression();
+            if (expression == null) return null;
+            ifStatement.Add(expression);
+
+
+            if (!CheckTokenAndReadNext(TokenKind.CloseAngle)) return null;
+
+
+            while (!CheckToken(SrTokenKind.End) && !CheckToken(SrTokenKind.Else))
+            {
+                ReadNextToken();
+                var block = ParseBlock();
+                if (block == null) return null;
+                ifStatement.Add(block);
+            }
+
+            if (CheckTokenAndReadNext(SrTokenKind.End))
+            {
+                return ifStatement;
+            }
+
+
+            if (!CheckTokenAndReadNext(SrTokenKind.Else)) return null;
+
+
+            while (!CheckTokenAndReadNext(SrTokenKind.End))
+            {
+                var block = ParseBlock();
+                if (block == null) return null;
+                ifStatement.Add(block);
+            }
+
+
+            return ifStatement;
         }
 
 
         private SyntaxNode ParseBreakStatement()
         {
-            throw new NotImplementedException();
+            if (CheckTokenAndReadNext(SrTokenKind.Break) &&
+                CheckTokenAndReadNext(TokenKind.Semicolon))
+            {
+                return new BreakStatementSyntaxNode();
+            }
+
+
+            return null;
         }
 
 
         private SyntaxNode ParseReturnStatement()
         {
-            throw new NotImplementedException();
+            if (!CheckTokenAndReadNext(SrTokenKind.Return)) return null;
+            if (CheckTokenAndReadNext(TokenKind.Semicolon))
+            {
+                return new ReturnStatementSyntaxNode();
+            }
+
+
+            var expression = ParseExpression();
+            if (expression == null) return null;
+            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
+            var returnStatement = new ReturnStatementSyntaxNode();
+            returnStatement.Add(expression);
+            return returnStatement;
         }
         #endregion
 
