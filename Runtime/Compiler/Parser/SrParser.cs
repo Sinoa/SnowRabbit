@@ -147,14 +147,14 @@
 
 ### assignment_expression
     : condition_or_expression
-    | assignment_expression { '=' condition_or_expression }
-    | assignment_expression { '+=' condition_or_expression }
-    | assignment_expression { '-=' condition_or_expression }
-    | assignment_expression { '*=' condition_or_expression }
-    | assignment_expression { '/=' condition_or_expression }
-    | assignment_expression { '&=' condition_or_expression }
-    | assignment_expression { '|=' condition_or_expression }
-    | assignment_expression { '^=' condition_or_expression }
+    | assignment_expression { '=' expression }
+    | assignment_expression { '+=' expression }
+    | assignment_expression { '-=' expression }
+    | assignment_expression { '*=' expression }
+    | assignment_expression { '/=' expression }
+    | assignment_expression { '&=' expression }
+    | assignment_expression { '|=' expression }
+    | assignment_expression { '^=' expression }
 
 ### condition_or_expression
     : condition_and_expression
@@ -958,7 +958,7 @@ namespace SnowRabbit.Compiler.Parser
             {
                 GetCurrentTokenAndReadNext(out var operation);
                 var thisExpression = new ExpressionSyntaxNode(operation);
-                var rightExpression = ParseConditionOrExpression();
+                var rightExpression = ParseExpression();
                 thisExpression.Add(expression);
                 thisExpression.Add(rightExpression);
                 expression = thisExpression;
