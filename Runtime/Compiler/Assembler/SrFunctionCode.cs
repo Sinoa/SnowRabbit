@@ -13,9 +13,21 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System.Collections.Generic;
+
 namespace SnowRabbit.Compiler.Assembler
 {
     public class SrFunctionCode
     {
+        private List<SrAssemblyCode> assemblyCodeList;
+        public IReadOnlyList<SrAssemblyCode> AssemblyCodeList { get; }
+
+
+
+        public SrFunctionCode()
+        {
+            assemblyCodeList = new List<SrAssemblyCode>();
+            AssemblyCodeList = assemblyCodeList.AsReadOnly();
+        }
     }
 }

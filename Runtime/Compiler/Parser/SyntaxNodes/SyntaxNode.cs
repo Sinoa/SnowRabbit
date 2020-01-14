@@ -14,7 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System.Collections.Generic;
-using SnowRabbit.Compiler.Builder;
+using SnowRabbit.Compiler.Assembler;
 using SnowRabbit.Compiler.Lexer;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
@@ -81,8 +81,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <summary>
         /// この構文ノードから生成されるアセンブリコードをコンパイルします
         /// </summary>
-        /// <param name="builder">アセンブリコードを書き出す処理をするビルダー</param>
-        public virtual void Compile(SrBuilder builder)
+        /// <param name="assemblyData">アセンブリコードを書き出す対象となるアセンブリデータ</param>
+        public virtual void Compile(SrAssemblyData assemblyData)
         {
         }
     }

@@ -15,7 +15,9 @@
 
 using System;
 using System.IO;
+using SnowRabbit.Compiler.Assembler;
 using SnowRabbit.Compiler.IO;
+using SnowRabbit.Compiler.Parser;
 
 namespace SnowRabbit.Compiler
 {
@@ -50,6 +52,11 @@ namespace SnowRabbit.Compiler
         /// <exception cref="ArgumentNullException">outStream が null です</exception>
         public void Compile(string path, Stream outStream)
         {
+            // パーサを生成してからパース、コンパイル、アセンブル、リンクとやっていく
+            var parser = new SrParser(scriptStorage);
+            var rootNode = parser.Parse(path);
+            var assemblyData = new SrAssemblyData();
+            rootNode.Compile(assemblyData);
         }
     }
 }

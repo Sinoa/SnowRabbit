@@ -25,5 +25,6 @@ namespace SnowRabbit.Compiler.Assembler
     {
         // メンバ変数定義
         private Dictionary<string, SrSymbol> globalSymbolTable;
+        private Dictionary<string, SrFunctionCode> functionCodeTable;
     }
 }
