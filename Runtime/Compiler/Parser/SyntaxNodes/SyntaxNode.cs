@@ -24,15 +24,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     public abstract class SyntaxNode
     {
         // メンバ変数定義
-        private Token token;
-        private List<SyntaxNode> children;
+        private readonly List<SyntaxNode> children;
 
 
 
         /// <summary>
-        /// 現れたトークンへの参照
+        /// 現れたトークンのコピーを受け取ります
         /// </summary>
-        public ref Token Token => ref token;
+        public Token Token { get; private set; }
 
 
         /// <summary>
@@ -48,7 +47,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         protected SyntaxNode()
         {
             // トークンは既定値を使用（既定値のトークンは不明トークン[Kind == 0]として扱われる）
-            token = default;
+            Token = default;
             children = new List<SyntaxNode>();
             Children = children.AsReadOnly();
         }
@@ -61,7 +60,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         protected SyntaxNode(in Token token)
         {
             // トークンを受け取る
-            this.token = token;
+            Token = token;
             children = new List<SyntaxNode>();
             Children = children.AsReadOnly();
         }
