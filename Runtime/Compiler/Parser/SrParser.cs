@@ -452,8 +452,10 @@ namespace SnowRabbit.Compiler.Parser
 
             var typeList = new TypeListSyntaxNode();
             typeList.Add(type);
-            while ((type = ParseType()) != null)
+            while (CheckTokenAndReadNext(TokenKind.Comma))
             {
+                type = ParseType();
+                if (type == null) return null;
                 typeList.Add(type);
             }
 
@@ -470,8 +472,10 @@ namespace SnowRabbit.Compiler.Parser
 
             var parameterList = new ParameterListSyntaxNode();
             parameterList.Add(parameter);
-            while ((parameter = ParseParameter()) != null)
+            while (CheckTokenAndReadNext(TokenKind.Comma))
             {
+                parameter = ParseParameter();
+                if (parameter == null) return null;
                 parameterList.Add(parameter);
             }
 
@@ -488,8 +492,10 @@ namespace SnowRabbit.Compiler.Parser
 
             var argumentList = new ArgumentListSyntaxNode();
             argumentList.Add(argument);
-            while ((argument = ParseArgument()) != null)
+            while (CheckTokenAndReadNext(TokenKind.Comma))
             {
+                argument = ParseArgument();
+                if (argument == null) return null;
                 argumentList.Add(argument);
             }
 
@@ -841,7 +847,7 @@ namespace SnowRabbit.Compiler.Parser
             ifStatement.Add(expression);
 
 
-            if (!CheckTokenAndReadNext(TokenKind.CloseAngle)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
 
 
             while (!CheckToken(SrTokenKind.End) && !CheckToken(SrTokenKind.Else))
@@ -1130,9 +1136,11 @@ namespace SnowRabbit.Compiler.Parser
         {
             var expression = ParsePrimaryExpression();
             if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return expression;
-            expression.Add(ParseArgumentList());
+            var functionCall = new FunctionCallSyntaxNode();
+            functionCall.Add(expression);
+            functionCall.Add(ParseArgumentList());
             if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
-            return expression;
+            return functionCall;
         }
 
 
