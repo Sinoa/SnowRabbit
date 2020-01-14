@@ -1,6 +1,6 @@
 ﻿// zlib/libpng License
 //
-// Copyright(c) 2019 Sinoa
+// Copyright(c) 2020 Sinoa
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -13,27 +13,41 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-namespace SnowRabbit.Compiler.Assembler.Symbols
+namespace SnowRabbit.Compiler.Assembler
 {
     /// <summary>
-    /// 周辺機器関数シンボルを表す関数シンボルクラスです
+    /// コンパイラが認知できる実行型を表しています
     /// </summary>
-    public class SrPeripheralFunctionSymbol : SrFunctionSymbol
+    public enum SrRuntimeType
     {
         /// <summary>
-        /// この周辺機器関数が所属する周辺機器名
+        /// void型
         /// </summary>
-        public string PeripheralName { get; set; }
-
-
+        Void,
 
         /// <summary>
-        /// SrPeripheralFunctionSymbol クラスのインスタンスを初期化します
+        /// 整数型
         /// </summary>
-        /// <param name="name">シンボル名</param>
-        /// <param name="initialAddress">初期アドレス</param>
-        public SrPeripheralFunctionSymbol(string name, int initialAddress) : base(name, initialAddress)
-        {
-        }
+        Integer,
+
+        /// <summary>
+        /// 実数型
+        /// </summary>
+        Number,
+
+        /// <summary>
+        /// 文字列型
+        /// </summary>
+        String,
+
+        /// <summary>
+        /// オブジェクト型
+        /// </summary>
+        Object,
+
+        /// <summary>
+        /// ブーリアン型
+        /// </summary>
+        Boolean,
     }
 }

@@ -16,43 +16,9 @@
 namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     /// <summary>
-    /// ローカル変数シンボルを表す抽象シンボルクラスです
+    /// ローカル変数シンボルを表すシンボルクラスです
     /// </summary>
-    public abstract class SrLocalVariableSymbol : SrSymbol
-    {
-        // メンバ変数定義
-        private string mangledName;
-
-
-
-        /// <summary>
-        /// SrLocalVariableSymbol クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="name">シンボル名</param>
-        /// <param name="initialAddress">初期アドレス</param>
-        protected SrLocalVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
-        {
-        }
-
-
-        /// <summary>
-        /// ローカル変数シンボル名をマングリングします
-        /// </summary>
-        /// <returns>マングリングした名前を返します</returns>
-        protected override string Mangling()
-        {
-            // マングリング済みならそのまま返して、まだならローカル変数固有のマングリンク結果をそのまま返す
-            return mangledName ?? (mangledName = $"___SR_LV_{Name}___");
-        }
-    }
-
-
-
-    /// <summary>
-    /// ローカル変数シンボルを表すローカル変数シンボルクラスです
-    /// </summary>
-    /// <typeparam name="T">ローカル変数に定義された型 int, double, string, bool, object のいずれか</typeparam>
-    public class SrLocalVariableSymbol<T> : SrLocalVariableSymbol
+    public class SrLocalVariableSymbol : SrVariableSymbol
     {
         /// <summary>
         /// SrLocalVariableSymbol クラスのインスタンスを初期化します

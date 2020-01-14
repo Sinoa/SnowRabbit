@@ -1,5 +1,6 @@
-﻿//
-// Copyright(c) 2019 Sinoa
+﻿// zlib/libpng License
+//
+// Copyright(c) 2020 Sinoa
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -19,27 +20,22 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
     /// </summary>
     public abstract class SrSymbol
     {
-        // メンバ変数定義
-        private int symbolAddress;
-
+        /// <summary>
+        /// シンボルの初期アドレス
+        /// </summary>
+        public int InitialAddress { get; }
 
 
         /// <summary>
         /// シンボルのアドレス
         /// </summary>
-        public int Address { get => symbolAddress; set => UpdateAddress(value); }
+        public int Address { get; set; }
 
 
         /// <summary>
         /// シンボルの名前
         /// </summary>
         public string Name { get; private set; }
-
-
-        /// <summary>
-        /// マングリングされたシンボルの名前
-        /// </summary>
-        public string MangledName => Mangling();
 
 
 
@@ -52,37 +48,8 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         {
             // 種別と名前はそのまま覚える
             Name = name;
-            symbolAddress = initialAddress;
-        }
-
-
-        /// <summary>
-        /// このシンボルを表すユニークな名前を作ります
-        /// </summary>
-        /// <returns>マングリングされた名前を返します</returns>
-        protected abstract string Mangling();
-
-
-        /// <summary>
-        /// シンボルアドレスを更新します
-        /// </summary>
-        /// <param name="newAddress">更新する新しいアドレス</param>
-        private void UpdateAddress(int newAddress)
-        {
-            // 古いアドレスを覚えて新しいアドレスへ更新後、イベント呼び出し
-            var oldAddress = symbolAddress;
-            symbolAddress = newAddress;
-            OnAddressUpdated(oldAddress, newAddress);
-        }
-
-
-        /// <summary>
-        /// シンボルアドレスが更新された時の処理をします
-        /// </summary>
-        /// <param name="oldAddress">更新前のアドレス</param>
-        /// <param name="newAddress">更新後のアドレス</param>
-        protected virtual void OnAddressUpdated(int oldAddress, int newAddress)
-        {
+            InitialAddress = initialAddress;
+            Address = initialAddress;
         }
     }
 }

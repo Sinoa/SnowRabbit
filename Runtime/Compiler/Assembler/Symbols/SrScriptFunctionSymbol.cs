@@ -20,11 +20,6 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
     /// </summary>
     public class SrScriptFunctionSymbol : SrFunctionSymbol
     {
-        // メンバ変数定義
-        private string mangledName;
-
-
-
         /// <summary>
         /// SrScriptFunctionSymbol クラスのインスタンスを初期化します
         /// </summary>
@@ -32,17 +27,6 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         /// <param name="initialAddress">初期アドレス</param>
         public SrScriptFunctionSymbol(string name, int initialAddress) : base(name, initialAddress)
         {
-        }
-
-
-        /// <summary>
-        /// スクリプト関数シンボル名をマングリングします
-        /// </summary>
-        /// <returns>マングリングした名前を返します</returns>
-        protected override string Mangling()
-        {
-            // マングリング済みならそのまま返して、まだならスクリプト関数固有のマングリンク結果をそのまま返す
-            return mangledName ?? (mangledName = $"___SR_PF_{Name}___");
         }
     }
 }

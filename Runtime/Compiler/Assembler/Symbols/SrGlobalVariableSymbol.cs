@@ -16,50 +16,16 @@
 namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     /// <summary>
-    /// グローバル変数シンボルを表す抽象シンボルクラスです
+    /// グローバル変数シンボルを表すシンボルクラスです
     /// </summary>
     public abstract class SrGlobalVariableSymbol : SrVariableSymbol
     {
-        // メンバ変数定義
-        private string mangledName;
-
-
-
         /// <summary>
         /// SrGlobalVariableSymbol クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
         protected SrGlobalVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
-        {
-        }
-
-
-        /// <summary>
-        /// グローバル変数シンボル名のマングリングをします
-        /// </summary>
-        /// <returns>マングリングした名前を返します</returns>
-        protected override string Mangling()
-        {
-            // マングリング済みならそのまま返して、まだならグローバル変数固有のマングリンク結果をそのまま返す
-            return mangledName ?? (mangledName = $"___SR_GV_{Name}___");
-        }
-    }
-
-
-
-    /// <summary>
-    /// グローバル変数シンボルを表すグローバル変数シンボルクラスです
-    /// </summary>
-    /// <typeparam name="T">グローバル変数に定義された型 int, double, string, bool, object のいずれか</typeparam>
-    public class SrGlobalVariableSymbol<T> : SrGlobalVariableSymbol
-    {
-        /// <summary>
-        /// SrGlobalVariableSymbol クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="name">シンボル名</param>
-        /// <param name="initialAddress">初期アドレス</param>
-        public SrGlobalVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
         {
         }
     }

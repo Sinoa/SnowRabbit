@@ -1,6 +1,6 @@
 ﻿// zlib/libpng License
 //
-// Copyright(c) 2019 Sinoa
+// Copyright(c) 2020 Sinoa
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System.Collections.Generic;
+
 namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     /// <summary>
@@ -21,12 +23,64 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
     public abstract class SrFunctionSymbol : SrSymbol
     {
         /// <summary>
+        /// この関数の戻り値型
+        /// </summary>
+        public SrRuntimeType ReturnType { get; set; }
+
+
+        /// <summary>
+        /// この関数のパラメータリスト
+        /// </summary>
+        public Dictionary<string, SrParameterVariableSymbol> ParameterTable { get; }
+
+
+        /// <summary>
+        /// この関数のローカル変数テーブル
+        /// </summary>
+        public Dictionary<string, SrLocalVariableSymbol> LocalVariableTable { get; }
+
+
+
+        /// <summary>
         /// SrFunctionSymbol クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
         protected SrFunctionSymbol(string name, int initialAddress) : base(name, initialAddress)
         {
+            // 関数の付随情報の初期化
+            ParameterTable = new Dictionary<string, SrParameterVariableSymbol>();
+            LocalVariableTable = new Dictionary<string, SrLocalVariableSymbol>();
+        }
+
+
+        /// <summary>
+        /// 指定された名前と型でパラメータの追加をしますが、すでに同じ名前のパラメータが存在する場合は取得をします
+        /// </summary>
+        /// <param name="name">追加するパラメータ名</param>
+        /// <param name="type">追加するパラメータの型</param>
+        /// <returns>追加されたパラメータシンボルを返します</returns>
+        public SrParameterVariableSymbol AddOrGetParameter(string name, SrRuntimeType type)
+        {
+            if (ParameterTable.TryGetValue(name, out var value)) return value;
+            value = new SrParameterVariableSymbol(name, ParameterTable.Count);
+            value.Type = type;
+            return ParameterTable[name] = value;
+        }
+
+
+        /// <summary>
+        /// 指定された名前と型でローカル変数の追加をしますが、既に同じ名前の変数が存在する場合は取得をします
+        /// </summary>
+        /// <param name="name">追加するローカル変数名</param>
+        /// <param name="type">追加するローカル変数の型</param>
+        /// <returns>追加されたローカル変数シンボルを返します</returns>
+        public SrLocalVariableSymbol AddOrGetLocalVariable(string name, SrRuntimeType type)
+        {
+            if (LocalVariableTable.TryGetValue(name, out var value)) return value;
+            value = new SrLocalVariableSymbol(name, LocalVariableTable.Count);
+            value.Type = type;
+            return LocalVariableTable[name] = value;
         }
     }
 }

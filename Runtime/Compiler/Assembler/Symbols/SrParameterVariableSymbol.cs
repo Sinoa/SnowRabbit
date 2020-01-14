@@ -16,23 +16,16 @@
 namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     /// <summary>
-    /// 周辺機器関数シンボルを表す関数シンボルクラスです
+    /// 引数変数シンボルを表すンボルクラスです
     /// </summary>
-    public class SrPeripheralFunctionSymbol : SrFunctionSymbol
+    public class SrParameterVariableSymbol : SrVariableSymbol
     {
         /// <summary>
-        /// この周辺機器関数が所属する周辺機器名
-        /// </summary>
-        public string PeripheralName { get; set; }
-
-
-
-        /// <summary>
-        /// SrPeripheralFunctionSymbol クラスのインスタンスを初期化します
+        /// SrArgumentVariableSymbol クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
-        public SrPeripheralFunctionSymbol(string name, int initialAddress) : base(name, initialAddress)
+        public SrParameterVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
         {
         }
     }

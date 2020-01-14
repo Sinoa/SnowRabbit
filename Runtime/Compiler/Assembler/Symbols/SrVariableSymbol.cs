@@ -21,6 +21,13 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
     public abstract class SrVariableSymbol : SrSymbol
     {
         /// <summary>
+        /// 変数の型
+        /// </summary>
+        public SrRuntimeType Type { get; set; }
+
+
+
+        /// <summary>
         /// SrVariableSymbol クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="name">シンボル名</param>
