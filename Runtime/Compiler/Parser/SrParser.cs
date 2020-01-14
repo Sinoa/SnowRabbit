@@ -243,6 +243,14 @@ namespace SnowRabbit.Compiler.Parser
         /// <summary>
         /// SrParser クラスのインスタンスを初期化します
         /// </summary>
+        public SrParser() : this(new SrFileSystemScriptStorage())
+        {
+        }
+
+
+        /// <summary>
+        /// SrParser クラスのインスタンスを初期化します
+        /// </summary>
         /// <param name="storage">構文解析するスクリプトを読み込むストレージ</param>
         /// <exception cref="ArgumentNullException">storage が null です</exception>
         public SrParser(ISrScriptStorage storage)
