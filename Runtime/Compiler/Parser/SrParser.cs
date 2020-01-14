@@ -126,7 +126,11 @@
 
 ### if_statement
     : 'if' '(' expression ')' { block } 'end'
-    | 'if' '(' expression ')' { block } 'else' { block } 'end'
+    | 'if' '(' expression ')' { block } else_statement
+
+### else_statement
+    : 'else' if_statement
+    | 'else' { block } 'end'
 
 ### break_statement
     : 'break' ';'
@@ -850,13 +854,14 @@ namespace SnowRabbit.Compiler.Parser
             if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
 
 
-            while (!CheckToken(SrTokenKind.End) && !CheckToken(SrTokenKind.Else))
+            SyntaxNode elseStatement = null;
+            while (!CheckToken(SrTokenKind.End) && (elseStatement = ParseElseStatement()) == null)
             {
-                ReadNextToken();
                 var block = ParseBlock();
                 if (block == null) return null;
                 ifStatement.Add(block);
             }
+
 
             if (CheckTokenAndReadNext(SrTokenKind.End))
             {
@@ -864,18 +869,35 @@ namespace SnowRabbit.Compiler.Parser
             }
 
 
+            ifStatement.Add(elseStatement);
+            return ifStatement;
+        }
+
+
+        private SyntaxNode ParseElseStatement()
+        {
             if (!CheckTokenAndReadNext(SrTokenKind.Else)) return null;
+            var elseStatement = new ElseStatementSyntaxNode();
 
 
-            while (!CheckTokenAndReadNext(SrTokenKind.End))
+            var ifStatement = ParseIfStatement();
+            if (ifStatement != null)
             {
-                var block = ParseBlock();
-                if (block == null) return null;
-                ifStatement.Add(block);
+                elseStatement.Add(ifStatement);
+                return elseStatement;
             }
 
 
-            return ifStatement;
+            while (!CheckToken(SrTokenKind.End))
+            {
+                var block = ParseBlock();
+                if (block == null) return null;
+                elseStatement.Add(block);
+            }
+
+
+            ReadNextToken();
+            return elseStatement;
         }
 
 
