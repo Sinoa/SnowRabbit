@@ -13,6 +13,9 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Assembler;
+using SnowRabbit.Compiler.Parser.SyntaxNodes;
+
 namespace SnowRabbit.Compiler.Builder
 {
     /// <summary>
@@ -20,5 +23,14 @@ namespace SnowRabbit.Compiler.Builder
     /// </summary>
     public class SrBuilder
     {
+        /// <summary>
+        /// 指定されたルート構文ノードからアセンブリコードを構築します
+        /// </summary>
+        /// <param name="rootNode">構文解析されたルート構文ノード</param>
+        /// <returns>正しく構文の意味をなして構築が可能な場合は生成されたアセンブリコードを返しますが、意味をなしていない場合は null を返します</returns>
+        public SrAssemblyCode Build(SyntaxNode rootNode)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

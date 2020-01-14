@@ -13,12 +13,12 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-namespace SnowRabbit.Compiler.Parser.Symbols
+namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     /// <summary>
-    /// 周辺機器関数シンボルを表す関数シンボルクラスです
+    /// 引数変数シンボルを表す抽象シンボルクラスです
     /// </summary>
-    public class SrPeripheralFunctionSymbol : SrFunctionSymbol
+    public abstract class SrArgumentVariableSymbol : SrSymbol
     {
         // メンバ変数定義
         private string mangledName;
@@ -26,23 +26,41 @@ namespace SnowRabbit.Compiler.Parser.Symbols
 
 
         /// <summary>
-        /// SrPeripheralFunctionSymbol クラスのインスタンスを初期化します
+        /// SrArgumentVariableSymbol クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
-        public SrPeripheralFunctionSymbol(string name, int initialAddress) : base(name, initialAddress)
+        protected SrArgumentVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
         {
         }
 
 
         /// <summary>
-        /// 周辺機器関数シンボル名をマングリングします
+        /// ローカル変数シンボル名をマングリングします
         /// </summary>
         /// <returns>マングリングした名前を返します</returns>
         protected override string Mangling()
         {
-            // マングリング済みならそのまま返して、まだなら周辺機器関数固有のマングリンク結果をそのまま返す
-            return mangledName ?? (mangledName = $"___SR_PF_{Name}___");
+            // マングリング済みならそのまま返して、まだなら引数変数固有のマングリンク結果をそのまま返す
+            return mangledName ?? (mangledName = $"___SR_AV_{Name}___");
+        }
+    }
+
+
+
+    /// <summary>
+    /// 引数変数シンボルを表す引数変数シンボルクラスです
+    /// </summary>
+    /// <typeparam name="T">引数変数に定義された型 int, double, string, bool, object のいずれか</typeparam>
+    public class SrArgumentVariableSymbol<T> : SrArgumentVariableSymbol
+    {
+        /// <summary>
+        /// SrArgumentVariableSymbol クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="name">シンボル名</param>
+        /// <param name="initialAddress">初期アドレス</param>
+        public SrArgumentVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
+        {
         }
     }
 }

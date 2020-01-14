@@ -13,12 +13,12 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-namespace SnowRabbit.Compiler.Parser.Symbols
+namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     /// <summary>
-    /// 引数変数シンボルを表す抽象シンボルクラスです
+    /// 周辺機器関数シンボルを表す関数シンボルクラスです
     /// </summary>
-    public abstract class SrArgumentVariableSymbol : SrSymbol
+    public class SrPeripheralFunctionSymbol : SrFunctionSymbol
     {
         // メンバ変数定義
         private string mangledName;
@@ -26,41 +26,23 @@ namespace SnowRabbit.Compiler.Parser.Symbols
 
 
         /// <summary>
-        /// SrArgumentVariableSymbol クラスのインスタンスを初期化します
+        /// SrPeripheralFunctionSymbol クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
-        protected SrArgumentVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
+        public SrPeripheralFunctionSymbol(string name, int initialAddress) : base(name, initialAddress)
         {
         }
 
 
         /// <summary>
-        /// ローカル変数シンボル名をマングリングします
+        /// 周辺機器関数シンボル名をマングリングします
         /// </summary>
         /// <returns>マングリングした名前を返します</returns>
         protected override string Mangling()
         {
-            // マングリング済みならそのまま返して、まだなら引数変数固有のマングリンク結果をそのまま返す
-            return mangledName ?? (mangledName = $"___SR_AV_{Name}___");
-        }
-    }
-
-
-
-    /// <summary>
-    /// 引数変数シンボルを表す引数変数シンボルクラスです
-    /// </summary>
-    /// <typeparam name="T">引数変数に定義された型 int, double, string, bool, object のいずれか</typeparam>
-    public class SrArgumentVariableSymbol<T> : SrArgumentVariableSymbol
-    {
-        /// <summary>
-        /// SrArgumentVariableSymbol クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="name">シンボル名</param>
-        /// <param name="initialAddress">初期アドレス</param>
-        public SrArgumentVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
-        {
+            // マングリング済みならそのまま返して、まだなら周辺機器関数固有のマングリンク結果をそのまま返す
+            return mangledName ?? (mangledName = $"___SR_PF_{Name}___");
         }
     }
 }

@@ -13,12 +13,12 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-namespace SnowRabbit.Compiler.Parser.Symbols
+namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     /// <summary>
-    /// ローカル変数シンボルを表す抽象シンボルクラスです
+    /// スクリプト関数シンボルを表す関数シンボルクラスです
     /// </summary>
-    public abstract class SrLocalVariableSymbol : SrSymbol
+    public class SrScriptFunctionSymbol : SrFunctionSymbol
     {
         // メンバ変数定義
         private string mangledName;
@@ -26,41 +26,23 @@ namespace SnowRabbit.Compiler.Parser.Symbols
 
 
         /// <summary>
-        /// SrLocalVariableSymbol クラスのインスタンスを初期化します
+        /// SrScriptFunctionSymbol クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
-        protected SrLocalVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
+        public SrScriptFunctionSymbol(string name, int initialAddress) : base(name, initialAddress)
         {
         }
 
 
         /// <summary>
-        /// ローカル変数シンボル名をマングリングします
+        /// スクリプト関数シンボル名をマングリングします
         /// </summary>
         /// <returns>マングリングした名前を返します</returns>
         protected override string Mangling()
         {
-            // マングリング済みならそのまま返して、まだならローカル変数固有のマングリンク結果をそのまま返す
-            return mangledName ?? (mangledName = $"___SR_LV_{Name}___");
-        }
-    }
-
-
-
-    /// <summary>
-    /// ローカル変数シンボルを表すローカル変数シンボルクラスです
-    /// </summary>
-    /// <typeparam name="T">ローカル変数に定義された型 int, double, string, bool, object のいずれか</typeparam>
-    public class SrLocalVariableSymbol<T> : SrLocalVariableSymbol
-    {
-        /// <summary>
-        /// SrLocalVariableSymbol クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="name">シンボル名</param>
-        /// <param name="initialAddress">初期アドレス</param>
-        public SrLocalVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
-        {
+            // マングリング済みならそのまま返して、まだならスクリプト関数固有のマングリンク結果をそのまま返す
+            return mangledName ?? (mangledName = $"___SR_PF_{Name}___");
         }
     }
 }
