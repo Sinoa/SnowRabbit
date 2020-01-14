@@ -13,9 +13,6 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using SnowRabbit.Compiler.Lexer;
-using SnowRabbit.Compiler.Parser.SyntaxErrors;
-
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -23,47 +20,5 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class ArgumentSyntaxNode : SyntaxNode
     {
-        /// <summary>
-        /// この構文ノードが対応する構文ノードを生成します
-        /// </summary>
-        /// <param name="context">コンパイルする対象となる翻訳単位コンテキスト</param>
-        /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
-        public static SyntaxNode Create(LocalCompileContext context)
-        {
-            // トークンの参照を取得する
-            ref var token = ref context.Lexer.LastReadToken;
-
-
-            // non_void_types <identifier> を解析する
-            var argument = new ArgumentSyntaxNode();
-            CheckSyntaxAndAddNode(NonVoidTypesSyntaxNode.Create(context), argument, context);
-            CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), argument, context);
-
-
-            // 結果を返す
-            return argument;
-        }
-
-
-        /// <summary>
-        /// node が null でないなら parentNode に追加し null の場合はコンパイルエラーを出します
-        /// </summary>
-        /// <param name="node">チェックする構文ノード</param>
-        /// <param name="parentNode">チェックをパスした場合にノードを持つ親ノード</param>
-        /// <param name="context">現在のコンテキスト</param>
-        private static void CheckSyntaxAndAddNode(SyntaxNode node, SyntaxNode parentNode, LocalCompileContext context)
-        {
-            // ノードが null なら
-            if (node == null)
-            {
-                // 不明なトークンとしてコンパイルエラーを出す
-                context.ThrowSyntaxError(new SrUnknownTokenSyntaxErrorException(ref context.Lexer.LastReadToken));
-                return;
-            }
-
-
-            // null でないなら素直に追加
-            parentNode.Add(node);
-        }
     }
 }

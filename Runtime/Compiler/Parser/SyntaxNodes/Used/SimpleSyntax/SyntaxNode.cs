@@ -15,8 +15,6 @@
 
 using System.Collections.Generic;
 using SnowRabbit.Compiler.Lexer;
-using SnowRabbit.Compiler.Parser.SyntaxErrors;
-using SnowRabbit.Diagnostics.Logging;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
@@ -77,87 +75,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
             // 追加する
             children.Add(node);
-        }
-
-
-        /// <summary>
-        /// 該当のトークンが登場しているかチェックして問題がなければ次のトークンを読み込みます
-        /// </summary>
-        /// <param name="tokenKind">チェックするトークン種別</param>
-        /// <param name="context">現在のコンテキスト</param>
-        protected static void CheckTokenAndReadNext(int tokenKind, LocalCompileContext context)
-        {
-            // 不明なトークン例外としてチェックする
-            CheckTokenAndReadNext(tokenKind, context, new SrUnknownTokenSyntaxErrorException(ref context.Lexer.LastReadToken));
-        }
-
-
-        /// <summary>
-        /// 該当のトークンが登場しているかチェックして問題がなければ次のトークンを読み込みます
-        /// </summary>
-        /// <param name="tokenKind">チェックするトークン種別</param>
-        /// <param name="context">現在のコンテキスト</param>
-        /// <param name="exception">不明なトークンエラー以外に使用する場合は対応するエラー例外オブジェクトを指定</param>
-        protected static void CheckTokenAndReadNext(int tokenKind, LocalCompileContext context, SrSyntaxErrorException exception)
-        {
-            // 該当トークンで無いなら
-            ref var token = ref context.Lexer.LastReadToken;
-            if (token.Kind != tokenKind)
-            {
-                // 不明なトークンとしてコンパイルエラーとする
-                context.ThrowSyntaxError(exception);
-                return;
-            }
-
-
-            // 次のトークンを読み込む
-            context.Lexer.ReadNextToken();
-        }
-
-
-        /// <summary>
-        /// node が null でないなら追加し null の場合はコンパイルエラーを出します
-        /// </summary>
-        /// <param name="node">チェックする構文ノード</param>
-        /// <param name="context">現在のコンテキスト</param>
-        protected void CheckSyntaxAndAddNode(SyntaxNode node, LocalCompileContext context)
-        {
-            CheckSyntaxAndAddNode(node, context, new SrUnknownTokenSyntaxErrorException(ref context.Lexer.LastReadToken));
-        }
-
-
-        /// <summary>
-        /// node が null でないなら parentNode に追加し null の場合はコンパイルエラーを出します
-        /// </summary>
-        /// <param name="node">チェックする構文ノード</param>
-        /// <param name="context">現在のコンテキスト</param>
-        /// <param name="exception">不明なトークンエラー以外に使用する場合は対応するエラー例外オブジェクトを指定</param>
-        protected void CheckSyntaxAndAddNode(SyntaxNode node, LocalCompileContext context, SrSyntaxErrorException exception)
-        {
-            // ノードが null なら
-            if (node == null)
-            {
-                // 不明なトークンとしてコンパイルエラーを出す
-                context.ThrowSyntaxError(exception);
-                return;
-            }
-
-
-            // null でないなら素直に追加
-            Add(node);
-        }
-
-
-        /// <summary>
-        /// この構文ノードに対応する構文を解釈します
-        /// </summary>
-        /// <param name="context">構文解釈する対象となっている翻訳単位コンテキスト</param>
-        /// <returns>解釈した結果の構文ノードを返しますが、正しく解釈出来なかった場合は null を返します。</returns>
-        public virtual SyntaxNode Compile(LocalCompileContext context)
-        {
-            // 既定は null を返す
-            SrLogger.Trace(nameof(SyntaxNode), $"'{GetType().Name}' is not implemented 'Compile' method.");
-            return null;
         }
     }
 }

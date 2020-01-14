@@ -14,7 +14,6 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using SnowRabbit.Compiler.Lexer;
-using SnowRabbit.Compiler.Parser.SyntaxErrors;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
@@ -26,23 +25,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <param name="token">対応するトークン</param>
         public EmptyStatementSyntaxNode(in Token token)
         {
-        }
-
-
-        /// <summary>
-        /// この構文ノードが対応する構文ノードを生成します
-        /// </summary>
-        /// <param name="context">コンパイルする対象となる翻訳単位コンテキスト</param>
-        /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
-        public static SyntaxNode Create(LocalCompileContext context)
-        {
-            // セミコロンでないなら何も生成しない
-            if (context.Lexer.LastReadToken.Kind != TokenKind.Semicolon) return null;
-
-
-            // セミコロン単体なら自身をそのまま返す
-            CheckTokenAndReadNext(TokenKind.Semicolon, context);
-            return null;
         }
     }
 }

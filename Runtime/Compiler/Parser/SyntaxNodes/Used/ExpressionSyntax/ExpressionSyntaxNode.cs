@@ -29,18 +29,5 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         public ExpressionSyntaxNode(in Token token) : base(token)
         {
         }
-
-
-
-        /// <summary>
-        /// この構文ノードが対応する構文ノードを生成します
-        /// </summary>
-        /// <param name="context">コンパイルする対象となる翻訳単位コンテキスト</param>
-        /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
-        public static SyntaxNode Create(LocalCompileContext context)
-        {
-            // 代入式構文の生成関数を呼んでそのまま返す
-            return AssignmentExpressionSyntaxNode.Create(context);
-        }
     }
 }

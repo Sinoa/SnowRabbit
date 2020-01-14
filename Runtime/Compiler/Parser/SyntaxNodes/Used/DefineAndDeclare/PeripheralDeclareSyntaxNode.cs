@@ -13,9 +13,6 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using SnowRabbit.Compiler.Lexer;
-using SnowRabbit.Compiler.Parser.SyntaxErrors;
-
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -23,38 +20,5 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class PeripheralDeclareSyntaxNode : SyntaxNode
     {
-        /// <summary>
-        /// この構文ノードが対応する構文ノードを生成します
-        /// </summary>
-        /// <param name="context">コンパイルする対象となる翻訳単位コンテキスト</param>
-        /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
-        public static SyntaxNode Create(LocalCompileContext context)
-        {
-            // トークンの参照を取得する
-            ref var token = ref context.Lexer.LastReadToken;
-
-
-            // using で始まっていないのなら生成出来ない
-            if (token.Kind != SrTokenKind.Using) return null;
-
-
-            // <identifier> '=' types <identifier> '.' <identifier> '(' [type_list] ')' ';' を解析する
-            var peripheralDeclare = new PeripheralDeclareSyntaxNode();
-            context.Lexer.ReadNextToken();
-            peripheralDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
-            CheckTokenAndReadNext(TokenKind.Equal, context);
-            peripheralDeclare.CheckSyntaxAndAddNode(TypeSyntaxNode.Create(context), context);
-            peripheralDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
-            CheckTokenAndReadNext(TokenKind.Period, context);
-            peripheralDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
-            CheckTokenAndReadNext(TokenKind.OpenParen, context);
-            peripheralDeclare.CheckSyntaxAndAddNode(TypeListSyntaxNode.Create(context), context);
-            CheckTokenAndReadNext(TokenKind.CloseAngle, context);
-            CheckTokenAndReadNext(TokenKind.Semicolon, context);
-
-
-            // 自身を返す
-            return peripheralDeclare;
-        }
     }
 }

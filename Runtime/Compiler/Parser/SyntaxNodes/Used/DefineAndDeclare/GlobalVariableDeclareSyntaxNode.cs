@@ -13,9 +13,6 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using SnowRabbit.Compiler.Lexer;
-using SnowRabbit.Compiler.Parser.SyntaxErrors;
-
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -23,31 +20,5 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class GlobalVariableDeclareSyntaxNode : SyntaxNode
     {
-        /// <summary>
-        /// この構文ノードが対応する構文ノードを生成します
-        /// </summary>
-        /// <param name="context">コンパイルする対象となる翻訳単位コンテキスト</param>
-        /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
-        public static SyntaxNode Create(LocalCompileContext context)
-        {
-            // トークンの参照を取得する
-            ref var token = ref context.Lexer.LastReadToken;
-
-
-            // global で始まっていないのなら生成出来ない
-            if (token.Kind != SrTokenKind.Global) return null;
-
-
-            // non_void_types <identifier> ';' を解析する
-            var globalVariableDeclare = new GlobalVariableDeclareSyntaxNode();
-            context.Lexer.ReadNextToken();
-            globalVariableDeclare.CheckSyntaxAndAddNode(NonVoidTypesSyntaxNode.Create(context), context);
-            globalVariableDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
-            CheckTokenAndReadNext(TokenKind.Semicolon, context);
-
-
-            // 結果を返す
-            return globalVariableDeclare;
-        }
     }
 }

@@ -13,9 +13,6 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using SnowRabbit.Compiler.Lexer;
-using SnowRabbit.Compiler.Parser.SyntaxErrors;
-
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -23,53 +20,5 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class FunctionDeclareSyntaxNode : SyntaxNode
     {
-        /// <summary>
-        /// この構文ノードが対応する構文ノードを生成します
-        /// </summary>
-        /// <param name="context">コンパイルする対象となる翻訳単位コンテキスト</param>
-        /// <returns>構文ノードを生成出来た場合は構文ノードのインスタンスを、生成出来ない場合は null を返します</returns>
-        public static SyntaxNode Create(LocalCompileContext context)
-        {
-            // トークンの参照を取得する
-            ref var token = ref context.Lexer.LastReadToken;
-
-
-            // function で始まっていないのなら生成出来ない
-            if (token.Kind != SrTokenKind.Function) return null;
-
-
-            // types <identifier> '(' [argument_list] ')' { block } 'end' を解析する
-            var functionDeclare = new FunctionDeclareSyntaxNode();
-            context.Lexer.ReadNextToken();
-            functionDeclare.CheckSyntaxAndAddNode(TypeSyntaxNode.Create(context), context);
-            functionDeclare.CheckSyntaxAndAddNode(IdentifierSyntaxNode.Create(context), context);
-            CheckTokenAndReadNext(TokenKind.OpenParen, context);
-
-
-            if (token.Kind != TokenKind.CloseParen)
-            {
-                functionDeclare.CheckSyntaxAndAddNode(ArgumentListSyntaxNode.Create(context), context);
-            }
-            else
-            {
-                functionDeclare.Add(new ArgumentListSyntaxNode());
-            }
-
-
-            CheckTokenAndReadNext(TokenKind.CloseParen, context);
-
-
-            // end が来るまでループ
-            while (token.Kind != SrTokenKind.End)
-            {
-                // ブロック構文ノードの生成
-                functionDeclare.CheckSyntaxAndAddNode(BlockSyntaxNode.Create(context), context);
-            }
-
-
-            // 自身を返す
-            context.Lexer.ReadNextToken();
-            return functionDeclare;
-        }
     }
 }
