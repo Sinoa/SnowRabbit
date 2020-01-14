@@ -204,12 +204,14 @@
     | muldiv_expression { '/' unary_expression }
 
 ### unary_expression
-    : function_call
+    : post_unary_expression
     | '+' unary_expression
     | '-' unary_expression
     | '!' unary_expression
+    | '++' unary_expression
+    | '--' unary_expression
 
-### function_call
+### post_unary_expression
     : primary_expression
     | primary_expression '(' [ argument_list ] ')'
 
@@ -771,6 +773,9 @@ namespace SnowRabbit.Compiler.Parser
                 var initializeExpression = ParseExpression();
                 if (initializeExpression == null) return null;
                 forStatement.Add(initializeExpression);
+
+
+                if (!CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
             }
 
 
@@ -783,6 +788,9 @@ namespace SnowRabbit.Compiler.Parser
                 var conditionExpression = ParseExpression();
                 if (conditionExpression == null) return null;
                 forStatement.Add(conditionExpression);
+
+
+                if (!CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
             }
 
 
@@ -795,6 +803,9 @@ namespace SnowRabbit.Compiler.Parser
                 var loopExpression = ParseExpression();
                 if (loopExpression == null) return null;
                 forStatement.Add(loopExpression);
+
+
+                if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
             }
 
 
@@ -1140,7 +1151,11 @@ namespace SnowRabbit.Compiler.Parser
 
         private SyntaxNode ParseUnaryExpression()
         {
-            if (CheckToken(TokenKind.Plus) || CheckToken(TokenKind.Minus) || CheckToken(TokenKind.Exclamation))
+            if (CheckToken(TokenKind.Plus) ||
+                CheckToken(TokenKind.Minus) ||
+                CheckToken(TokenKind.Exclamation) ||
+                CheckToken(TokenKind.DoublePlus) ||
+                CheckToken(TokenKind.DoubleMinus))
             {
                 GetCurrentTokenAndReadNext(out var operation);
                 var thisExpression = new ExpressionSyntaxNode(operation);
@@ -1150,11 +1165,11 @@ namespace SnowRabbit.Compiler.Parser
             }
 
 
-            return ParseFunctionCall();
+            return ParsePostUnaryExpression();
         }
 
 
-        private SyntaxNode ParseFunctionCall()
+        private SyntaxNode ParsePostUnaryExpression()
         {
             var expression = ParsePrimaryExpression();
             if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return expression;
