@@ -13,38 +13,17 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using SnowRabbit.RuntimeEngine;
+using System.Collections.Generic;
+using SnowRabbit.Compiler.Assembler.Symbols;
 
 namespace SnowRabbit.Compiler.Assembler
 {
     /// <summary>
-    /// アセンブリデータに含まれるアセンブリコードを表す構造体です
+    /// アセンブラがアセンブルする対象となるアセンブリデータを持ったクラスです
     /// </summary>
-    public struct SrAssemblyCode
+    public class SrAssemblyData
     {
-        /// <summary>
-        /// VMが解釈できる命令コードの実体
-        /// </summary>
-        public SrInstruction Instruction;
-
-
-        /// <summary>
-        /// 命令コードに含まれるアドレスはまだ未解決か否か
-        /// </summary>
-        public bool UnresolvedAddress;
-
-
-
-        /// <summary>
-        /// SrAssemblyCode 構造体のインスタンスを初期化します
-        /// </summary>
-        /// <param name="instruction">命令コード</param>
-        /// <param name="unresolved">アドレスが未解決か否か</param>
-        public SrAssemblyCode(SrInstruction instruction, bool unresolved)
-        {
-            // そのまま受け取る
-            Instruction = instruction;
-            UnresolvedAddress = unresolved;
-        }
+        // メンバ変数定義
+        private Dictionary<string, SrSymbol> globalSymbolTable;
     }
 }
