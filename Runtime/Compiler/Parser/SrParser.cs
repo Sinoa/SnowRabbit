@@ -351,17 +351,6 @@ namespace SnowRabbit.Compiler.Parser
 
 
         /// <summary>
-        /// 現在の位置にいるトークンの参照を取得します
-        /// </summary>
-        /// <returns>現在の位置にいるトークンの参照を返します</returns>
-        private ref Token GetCurrentToken()
-        {
-            // 最後に読み取ったトークンの参照を返す
-            return ref currentLexer.LastReadToken;
-        }
-
-
-        /// <summary>
         /// 現在の位置にいるトークンを取り出して、次のトークンを読み込みます
         /// </summary>
         /// <param name="token">取り出したトークンを設定する参照パラメータ</param>
@@ -722,6 +711,7 @@ namespace SnowRabbit.Compiler.Parser
         {
             var result =
                 ParseEmptyStatement() ??
+                ParseLocalVariableDeclare() ??
                 ParseForStatement() ??
                 ParseWhileStatement() ??
                 ParseIfStatement() ??
