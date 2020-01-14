@@ -22,9 +22,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class AssignmentExpressionSyntaxNode : SyntaxNode
     {
-        // メンバ変数定義
-        private Token operation;
-
+        /// <summary>
+        /// AssignmentExpressionSyntaxNode クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="token"></param>
+        public AssignmentExpressionSyntaxNode(in Token token) : base(token)
+        {
+        }
 
 
         /// <summary>
@@ -52,8 +56,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
                 // 代入式構文ノードを生成する
-                var assignmentExpression = new AssignmentExpressionSyntaxNode();
-                assignmentExpression.operation = operation;
+                var assignmentExpression = new AssignmentExpressionSyntaxNode(operation);
                 assignmentExpression.Add(rightExpression);
                 assignmentExpression.Add(expression);
 
