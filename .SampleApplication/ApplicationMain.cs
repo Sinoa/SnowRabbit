@@ -20,7 +20,7 @@ namespace SampleApplication
 {
     internal class ApplicationMain
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             var outStream = new MemoryStream();
             var compiler = new SrCompiler();
