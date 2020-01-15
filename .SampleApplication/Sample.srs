@@ -1,0 +1,1 @@
+﻿using MyFunction = int HogePeripheral.MyFunc(int, int, int);
