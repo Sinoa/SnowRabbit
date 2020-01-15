@@ -109,6 +109,18 @@ namespace SnowRabbit.Compiler.Parser
         }
 
 
+        public SrStringSymbol CreateOrGetStringSymbol(string text)
+        {
+            var symbol = AssemblyData.GetStringSymbol(text);
+            if (symbol != null) return symbol;
+
+
+            symbol = new SrStringSymbol(text, GetNextVirtualAddress());
+            AssemblyData.AddSymbol(symbol);
+            return symbol;
+        }
+
+
         public SrScriptFunctionSymbol EnterFunctionCompile(SrRuntimeType returnType, string functionName)
         {
             var symbol = new SrScriptFunctionSymbol(functionName, GetNextVirtualAddress());

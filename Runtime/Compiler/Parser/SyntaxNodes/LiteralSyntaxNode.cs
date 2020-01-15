@@ -13,7 +13,10 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Assembler.Symbols;
 using SnowRabbit.Compiler.Lexer;
+using SnowRabbit.RuntimeEngine;
+using SnowRabbit.RuntimeEngine.VirtualMachine;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
@@ -28,6 +31,39 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <param name="token">対応するトークン</param>
         public LiteralSyntaxNode(in Token token) : base(token)
         {
+        }
+
+
+        public override void Compile(SrCompileContext context)
+        {
+            SrInstruction instruction = default;
+            switch (context.ToRuntimeType(Token.Kind))
+            {
+                case SrRuntimeType.Integer:
+                    instruction.Set(OpCode.Movl, SrvmProcessor.RegisterAIndex, 0, 0, (int)Token.Integer);
+                    context.AddBodyCode(instruction, false);
+                    break;
+
+
+                case SrRuntimeType.Number:
+                    instruction.Set(OpCode.Movl, SrvmProcessor.RegisterAIndex, 0, 0, (float)Token.Number);
+                    context.AddBodyCode(instruction, false);
+                    break;
+
+
+                case SrRuntimeType.Boolean:
+                    var boolValue = Token.Text == "true" ? 1 : 0;
+                    instruction.Set(OpCode.Movl, SrvmProcessor.RegisterAIndex, 0, 0, boolValue);
+                    context.AddBodyCode(instruction, false);
+                    break;
+
+
+                case SrRuntimeType.String:
+                    var symbol = context.CreateOrGetStringSymbol(Token.Text);
+                    instruction.Set(OpCode.Movl, SrvmProcessor.RegisterAIndex, 0, 0, symbol.Address);
+                    context.AddBodyCode(instruction, true);
+                    break;
+            }
         }
     }
 }

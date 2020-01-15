@@ -13,28 +13,24 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using SnowRabbit.RuntimeEngine;
-using SnowRabbit.RuntimeEngine.VirtualMachine;
-
-namespace SnowRabbit.Compiler.Parser.SyntaxNodes
+namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     /// <summary>
-    /// 引数リスト構文を表す構文ノードクラスです
+    /// 固定文字列シンボルを表すシンボルクラスです
     /// </summary>
-    public class ArgumentListSyntaxNode : SyntaxNode
+    public class SrStringSymbol : SrSymbol
     {
-        public override void Compile(SrCompileContext context)
+        public string String { get; }
+
+
+
+        /// <summary>
+        /// SrStringSymbol クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="text">固定文字列</param>
+        /// <param name="initialAddress">初期アドレス</param>
+        public SrStringSymbol(string text, int initialAddress) : base(text.GetHashCode().ToString(), initialAddress, SrScopeType.Global)
         {
-            var childCount = Children.Count;
-            for (int i = childCount - 1; i >= 0; --i)
-            {
-                Children[i].Children[0].Compile(context);
-
-
-                SrInstruction instruction = default;
-                instruction.Set(OpCode.Push, SrvmProcessor.RegisterAIndex);
-                context.AddBodyCode(instruction, false);
-            }
         }
     }
 }

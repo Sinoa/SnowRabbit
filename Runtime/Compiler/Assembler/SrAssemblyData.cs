@@ -86,6 +86,18 @@ namespace SnowRabbit.Compiler.Assembler
 
 
         /// <summary>
+        /// 指定された文字列のシンボルを取得します
+        /// </summary>
+        /// <param name="text">取得する文字列シンボルの文字列</param>
+        /// <returns>指定された文字列シンボルがある場合は文字列シンボルを返しますが、見つけられなかった場合は null を返します</returns>
+        public SrStringSymbol GetStringSymbol(string text)
+        {
+            // グローバルシンボルテーブルにまず指定された名前のシンボルがあるかを取得して、定数シンボルなら返す
+            return (globalSymbolTable.TryGetValue(text.GetHashCode().ToString(), out var symbol) && symbol is SrStringSymbol) ? (SrStringSymbol)symbol : null;
+        }
+
+
+        /// <summary>
         /// 指定された名前の変数および定数シンボルを取得します。また検索する範囲は、ローカル > パラメータ > グローバル の順になります。
         /// </summary>
         /// <param name="name">取得するする変数及び定数シンボル名</param>

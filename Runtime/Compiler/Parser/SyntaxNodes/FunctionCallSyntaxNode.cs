@@ -20,5 +20,16 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class FunctionCallSyntaxNode : SyntaxNode
     {
+        public override void Compile(SrCompileContext context)
+        {
+            var functionName = Children[0].Token.Text;
+            var argumentList = Children[1];
+
+
+            if (argumentList != null)
+            {
+                argumentList.Compile(context);
+            }
+        }
     }
 }
