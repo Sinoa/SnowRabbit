@@ -20,5 +20,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class CompileUnitSyntaxNode : SyntaxNode
     {
+        public override void Compile(SrCompileContext context)
+        {
+            foreach (var child in Children)
+            {
+                child.Compile(context);
+            }
+        }
     }
 }

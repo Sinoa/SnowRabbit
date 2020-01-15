@@ -18,14 +18,14 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
     /// <summary>
     /// グローバル変数シンボルを表すシンボルクラスです
     /// </summary>
-    public abstract class SrGlobalVariableSymbol : SrVariableSymbol
+    public class SrGlobalVariableSymbol : SrVariableSymbol
     {
         /// <summary>
         /// SrGlobalVariableSymbol クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
-        protected SrGlobalVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
+        public SrGlobalVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
         {
         }
     }

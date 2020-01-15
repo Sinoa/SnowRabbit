@@ -35,6 +35,14 @@ namespace SnowRabbit.Compiler
         /// <summary>
         /// SrCompiler クラスのインタンスを初期化します
         /// </summary>
+        public SrCompiler() : this(new SrFileSystemScriptStorage())
+        {
+        }
+
+
+        /// <summary>
+        /// SrCompiler クラスのインタンスを初期化します
+        /// </summary>
         /// <param name="storage">スクリプトを保持しているストレージ</param>
         /// <exception cref="ArgumentNullException">storage が null です</exception>
         public SrCompiler(ISrScriptStorage storage)

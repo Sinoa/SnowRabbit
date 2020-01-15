@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Assembler.Symbols;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -20,5 +22,45 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class PeripheralDeclareSyntaxNode : SyntaxNode
     {
+        public override void Compile(SrCompileContext context)
+        {
+            var functionName = Children[0].Token.Text;
+            var returnType = context.ToRuntimeType(Children[1].Token.Kind);
+            var peripheralName = Children[2].Token.Text;
+            var peripheralFuncName = Children[3].Token.Text;
+            var symbol = context.CreatePeripheralFunctionSymbol(returnType, functionName, peripheralName, peripheralFuncName);
+
+
+            if (Children[4] == null)
+            {
+                return;
+            }
+
+
+            var typeList = (TypeListSyntaxNode)Children[4];
+            int typeCount = 0;
+            foreach (var type in typeList.Children)
+            {
+                var  runtimeType = context.ToRuntimeType(type.Token.Kind);
+                if (!IsSupportType(runtimeType))
+                {
+                    // 未サポートの型
+                }
+
+
+                symbol.AddOrGetParameter(typeCount++.ToString(), runtimeType);
+            }
+        }
+
+
+        private bool IsSupportType(SrRuntimeType type)
+        {
+            return
+                type == SrRuntimeType.Integer ||
+                type == SrRuntimeType.Number ||
+                type == SrRuntimeType.String ||
+                type == SrRuntimeType.Object ||
+                type == SrRuntimeType.Boolean;
+        }
     }
 }

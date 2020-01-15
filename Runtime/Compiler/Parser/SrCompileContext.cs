@@ -14,6 +14,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using SnowRabbit.Compiler.Assembler;
+using SnowRabbit.Compiler.Assembler.Symbols;
+using SnowRabbit.Compiler.Lexer;
 
 namespace SnowRabbit.Compiler.Parser
 {
@@ -22,10 +24,15 @@ namespace SnowRabbit.Compiler.Parser
     /// </summary>
     public class SrCompileContext
     {
+        // メンバ変数定義
+        private int nextVirtualAddress = -1;
+
+
+
         /// <summary>
         /// 現在のコンテキストが持っているアセンブリデータ
         /// </summary>
-        public SrAssemblyData AssemblyData { get; }
+        public SrAssemblyData AssemblyData { get; } = new SrAssemblyData();
 
 
         /// <summary>
@@ -36,12 +43,46 @@ namespace SnowRabbit.Compiler.Parser
 
 
         /// <summary>
-        /// SrCompileContext クラスのインスタンスを初期化します
+        /// 次に使用するべき仮想アドレスを取得します
         /// </summary>
-        public SrCompileContext()
+        /// <returns>使用するべき仮想アドレスを返します</returns>
+        private int GetNextVirtualAddress()
         {
-            // 諸々初期化
-            AssemblyData = new SrAssemblyData();
+            // ひたすらデクリメントし続けるアドレスを返す
+            return nextVirtualAddress--;
+        }
+
+
+        public SrRuntimeType ToRuntimeType(int typeKind)
+        {
+            return
+                typeKind == SrTokenKind.TypeVoid ? SrRuntimeType.Void :
+                typeKind == SrTokenKind.TypeInt ? SrRuntimeType.Integer :
+                typeKind == SrTokenKind.TypeNumber ? SrRuntimeType.Number :
+                typeKind == SrTokenKind.TypeString ? SrRuntimeType.String :
+                typeKind == SrTokenKind.TypeObject ? SrRuntimeType.Object :
+                typeKind == SrTokenKind.TypeBool ? SrRuntimeType.Boolean :
+                SrRuntimeType.Void;
+        }
+
+
+        public SrPeripheralFunctionSymbol CreatePeripheralFunctionSymbol(SrRuntimeType returnType, string functionName, string peripheralName, string peripheralFuncName)
+        {
+            var symbol = new SrPeripheralFunctionSymbol(functionName, GetNextVirtualAddress());
+            symbol.PeripheralName = peripheralName;
+            symbol.PeripheralFunctionName = peripheralFuncName;
+            symbol.ReturnType = returnType;
+            AssemblyData.AddSymbol(symbol);
+            return symbol;
+        }
+
+
+        public SrGlobalVariableSymbol CreateGlobalVariableSymbol(SrRuntimeType type, string name)
+        {
+            var symbol = new SrGlobalVariableSymbol(name, GetNextVirtualAddress());
+            symbol.Type = type;
+            AssemblyData.AddSymbol(symbol);
+            return symbol;
         }
     }
 }

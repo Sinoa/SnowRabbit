@@ -26,6 +26,12 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         public string PeripheralName { get; set; }
 
 
+        /// <summary>
+        /// この周辺機器関数が提供する関数名
+        /// </summary>
+        public string PeripheralFunctionName { get; set; }
+
+
 
         /// <summary>
         /// SrPeripheralFunctionSymbol クラスのインスタンスを初期化します
