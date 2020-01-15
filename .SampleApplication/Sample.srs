@@ -12,3 +12,17 @@ global int g_Error;
 // 定数定義
 #const MY_ID 123
 #const MY_NAME "HOGE_MOGE"
+
+
+function int Add(int a, int b)
+
+	return a + b;
+
+end
+
+
+function void main()
+
+	local int counter = 0;
+
+end

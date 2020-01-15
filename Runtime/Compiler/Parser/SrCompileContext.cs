@@ -95,5 +95,21 @@ namespace SnowRabbit.Compiler.Parser
             symbol.Type = ToRuntimeType(literal.Kind);
             return AssemblyData.AddSymbol(symbol) ? symbol : null;
         }
+
+
+        public SrScriptFunctionSymbol EnterFunctionCompile(SrRuntimeType returnType, string functionName)
+        {
+            var symbol = new SrScriptFunctionSymbol(functionName, GetNextVirtualAddress());
+            symbol.ReturnType = returnType;
+            if (!AssemblyData.AddSymbol(symbol)) return null;
+            CurrentCompileFunctionName = functionName;
+            return symbol;
+        }
+
+
+        public void ExitFunctionCompile()
+        {
+            CurrentCompileFunctionName = null;
+        }
     }
 }

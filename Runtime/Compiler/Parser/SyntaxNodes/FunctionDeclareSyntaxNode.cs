@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Assembler.Symbols;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -20,5 +22,41 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class FunctionDeclareSyntaxNode : SyntaxNode
     {
+        public override void Compile(SrCompileContext context)
+        {
+            var returnType = context.ToRuntimeType(Children[0].Token.Kind);
+            var functionName = Children[1].Token.Text;
+            var parameterList = Children[2];
+            if (context.AssemblyData.GetGlobalSymbol(functionName) != null)
+            {
+                // 既に定義済みの名前
+                throw new System.Exception();
+            }
+
+
+            var symbol = context.EnterFunctionCompile(returnType, functionName);
+            AddParameter(symbol, parameterList, context);
+
+
+            for (int i = 3; i < Children.Count; ++i)
+            {
+                Children[i].Compile(context);
+            }
+
+
+            context.ExitFunctionCompile();
+        }
+
+
+        private void AddParameter(SrScriptFunctionSymbol symbol, SyntaxNode parameterList, SrCompileContext context)
+        {
+            if (parameterList == null) return;
+            foreach (var parameter in parameterList.Children)
+            {
+                var type = context.ToRuntimeType(parameter.Children[0].Token.Kind);
+                var name = parameter.Children[1].Token.Text;
+                symbol.AddOrGetParameter(name, type);
+            }
+        }
     }
 }
