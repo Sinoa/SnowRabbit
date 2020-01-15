@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using SnowRabbit.RuntimeEngine;
 using SnowRabbit.Compiler.Assembler.Symbols;
+using System.Linq;
 
 namespace SnowRabbit.Compiler.Assembler
 {
@@ -36,38 +37,77 @@ namespace SnowRabbit.Compiler.Assembler
         /// <exception cref="ArgumentException">outStream に書き込みする能力がありません</exception>
         public void Assemble(SrAssemblyData data, Stream outStream)
         {
-            ResolveGlobalMemoryAddress(data);
+            MergeAllFunction(data);
+            AllocateStringPool(data);
+            AssignGlobalAddress(data);
+            ResolveAddress(data);
         }
 
 
-        private void ResolveGlobalMemoryAddress(SrAssemblyData data)
+        private void MergeAllFunction(SrAssemblyData data)
         {
-            var offsetAddress = SrVirtualMemory.GlobalOffset;
-            offsetAddress = ResolveStringPoolAddress(data, offsetAddress);
-        }
+            var allCode = new SrAssemblyCode[data.CodeSize];
+            var initCode = data.GetFunctionCode("__init");
+            Array.Copy(initCode, 0, allCode, 0, initCode.Length);
+            var currentIndex = initCode.Length;
 
 
-        private uint ResolveStringPoolAddress(SrAssemblyData data, uint offsetAddress)
-        {
-            var addressCounter = 0U;
-            foreach (var stringSymbol in data.GetSymbolAll<SrStringSymbol>())
+            foreach (var function in data.functionCodeTable)
             {
-                stringSymbol.Address = (int)(offsetAddress + addressCounter++);
+                if (function.Key == "__init") continue;
+
+                var name = function.Key;
+                var code = function.Value;
+
+                data.GetFunctionSymbol(name).Address = currentIndex;
+                Array.Copy(code, 0, allCode, currentIndex, code.Length);
+                currentIndex += code.Length;
             }
 
 
-            return offsetAddress + addressCounter;
+            data.functionCodeTable.Clear();
+            data.functionCodeTable[""] = allCode;
         }
 
 
-        private void WriteStartupCode(SrAssemblyData data, IList<SrInstruction> instructions)
+        private void AllocateStringPool(SrAssemblyData data)
         {
-            WriteInitializePeripheralCode(data, instructions);
+            var codeSize = data.CodeSize;
+            var counter = 0;
+            foreach (var stringSymbol in data.GetSymbolAll<SrStringSymbol>())
+            {
+                stringSymbol.Address = codeSize + counter++;
+            }
         }
 
 
-        private void WriteInitializePeripheralCode(SrAssemblyData data, IList<SrInstruction> instructions)
+        private void AssignGlobalAddress(SrAssemblyData data)
         {
+            var offsetAddress = SrVirtualMemory.GlobalOffset;
+            var counter = 0;
+            foreach (var symbol in data.GetSymbolAll<SrGlobalVariableSymbol>())
+            {
+                symbol.Address = (int)(offsetAddress + counter++);
+            }
+        }
+
+
+        private void ResolveAddress(SrAssemblyData data)
+        {
+            Dictionary<int, int> addressTranslateTable = new Dictionary<int, int>();
+            foreach (var symbol in data.GetSymbolAll<SrSymbol>())
+            {
+                addressTranslateTable[symbol.InitialAddress] = symbol.Address;
+            }
+
+
+            var code = data.functionCodeTable[""];
+            for (int i = 0; i < code.Length; ++i)
+            {
+                if (!code[i].UnresolvedAddress) continue;
+                code[i].Instruction.Int = addressTranslateTable[code[i].Instruction.Int];
+                code[i].UnresolvedAddress = false;
+            }
         }
     }
 }

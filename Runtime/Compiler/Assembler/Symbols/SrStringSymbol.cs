@@ -31,6 +31,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         /// <param name="initialAddress">初期アドレス</param>
         public SrStringSymbol(string text, int initialAddress) : base(text.GetHashCode().ToString(), initialAddress, SrScopeType.Global)
         {
+            String = text;
         }
     }
 }

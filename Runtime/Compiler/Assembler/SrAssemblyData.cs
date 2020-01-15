@@ -15,8 +15,8 @@
 
 using System;
 using System.Collections.Generic;
-using SnowRabbit.Compiler.Assembler.Symbols;
 using System.Linq;
+using SnowRabbit.Compiler.Assembler.Symbols;
 
 namespace SnowRabbit.Compiler.Assembler
 {
@@ -27,7 +27,14 @@ namespace SnowRabbit.Compiler.Assembler
     {
         // メンバ変数定義
         private readonly Dictionary<string, SrSymbol> globalSymbolTable = new Dictionary<string, SrSymbol>();
-        private readonly Dictionary<string, SrAssemblyCode[]> functionCodeTable = new Dictionary<string, SrAssemblyCode[]>();
+        public readonly Dictionary<string, SrAssemblyCode[]> functionCodeTable = new Dictionary<string, SrAssemblyCode[]>();
+
+
+
+        /// <summary>
+        /// 関数コードすべて合計したサイズ
+        /// </summary>
+        public int CodeSize => functionCodeTable.Values.Select(x => x.Length).Sum();
 
 
 
@@ -154,14 +161,9 @@ namespace SnowRabbit.Compiler.Assembler
         }
 
 
-        /// <summary>
-        /// 関数コードを列挙する列挙オブジェクトを取得します
-        /// </summary>
-        /// <returns>関数コードを列挙するオブジェクトを返します</returns>
-        public Dictionary<string, SrAssemblyCode[]>.Enumerator GetFunctionCodeEnumerator()
+        public SrAssemblyCode[] GetFunctionCode(string name)
         {
-            // そのままEnumeratorを返す
-            return functionCodeTable.GetEnumerator();
+            return functionCodeTable.TryGetValue(name, out var code) ? code : null;
         }
     }
 }

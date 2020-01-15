@@ -13,6 +13,10 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Assembler.Symbols;
+using SnowRabbit.RuntimeEngine;
+using SnowRabbit.RuntimeEngine.VirtualMachine;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -26,6 +30,67 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             {
                 child.Compile(context);
             }
+
+
+            CompileStartupCode(context);
+        }
+
+
+        private void CompileStartupCode(SrCompileContext context)
+        {
+            context.EnterFunctionCompile(SrRuntimeType.Void, "__init");
+            CompilePeripheralLoadCode(context);
+            CompileCallMainFunctionCode(context);
+            CompileStopCode(context);
+            context.ExitFunctionCompile();
+        }
+
+
+        private void CompilePeripheralLoadCode(SrCompileContext context)
+        {
+            foreach (var peripheral in context.AssemblyData.GetSymbolAll<SrPeripheralFunctionSymbol>())
+            {
+                var globalVariableSymbol = context.AssemblyData.GetVariableSymbol(peripheral.PeripheralGlobalVariableName, null);
+                var peripheralNameSymbol = context.CreateOrGetStringSymbol(peripheral.PeripheralName);
+                var peripheralFunctionNameSymbol = context.CreateOrGetStringSymbol(peripheral.PeripheralFunctionName);
+
+
+                var instruction = default(SrInstruction);
+                instruction.Set(OpCode.Ldrl, SrvmProcessor.RegisterBIndex, 0, 0, peripheralNameSymbol.InitialAddress);
+                context.AddBodyCode(instruction, true);
+                instruction.Set(OpCode.Ldrl, SrvmProcessor.RegisterCIndex, 0, 0, peripheralFunctionNameSymbol.InitialAddress);
+                context.AddBodyCode(instruction, true);
+                instruction.Set(OpCode.Gpf, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterBIndex, SrvmProcessor.RegisterCIndex);
+                context.AddBodyCode(instruction, false);
+                instruction.Set(OpCode.Strl, SrvmProcessor.RegisterAIndex, 0, 0, globalVariableSymbol.InitialAddress);
+                context.AddBodyCode(instruction, true);
+            }
+        }
+
+
+        private void CompileCallMainFunctionCode(SrCompileContext context)
+        {
+            var mainFunctionSymbol = context.AssemblyData.GetFunctionSymbol("main");
+            if (mainFunctionSymbol == null)
+            {
+                // メイン関数がない
+                throw new System.Exception();
+            }
+
+
+            var instruction = default(SrInstruction);
+            instruction.Set(OpCode.Calll, 0, 0, 0, mainFunctionSymbol.InitialAddress);
+            context.AddBodyCode(instruction, true);
+        }
+
+
+        private void CompileStopCode(SrCompileContext context)
+        {
+            var instruction = default(SrInstruction);
+            instruction.Set(OpCode.Halt);
+            context.AddBodyCode(instruction, false);
+            instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, -1);
+            context.AddBodyCode(instruction, false);
         }
     }
 }
