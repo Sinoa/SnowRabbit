@@ -229,6 +229,7 @@ using System;
 using System.Collections.Generic;
 using SnowRabbit.Compiler.IO;
 using SnowRabbit.Compiler.Lexer;
+using SnowRabbit.Compiler.Parser.SyntaxErrors;
 using SnowRabbit.Compiler.Parser.SyntaxNodes;
 
 namespace SnowRabbit.Compiler.Parser

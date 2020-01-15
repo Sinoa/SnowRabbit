@@ -16,7 +16,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace SnowRabbit.Compiler.Parser
+namespace SnowRabbit.Compiler.Parser.SyntaxErrors
 {
     /// <summary>
     /// スクリプトが見つけられなかった場合の例外クラスです
