@@ -1,2 +1,10 @@
-﻿using MyFunction = object HogePeripheral.MyFunc(int, number, string, object, bool);
+﻿// 周辺機器関数宣言のテスト
+using MyFunction = object HogePeripheral.MyFunc(int, number, string, object, bool);
 using MyFunctionEx = void HogePeripheral.MyFuncEx();
+
+// 初期化付きグローバル変数宣言
+global string g_TestName = "HogeMoge";
+global int g_TestID = 123;
+
+// 初期化なしグローバル変数宣言
+global int g_Error;

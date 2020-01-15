@@ -62,6 +62,9 @@ namespace SnowRabbit.Compiler.Parser
                 typeKind == SrTokenKind.TypeString ? SrRuntimeType.String :
                 typeKind == SrTokenKind.TypeObject ? SrRuntimeType.Object :
                 typeKind == SrTokenKind.TypeBool ? SrRuntimeType.Boolean :
+                typeKind == TokenKind.Integer ? SrRuntimeType.Integer :
+                typeKind == TokenKind.Number ? SrRuntimeType.Number :
+                typeKind == TokenKind.String ? SrRuntimeType.String :
                 SrRuntimeType.Void;
         }
 
@@ -76,10 +79,11 @@ namespace SnowRabbit.Compiler.Parser
         }
 
 
-        public SrGlobalVariableSymbol CreateGlobalVariableSymbol(SrRuntimeType type, string name)
+        public SrGlobalVariableSymbol CreateGlobalVariableSymbol(SrRuntimeType type, string name, in Token literal)
         {
             var symbol = new SrGlobalVariableSymbol(name, GetNextVirtualAddress());
             symbol.Type = type;
+            symbol.InitializeLiteral = literal;
             return AssemblyData.AddSymbol(symbol) ? symbol : null;
         }
     }

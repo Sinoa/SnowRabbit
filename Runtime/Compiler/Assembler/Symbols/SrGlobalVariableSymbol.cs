@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Lexer;
+
 namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     /// <summary>
@@ -20,6 +22,13 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
     /// </summary>
     public class SrGlobalVariableSymbol : SrVariableSymbol
     {
+        /// <summary>
+        /// 初期化式によってリテラル値がある場合の値
+        /// </summary>
+        public Token InitializeLiteral { get; set; }
+
+
+
         /// <summary>
         /// SrGlobalVariableSymbol クラスのインスタンスを初期化します
         /// </summary>

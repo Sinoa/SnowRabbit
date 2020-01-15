@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Lexer;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -20,5 +22,33 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class GlobalVariableDeclareSyntaxNode : SyntaxNode
     {
+        public override void Compile(SrCompileContext context)
+        {
+            var type = context.ToRuntimeType(Children[0].Token.Kind);
+            var name = Children[1].Token.Text;
+            var literal = default(Token);
+
+
+            if (Children.Count > 2)
+            {
+                literal = Children[2].Token;
+                var literalType = context.ToRuntimeType(literal.Kind);
+                if (type != literalType)
+                {
+                    // 宣言の型とリテラルの型が一致しない
+                    throw new System.Exception();
+                }
+            }
+
+
+            if (context.AssemblyData.GetGlobalSymbol(name) != null)
+            {
+                // 既に定義済みの名前
+                throw new System.Exception();
+            }
+
+
+            context.CreateGlobalVariableSymbol(type, name, literal);
+        }
     }
 }
