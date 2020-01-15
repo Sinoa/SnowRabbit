@@ -8,3 +8,7 @@ global int g_TestID = 123;
 
 // 初期化なしグローバル変数宣言
 global int g_Error;
+
+// 定数定義
+#const MY_ID 123
+#const MY_NAME "HOGE_MOGE"

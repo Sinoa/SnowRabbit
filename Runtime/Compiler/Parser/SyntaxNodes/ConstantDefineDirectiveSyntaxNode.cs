@@ -20,5 +20,18 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class ConstantDefineDirectiveSyntaxNode : SyntaxNode
     {
+        public override void Compile(SrCompileContext context)
+        {
+            var name = Children[0].Token.Text;
+            var literal = Children[1].Token;
+            if (context.AssemblyData.GetGlobalSymbol(name) != null)
+            {
+                // 既に定義済みの名前
+                throw new System.Exception();
+            }
+
+
+            context.CreateConstantSymbol(name, literal);
+        }
     }
 }

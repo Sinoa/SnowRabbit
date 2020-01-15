@@ -86,5 +86,14 @@ namespace SnowRabbit.Compiler.Parser
             symbol.InitializeLiteral = literal;
             return AssemblyData.AddSymbol(symbol) ? symbol : null;
         }
+
+
+        public SrConstantSymbol CreateConstantSymbol(string name, in Token literal)
+        {
+            var symbol = new SrConstantSymbol(name, GetNextVirtualAddress());
+            symbol.ConstantValue = literal;
+            symbol.Type = ToRuntimeType(literal.Kind);
+            return AssemblyData.AddSymbol(symbol) ? symbol : null;
+        }
     }
 }
