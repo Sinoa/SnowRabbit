@@ -13,9 +13,12 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
+using System.Collections.Generic;
 using SnowRabbit.Compiler.Assembler;
 using SnowRabbit.Compiler.Assembler.Symbols;
 using SnowRabbit.Compiler.Lexer;
+using SnowRabbit.RuntimeEngine;
 
 namespace SnowRabbit.Compiler.Parser
 {
@@ -26,6 +29,9 @@ namespace SnowRabbit.Compiler.Parser
     {
         // メンバ変数定義
         private int nextVirtualAddress = -1;
+        private List<SrAssemblyCode> headCodeList = new List<SrAssemblyCode>(1024);
+        private List<SrAssemblyCode> bodyCodeList = new List<SrAssemblyCode>(1024);
+        private List<SrAssemblyCode> tailCodeList = new List<SrAssemblyCode>(1024);
 
 
 
@@ -39,6 +45,12 @@ namespace SnowRabbit.Compiler.Parser
         /// 現在コンパイルをしている関数名
         /// </summary>
         public string CurrentCompileFunctionName { get; private set; }
+
+
+        /// <summary>
+        /// 現在書き込まれているコードリスト
+        /// </summary>
+        public IReadOnlyList<SrAssemblyCode> CodeList;
 
 
 
@@ -109,7 +121,38 @@ namespace SnowRabbit.Compiler.Parser
 
         public void ExitFunctionCompile()
         {
+            var codeLength = headCodeList.Count + bodyCodeList.Count + tailCodeList.Count;
+            var codeArray = new SrAssemblyCode[codeLength];
+            headCodeList.CopyTo(codeArray);
+            bodyCodeList.CopyTo(codeArray, headCodeList.Count);
+            tailCodeList.CopyTo(codeArray, headCodeList.Count + bodyCodeList.Count);
+
+
+            AssemblyData.SetFunctionCode(CurrentCompileFunctionName, codeArray);
             CurrentCompileFunctionName = null;
+
+
+            headCodeList.Clear();
+            bodyCodeList.Clear();
+            tailCodeList.Clear();
+        }
+
+
+        public void AddHeadCode(in SrInstruction instruction, bool unresolved)
+        {
+            headCodeList.Add(new SrAssemblyCode(instruction, unresolved));
+        }
+
+
+        public void AddBodyCode(in SrInstruction instruction, bool unresolved)
+        {
+            bodyCodeList.Add(new SrAssemblyCode(instruction, unresolved));
+        }
+
+
+        public void AddTailCode(in SrInstruction instruction, bool unresolved)
+        {
+            tailCodeList.Add(new SrAssemblyCode(instruction, unresolved));
         }
     }
 }

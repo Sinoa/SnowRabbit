@@ -41,7 +41,7 @@ namespace SnowRabbit.Compiler.Assembler
         /// </summary>
         /// <param name="instruction">命令コード</param>
         /// <param name="unresolved">アドレスが未解決か否か</param>
-        public SrAssemblyCode(SrInstruction instruction, bool unresolved)
+        public SrAssemblyCode(in SrInstruction instruction, bool unresolved)
         {
             // そのまま受け取る
             Instruction = instruction;

@@ -13,9 +13,36 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.RuntimeEngine;
+using SnowRabbit.RuntimeEngine.VirtualMachine;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     public class LocalVariableDeclareSyntaxNode : SyntaxNode
     {
+        public override void Compile(SrCompileContext context)
+        {
+            var type = context.ToRuntimeType(Children[0].Token.Kind);
+            var name = Children[1].Token.Text;
+            var expression = Children.Count > 2 ? Children[2] : null;
+            if (context.AssemblyData.GetVariableSymbol(name, context.CurrentCompileFunctionName) != null)
+            {
+                // すでに定義済みローカル変数
+                throw new System.Exception();
+            }
+
+
+            var function = context.AssemblyData.GetFunctionSymbol(context.CurrentCompileFunctionName);
+            var localSymbol = function.AddOrGetLocalVariable(name, type);
+
+
+            if (expression == null) return;
+
+
+            expression.Compile(context);
+            SrInstruction instruction = default;
+            instruction.Set(OpCode.Str, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterBPIndex, 0, -localSymbol.Address - 1);
+            context.AddBodyCode(instruction, false);
+        }
     }
 }
