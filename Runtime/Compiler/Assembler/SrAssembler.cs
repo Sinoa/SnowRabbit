@@ -13,6 +13,9 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
+using System.IO;
+
 namespace SnowRabbit.Compiler.Assembler
 {
     /// <summary>
@@ -20,5 +23,16 @@ namespace SnowRabbit.Compiler.Assembler
     /// </summary>
     public class SrAssembler
     {
+        /// <summary>
+        /// 指定されたアセンブリコードデータから、実行コードをアセンブルします
+        /// </summary>
+        /// <param name="data">アセンブルするためのアセンブリコードをもつデータ</param>
+        /// <param name="outStream">実行コードの出力先ストリーム</param>
+        /// <exception cref="ArgumentNullException">data が null です</exception>
+        /// <exception cref="ArgumentNullException">outStream が null です</exception>
+        /// <exception cref="ArgumentException">outStream に書き込みする能力がありません</exception>
+        public void Assemble(SrAssemblyData data, Stream outStream)
+        {
+        }
     }
 }
