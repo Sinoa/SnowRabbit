@@ -20,7 +20,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
     /// <summary>
     /// 定数定義されたシンボルを表す定数シンボルクラスです
     /// </summary>
-    public class SrConstantSymbol : SrSymbol
+    public class SrConstantSymbol : SrVariableSymbol
     {
         /// <summary>
         /// 定義された定数値

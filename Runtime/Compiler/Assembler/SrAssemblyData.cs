@@ -13,6 +13,7 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
 using System.Collections.Generic;
 using SnowRabbit.Compiler.Assembler.Symbols;
 
@@ -24,7 +25,121 @@ namespace SnowRabbit.Compiler.Assembler
     public class SrAssemblyData
     {
         // メンバ変数定義
-        private Dictionary<string, SrSymbol> globalSymbolTable;
-        private Dictionary<string, SrAssemblyCode[]> functionCodeTable;
+        private readonly Dictionary<string, SrSymbol> globalSymbolTable = new Dictionary<string, SrSymbol>();
+        private readonly Dictionary<string, SrAssemblyCode[]> functionCodeTable = new Dictionary<string, SrAssemblyCode[]>();
+
+
+
+        /// <summary>
+        /// 指定されたシンボルを追加します
+        /// </summary>
+        /// <param name="symbol">追加するシンボル</param>
+        /// <returns>追加に成功した場合は true を、重複または追加出来なかった場合は false を返します</returns>
+        /// <exception cref="ArgumentNullException">symbol が null です</exception>
+        public bool AddSymbol(SrSymbol symbol)
+        {
+            // シンボル名を取得してテーブルに存在していれば false を返す
+            var name = (symbol ?? throw new ArgumentNullException(nameof(symbol))).Name;
+            if (globalSymbolTable.ContainsKey(name)) return false;
+
+
+            // シンボルを追加して成功を返す
+            globalSymbolTable[name] = symbol;
+            return true;
+        }
+
+
+        /// <summary>
+        /// 指定された名前のグローバルシンボルを取得します
+        /// </summary>
+        /// <param name="name">取得するシンボル名</param>
+        /// <returns>取得されたシンボルを返しますが、見つからなかった場合は null を返します</returns>
+        public SrSymbol GetGlobalSymbol(string name)
+        {
+            // グローバルシンボルテーブルに指定された名前のシンボルがあれば返す
+            return globalSymbolTable.TryGetValue(name, out var symbol) ? symbol : null;
+        }
+
+
+        /// <summary>
+        /// 指定された名前の関数シンボルを取得します
+        /// </summary>
+        /// <param name="name">取得する関数シンボル名</param>
+        /// <returns>指定された関数シンボルがある場合は関数シンボルを返しますが、見つけられなかった場合は null を返します</returns>
+        public SrFunctionSymbol GetFunctionSymbol(string name)
+        {
+            // グローバルシンボルテーブルにまず指定された名前のシンボルがあるかを取得して、関数シンボルなら返す
+            return (globalSymbolTable.TryGetValue(name, out var symbol) && symbol is SrFunctionSymbol) ? (SrFunctionSymbol)symbol : null;
+        }
+
+
+        /// <summary>
+        /// 指定された名前の定数シンボルを取得します
+        /// </summary>
+        /// <param name="name">取得する定数シンボル名</param>
+        /// <returns>指定された定数シンボルがある場合は定数シンボルを返しますが、見つけられなかった場合は null を返します</returns>
+        public SrConstantSymbol GetConstantSymbol(string name)
+        {
+            // グローバルシンボルテーブルにまず指定された名前のシンボルがあるかを取得して、定数シンボルなら返す
+            return (globalSymbolTable.TryGetValue(name, out var symbol) && symbol is SrConstantSymbol) ? (SrConstantSymbol)symbol : null;
+        }
+
+
+        /// <summary>
+        /// 指定された名前の変数および定数シンボルを取得します。また検索する範囲は、ローカル > パラメータ > グローバル の順になります。
+        /// </summary>
+        /// <param name="name">取得するする変数及び定数シンボル名</param>
+        /// <param name="functionName">関数ローカルを含む場合の関数名、グローバルのみの検索の場合は null</param>
+        /// <returns>指定された名前のシンボルが見つかった場合はシンボルを返しますが、見つけられなかった場合は null を返します</returns>
+        public SrVariableSymbol GetVariableSymbol(string name, string functionName)
+        {
+            // 関数名が指定されていたら
+            if (functionName != null)
+            {
+                // まずは関数シンボルを取得して見つけた場合は
+                var functionSymbol = GetFunctionSymbol(functionName);
+                if (functionName != null)
+                {
+                    // 関数シンボルに該当の変数シンボルが存在するかチェック
+                    var result =
+                        functionSymbol.LocalVariableTable.TryGetValue(name, out var localSymbol) ? (SrVariableSymbol)localSymbol :
+                        functionSymbol.ParameterTable.TryGetValue(name, out var paramSymbol) ? (SrVariableSymbol)paramSymbol :
+                        null;
+
+
+                    // 存在すれば結果を返す
+                    if (result != null) return result;
+                }
+            }
+
+
+            // なければグローバルシンボルテーブルから調べる
+            return (globalSymbolTable.TryGetValue(name, out var symbol) && symbol is SrVariableSymbol) ? (SrVariableSymbol)symbol : null;
+        }
+
+
+        /// <summary>
+        /// 指定された名前として関数コードを設定します
+        /// </summary>
+        /// <param name="name">設定する関数名</param>
+        /// <param name="codes">設定するコード</param>
+        /// <exception cref="ArgumentNullException">name が null です</exception>
+        /// <exception cref="ArgumentNullException">codes が null です</exception>
+        public void SetFunctionCode(string name, SrAssemblyCode[] codes)
+        {
+            // 既に存在していても関係なく上書き設定
+            functionCodeTable[name] = codes;
+        }
+
+
+        /// <summary>
+        /// 関数コードを列挙する列挙オブジェクトを取得します
+        /// </summary>
+        /// <returns>関数コードを列挙するオブジェクトを返します</returns>
+        public Dictionary<string, SrAssemblyCode[]>.Enumerator GetFunctionCodeEnumerator()
+        {
+            // そのままEnumeratorを返す
+            return functionCodeTable.GetEnumerator();
+        }
     }
 }

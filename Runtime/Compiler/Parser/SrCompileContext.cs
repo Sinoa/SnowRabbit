@@ -22,7 +22,26 @@ namespace SnowRabbit.Compiler.Parser
     /// </summary>
     public class SrCompileContext
     {
-        // メンバ変数定義
+        /// <summary>
+        /// 現在のコンテキストが持っているアセンブリデータ
+        /// </summary>
         public SrAssemblyData AssemblyData { get; }
+
+
+        /// <summary>
+        /// 現在コンパイルをしている関数名
+        /// </summary>
+        public string CurrentCompileFunctionName { get; private set; }
+
+
+
+        /// <summary>
+        /// SrCompileContext クラスのインスタンスを初期化します
+        /// </summary>
+        public SrCompileContext()
+        {
+            // 諸々初期化
+            AssemblyData = new SrAssemblyData();
+        }
     }
 }

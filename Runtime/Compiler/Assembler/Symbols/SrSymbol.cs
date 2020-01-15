@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
+
 namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     /// <summary>
@@ -35,7 +37,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         /// <summary>
         /// シンボルの名前
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
 
         /// <summary>
@@ -50,6 +52,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
+        /// <exception cref="ArgumentNullException">name が null です</exception>
         protected SrSymbol(string name, int initialAddress) : this(name, initialAddress, SrScopeType.Global)
         {
         }
@@ -61,10 +64,11 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
         /// <param name="scope">シンボルのスコープ範囲、既定はグローバルです</param>
+        /// <exception cref="ArgumentNullException">name が null です</exception>
         protected SrSymbol(string name, int initialAddress, SrScopeType scope)
         {
             // 種別と名前はそのまま覚える
-            Name = name;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
             InitialAddress = initialAddress;
             Address = initialAddress;
             Scope = scope;
