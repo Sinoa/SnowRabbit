@@ -18,6 +18,7 @@ using System.IO;
 using SnowRabbit.Compiler.Assembler;
 using SnowRabbit.Compiler.IO;
 using SnowRabbit.Compiler.Parser;
+using SnowRabbit.Compiler.Parser.SyntaxNodes;
 
 namespace SnowRabbit.Compiler
 {
@@ -27,7 +28,7 @@ namespace SnowRabbit.Compiler
     public class SrCompiler : SrDisposable
     {
         // メンバ変数定義
-        private ISrScriptStorage scriptStorage;
+        private readonly ISrScriptStorage scriptStorage;
 
 
 
@@ -52,11 +53,47 @@ namespace SnowRabbit.Compiler
         /// <exception cref="ArgumentNullException">outStream が null です</exception>
         public void Compile(string path, Stream outStream)
         {
-            // パーサを生成してからパース、コンパイル、アセンブル、リンクとやっていく
-            var parser = new SrParser(scriptStorage);
-            var rootNode = parser.Parse(path);
-            var assemblyData = new SrAssemblyData();
-            rootNode.Compile(assemblyData);
+            // パース、コンパイル、アセンブルとやっていく
+            Parse(path, out var node);
+            Compile(node, out var assemblyData);
+            Assemble(assemblyData, outStream);
+        }
+
+
+        /// <summary>
+        /// パーサを使用してスクリプトから構文木を作ります
+        /// </summary>
+        /// <param name="path">構文解析する対象となるスクリプトのパス</param>
+        /// <param name="node">生成された構文木を出力する先の参照</param>
+        private void Parse(string path, out SyntaxNode node)
+        {
+            // パーサを生成して構文解析をする
+            node = new SrParser(scriptStorage).Parse(path);
+        }
+
+
+        /// <summary>
+        /// 構文木からアセンブリコードを作り出すためにコンパイルをします
+        /// </summary>
+        /// <param name="node">生成された構文木のルートノード</param>
+        /// <param name="assemblyData">コンパイルされた結果のアセンブリデータを出力する先の参照</param>
+        private void Compile(SyntaxNode node, out SrAssemblyData assemblyData)
+        {
+            // アセンブリデータを用意してコンパイル
+            assemblyData = new SrAssemblyData();
+            node.Compile(assemblyData);
+        }
+
+
+        /// <summary>
+        /// アセンブリデータから最終的な実行コードを出力します
+        /// </summary>
+        /// <param name="assemblyData">コンパイルされたアセンブリデータ</param>
+        /// <param name="outStream">実行コードを出力するストリーム</param>
+        private void Assemble(SrAssemblyData assemblyData, Stream outStream)
+        {
+            // アセンブラを生成してアセンブル
+            new SrAssembler().Assemble(assemblyData, outStream);
         }
     }
 }
