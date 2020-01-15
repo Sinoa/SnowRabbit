@@ -28,9 +28,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var returnType = context.ToRuntimeType(Children[1].Token.Kind);
             var peripheralName = Children[2].Token.Text;
             var peripheralFuncName = Children[3].Token.Text;
+            if (context.AssemblyData.GetGlobalSymbol(functionName) != null)
+            {
+                // 既に使用されている名前
+                throw new System.Exception();
+            }
+
+
             var symbol = context.CreatePeripheralFunctionSymbol(returnType, functionName, peripheralName, peripheralFuncName);
-
-
             if (Children[4] == null)
             {
                 return;
@@ -45,6 +50,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 if (!IsSupportType(runtimeType))
                 {
                     // 未サポートの型
+                    throw new System.Exception();
                 }
 
 

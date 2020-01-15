@@ -72,8 +72,7 @@ namespace SnowRabbit.Compiler.Parser
             symbol.PeripheralName = peripheralName;
             symbol.PeripheralFunctionName = peripheralFuncName;
             symbol.ReturnType = returnType;
-            AssemblyData.AddSymbol(symbol);
-            return symbol;
+            return AssemblyData.AddSymbol(symbol) ? symbol : null;
         }
 
 
@@ -81,8 +80,7 @@ namespace SnowRabbit.Compiler.Parser
         {
             var symbol = new SrGlobalVariableSymbol(name, GetNextVirtualAddress());
             symbol.Type = type;
-            AssemblyData.AddSymbol(symbol);
-            return symbol;
+            return AssemblyData.AddSymbol(symbol) ? symbol : null;
         }
     }
 }

@@ -1,1 +1,2 @@
-﻿using MyFunction = int HogePeripheral.MyFunc(int, int, int);
+﻿using MyFunction = object HogePeripheral.MyFunc(int, number, string, object, bool);
+using MyFunctionEx = void HogePeripheral.MyFuncEx();
