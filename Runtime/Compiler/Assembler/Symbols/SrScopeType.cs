@@ -13,21 +13,26 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using System.Collections.Generic;
-
-namespace SnowRabbit.Compiler.Assembler
+namespace SnowRabbit.Compiler.Assembler.Symbols
 {
-    public class SrFunctionCode
+    /// <summary>
+    /// シンボルのスコープ範囲を表します
+    /// </summary>
+    public enum SrScopeType
     {
-        private List<SrAssemblyCode> assemblyCodeList;
-        public IReadOnlyList<SrAssemblyCode> AssemblyCodeList { get; }
+        /// <summary>
+        /// グローバル範囲
+        /// </summary>
+        Global,
 
+        /// <summary>
+        /// ローカル範囲
+        /// </summary>
+        Local,
 
-
-        public SrFunctionCode()
-        {
-            assemblyCodeList = new List<SrAssemblyCode>();
-            AssemblyCodeList = assemblyCodeList.AsReadOnly();
-        }
+        /// <summary>
+        /// パラメータ
+        /// </summary>
+        Parameter,
     }
 }

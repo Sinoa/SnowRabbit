@@ -13,6 +13,7 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
 using SnowRabbit.RuntimeEngine;
 
 namespace SnowRabbit.Compiler.Assembler
@@ -20,7 +21,7 @@ namespace SnowRabbit.Compiler.Assembler
     /// <summary>
     /// アセンブリデータに含まれるアセンブリコードを表す構造体です
     /// </summary>
-    public struct SrAssemblyCode
+    public struct SrAssemblyCode : IEquatable<SrAssemblyCode>
     {
         /// <summary>
         /// VMが解釈できる命令コードの実体
@@ -46,5 +47,46 @@ namespace SnowRabbit.Compiler.Assembler
             Instruction = instruction;
             UnresolvedAddress = unresolved;
         }
+
+
+        /// <summary>
+        /// SrAssemblyCode の等価確認をします
+        /// </summary>
+        /// <param name="other">比較対象</param>
+        /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
+        public bool Equals(SrAssemblyCode other) => Instruction == other.Instruction && UnresolvedAddress == other.UnresolvedAddress;
+
+
+        /// <summary>
+        /// object の等価オーバーロードです
+        /// </summary>
+        /// <param name="obj">比較対象</param>
+        /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
+        public override bool Equals(object obj) => obj is SrAssemblyCode ? Equals((SrAssemblyCode)obj) : false;
+
+
+        /// <summary>
+        /// ハッシュコードを取得します
+        /// </summary>
+        /// <returns>ハッシュコードを返します</returns>
+        public override int GetHashCode() => base.GetHashCode();
+
+
+        /// <summary>
+        /// 等価演算子のオーバーロードです
+        /// </summary>
+        /// <param name="left">左の値</param>
+        /// <param name="right">右の値</param>
+        /// <returns>等価の結果を返します</returns>
+        public static bool operator ==(SrAssemblyCode left, SrAssemblyCode right) => left.Equals(right);
+
+
+        /// <summary>
+        /// 非等価演算子のオーバーロードです
+        /// </summary>
+        /// <param name="left">左の値</param>
+        /// <param name="right">右の値</param>
+        /// <returns>非等価の結果を返します</returns>
+        public static bool operator !=(SrAssemblyCode left, SrAssemblyCode right) => !left.Equals(right);
     }
 }

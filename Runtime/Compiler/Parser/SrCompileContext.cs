@@ -13,41 +13,16 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-namespace SnowRabbit.Compiler.Assembler
+using SnowRabbit.Compiler.Assembler;
+
+namespace SnowRabbit.Compiler.Parser
 {
     /// <summary>
-    /// コンパイラが認知できる実行型を表しています
+    /// 構文ノードによるコンパイルコンテキストを持つクラスです
     /// </summary>
-    public enum SrRuntimeType
+    public class SrCompileContext
     {
-        /// <summary>
-        /// void型
-        /// </summary>
-        Void,
-
-        /// <summary>
-        /// 整数型
-        /// </summary>
-        Integer,
-
-        /// <summary>
-        /// 実数型
-        /// </summary>
-        Number,
-
-        /// <summary>
-        /// 文字列型
-        /// </summary>
-        String,
-
-        /// <summary>
-        /// オブジェクト型
-        /// </summary>
-        Object,
-
-        /// <summary>
-        /// ブーリアン型
-        /// </summary>
-        Boolean,
+        // メンバ変数定義
+        public SrAssemblyData AssemblyData { get; }
     }
 }

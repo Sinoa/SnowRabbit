@@ -35,5 +35,16 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         protected SrVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
         {
         }
+
+
+        /// <summary>
+        /// SrSymbol のインスタンスを初期化します
+        /// </summary>
+        /// <param name="name">シンボル名</param>
+        /// <param name="initialAddress">初期アドレス</param>
+        /// <param name="scope">シンボルのスコープ範囲、既定はグローバルです</param>
+        protected SrVariableSymbol(string name, int initialAddress, SrScopeType scope) : base(name, initialAddress, scope)
+        {
+        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿// zlib/libpng License
 //
-// Copyright(c) 2019 Sinoa
+// Copyright(c) 2020 Sinoa
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -14,7 +14,6 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System.Collections.Generic;
-using SnowRabbit.Compiler.Assembler;
 using SnowRabbit.Compiler.Lexer;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
@@ -81,8 +80,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <summary>
         /// この構文ノードから生成されるアセンブリコードをコンパイルします
         /// </summary>
-        /// <param name="assemblyData">アセンブリコードを書き出す対象となるアセンブリデータ</param>
-        public virtual void Compile(SrAssemblyData assemblyData)
+        /// <param name="context">コンパイル中のコンテキスト</param>
+        public virtual void Compile(SrCompileContext context)
         {
         }
     }

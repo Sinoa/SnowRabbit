@@ -1,6 +1,6 @@
 ﻿// zlib/libpng License
 //
-// Copyright(c) 2019 Sinoa
+// Copyright(c) 2020 Sinoa
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -16,17 +16,38 @@
 namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     /// <summary>
-    /// ローカル変数シンボルを表すシンボルクラスです
+    /// コンパイラが認知できる実行型を表しています
     /// </summary>
-    public class SrLocalVariableSymbol : SrVariableSymbol
+    public enum SrRuntimeType
     {
         /// <summary>
-        /// SrLocalVariableSymbol クラスのインスタンスを初期化します
+        /// void型
         /// </summary>
-        /// <param name="name">シンボル名</param>
-        /// <param name="initialAddress">初期アドレス</param>
-        public SrLocalVariableSymbol(string name, int initialAddress) : base(name, initialAddress, SrScopeType.Local)
-        {
-        }
+        Void,
+
+        /// <summary>
+        /// 整数型
+        /// </summary>
+        Integer,
+
+        /// <summary>
+        /// 実数型
+        /// </summary>
+        Number,
+
+        /// <summary>
+        /// 文字列型
+        /// </summary>
+        String,
+
+        /// <summary>
+        /// オブジェクト型
+        /// </summary>
+        Object,
+
+        /// <summary>
+        /// ブーリアン型
+        /// </summary>
+        Boolean,
     }
 }

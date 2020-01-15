@@ -79,9 +79,10 @@ namespace SnowRabbit.Compiler
         /// <param name="assemblyData">コンパイルされた結果のアセンブリデータを出力する先の参照</param>
         private void Compile(SyntaxNode node, out SrAssemblyData assemblyData)
         {
-            // アセンブリデータを用意してコンパイル
-            assemblyData = new SrAssemblyData();
-            node.Compile(assemblyData);
+            // コンパイルしてアセンブリデータを渡す
+            var compileContext = new SrCompileContext();
+            node.Compile(compileContext);
+            assemblyData = compileContext.AssemblyData;
         }
 
 

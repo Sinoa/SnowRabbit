@@ -25,7 +25,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
-        public SrParameterVariableSymbol(string name, int initialAddress) : base(name, initialAddress)
+        public SrParameterVariableSymbol(string name, int initialAddress) : base(name, initialAddress, SrScopeType.Parameter)
         {
         }
     }

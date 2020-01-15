@@ -38,18 +38,36 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         public string Name { get; private set; }
 
 
+        /// <summary>
+        /// シンボルのスコープ
+        /// </summary>
+        public SrScopeType Scope { get; }
+
+
 
         /// <summary>
         /// SrSymbol のインスタンスを初期化します
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
-        protected SrSymbol(string name, int initialAddress)
+        protected SrSymbol(string name, int initialAddress) : this(name, initialAddress, SrScopeType.Global)
+        {
+        }
+
+
+        /// <summary>
+        /// SrSymbol のインスタンスを初期化します
+        /// </summary>
+        /// <param name="name">シンボル名</param>
+        /// <param name="initialAddress">初期アドレス</param>
+        /// <param name="scope">シンボルのスコープ範囲、既定はグローバルです</param>
+        protected SrSymbol(string name, int initialAddress, SrScopeType scope)
         {
             // 種別と名前はそのまま覚える
             Name = name;
             InitialAddress = initialAddress;
             Address = initialAddress;
+            Scope = scope;
         }
     }
 }
