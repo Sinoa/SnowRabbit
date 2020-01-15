@@ -601,11 +601,13 @@ namespace SnowRabbit.Compiler.Parser
 
 
             var peripheralName = ParseIdentifier();
-            if (peripheralName == null && !CheckTokenAndReadNext(TokenKind.Period)) return null;
+            if (peripheralName == null) return null;
+            if (!CheckTokenAndReadNext(TokenKind.Period)) return null;
 
 
             var functionName = ParseIdentifier();
-            if (functionName == null && !CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
+            if (functionName == null) return null;
+            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
 
 
             var typeList = ParseTypeList();
