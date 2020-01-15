@@ -32,6 +32,12 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         public string PeripheralFunctionName { get; set; }
 
 
+        /// <summary>
+        /// この周辺機器関数の参照を格納する変数の名前
+        /// </summary>
+        public string PeripheralGlobalVariableName { get; }
+
+
 
         /// <summary>
         /// SrPeripheralFunctionSymbol クラスのインスタンスを初期化します
@@ -40,6 +46,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         /// <param name="initialAddress">初期アドレス</param>
         public SrPeripheralFunctionSymbol(string name, int initialAddress) : base(name, initialAddress)
         {
+            PeripheralGlobalVariableName = $"___PF__{name}___";
         }
     }
 }

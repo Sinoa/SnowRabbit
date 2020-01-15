@@ -14,7 +14,10 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using SnowRabbit.RuntimeEngine;
+using SnowRabbit.Compiler.Assembler.Symbols;
 
 namespace SnowRabbit.Compiler.Assembler
 {
@@ -32,6 +35,38 @@ namespace SnowRabbit.Compiler.Assembler
         /// <exception cref="ArgumentNullException">outStream が null です</exception>
         /// <exception cref="ArgumentException">outStream に書き込みする能力がありません</exception>
         public void Assemble(SrAssemblyData data, Stream outStream)
+        {
+            ResolveGlobalMemoryAddress(data);
+        }
+
+
+        private void ResolveGlobalMemoryAddress(SrAssemblyData data)
+        {
+            var offsetAddress = SrVirtualMemory.GlobalOffset;
+            offsetAddress = ResolveStringPoolAddress(data, offsetAddress);
+        }
+
+
+        private uint ResolveStringPoolAddress(SrAssemblyData data, uint offsetAddress)
+        {
+            var addressCounter = 0U;
+            foreach (var stringSymbol in data.GetSymbolAll<SrStringSymbol>())
+            {
+                stringSymbol.Address = (int)(offsetAddress + addressCounter++);
+            }
+
+
+            return offsetAddress + addressCounter;
+        }
+
+
+        private void WriteStartupCode(SrAssemblyData data, IList<SrInstruction> instructions)
+        {
+            WriteInitializePeripheralCode(data, instructions);
+        }
+
+
+        private void WriteInitializePeripheralCode(SrAssemblyData data, IList<SrInstruction> instructions)
         {
         }
     }

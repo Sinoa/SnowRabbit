@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using SnowRabbit.Compiler.Assembler.Symbols;
+using System.Linq;
 
 namespace SnowRabbit.Compiler.Assembler
 {
@@ -127,6 +128,15 @@ namespace SnowRabbit.Compiler.Assembler
 
             // なければグローバルシンボルテーブルから調べる
             return (globalSymbolTable.TryGetValue(name, out var symbol) && symbol is SrVariableSymbol) ? (SrVariableSymbol)symbol : null;
+        }
+
+
+        public IEnumerable<T> GetSymbolAll<T>() where T : SrSymbol
+        {
+            return globalSymbolTable
+                .Values
+                .Where(x => x is T)
+                .Select(x => (T)x);
         }
 
 

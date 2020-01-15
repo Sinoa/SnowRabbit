@@ -35,7 +35,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
+            context.CreateOrGetStringSymbol(peripheralName);
+            context.CreateOrGetStringSymbol(peripheralFuncName);
             var symbol = context.CreatePeripheralFunctionSymbol(returnType, functionName, peripheralName, peripheralFuncName);
+            context.CreateGlobalVariableSymbol(SrRuntimeType.Object, symbol.PeripheralGlobalVariableName, default);
             if (Children[4] == null)
             {
                 return;
