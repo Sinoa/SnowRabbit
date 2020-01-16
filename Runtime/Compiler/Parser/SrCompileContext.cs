@@ -47,11 +47,25 @@ namespace SnowRabbit.Compiler.Parser
         public string CurrentCompileFunctionName { get; private set; }
 
 
+        public IReadOnlyList<SrAssemblyCode> HeadCodeList { get; }
+
+
         /// <summary>
         /// 現在書き込まれているコードリスト
         /// </summary>
-        public IReadOnlyList<SrAssemblyCode> CodeList;
+        public IReadOnlyList<SrAssemblyCode> BodyCodeList { get; }
 
+
+        public IReadOnlyList<SrAssemblyCode> TailCodeList { get; }
+
+
+
+        public SrCompileContext()
+        {
+            HeadCodeList = headCodeList.AsReadOnly();
+            BodyCodeList = bodyCodeList.AsReadOnly();
+            TailCodeList = tailCodeList.AsReadOnly();
+        }
 
 
         /// <summary>

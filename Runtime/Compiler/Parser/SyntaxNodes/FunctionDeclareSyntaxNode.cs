@@ -14,6 +14,8 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using SnowRabbit.Compiler.Assembler.Symbols;
+using SnowRabbit.RuntimeEngine;
+using SnowRabbit.RuntimeEngine.VirtualMachine;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
@@ -44,6 +46,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
+            CompileFunctionEnterCode(context, symbol);
+            CompileFunctionLeaveCode(context, symbol);
+
+
             context.ExitFunctionCompile();
         }
 
@@ -57,6 +63,44 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 var name = parameter.Children[1].Token.Text;
                 symbol.AddOrGetParameter(name, type);
             }
+        }
+
+
+        private void CompileFunctionEnterCode(SrCompileContext context, SrScriptFunctionSymbol symbol)
+        {
+            // push rbp
+            // mov rbp, rsp
+            // subl rsp, rsp, LocalVarCount
+            var rsp = SrvmProcessor.RegisterSPIndex;
+            var rbp = SrvmProcessor.RegisterBPIndex;
+            var instruction = default(SrInstruction);
+            instruction.Set(OpCode.Push, rbp);
+            context.AddHeadCode(instruction, false);
+            instruction.Set(OpCode.Mov, rbp, rsp);
+            context.AddHeadCode(instruction, false);
+            instruction.Set(OpCode.Subl, rsp, rsp, 0, symbol.LocalVariableTable.Count);
+            context.AddHeadCode(instruction, false);
+        }
+
+
+        private void CompileFunctionLeaveCode(SrCompileContext context, SrScriptFunctionSymbol symbol)
+        {
+            // addl rsp, rsp, LocalVarCount
+            // mov rsp, rbp
+            // pop rbp
+            // ret
+            var rsp = SrvmProcessor.RegisterSPIndex;
+            var rbp = SrvmProcessor.RegisterBPIndex;
+            var instruction = default(SrInstruction);
+            instruction.Set(OpCode.Addl, rsp, rsp, 0, symbol.LocalVariableTable.Count);
+            context.AddTailCode(instruction, false);
+            instruction.Set(OpCode.Mov, rsp, rsp);
+            context.AddTailCode(instruction, false);
+            instruction.Set(OpCode.Pop, rbp);
+            context.AddTailCode(instruction, false);
+            instruction.Set(OpCode.Ret);
+            context.AddTailCode(instruction, false);
+
         }
     }
 }

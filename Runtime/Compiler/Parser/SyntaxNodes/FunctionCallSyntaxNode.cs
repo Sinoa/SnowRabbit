@@ -13,6 +13,10 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Assembler.Symbols;
+using SnowRabbit.RuntimeEngine;
+using SnowRabbit.RuntimeEngine.VirtualMachine;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -29,6 +33,23 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             if (argumentList != null)
             {
                 argumentList.Compile(context);
+            }
+
+
+            var functionSymbol = context.AssemblyData.GetFunctionSymbol(functionName);
+            var instruction = default(SrInstruction);
+            if (functionSymbol is SrScriptFunctionSymbol)
+            {
+                instruction.Set(OpCode.Calll, 0, 0, 0, functionSymbol.InitialAddress);
+                context.AddBodyCode(instruction, true);
+            }
+            else if (functionSymbol is SrPeripheralFunctionSymbol peripheralFunction)
+            {
+                var globalVariableAddress = context.AssemblyData.GetVariableSymbol(peripheralFunction.PeripheralGlobalVariableName, null).InitialAddress;
+                instruction.Set(OpCode.Ldrl, SrvmProcessor.RegisterAIndex, 0, 0, globalVariableAddress);
+                context.AddBodyCode(instruction, true);
+                instruction.Set(OpCode.Cpfl, SrvmProcessor.RegisterAIndex, 0, 0, peripheralFunction.ParameterTable.Count);
+                context.AddBodyCode(instruction, false);
             }
         }
     }

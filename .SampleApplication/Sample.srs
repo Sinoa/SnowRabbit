@@ -25,5 +25,6 @@ function void main()
 
 	local int counter = 0;
 	local int result = Add(counter, 123);
+	MyFunctionEx();
 
 end
