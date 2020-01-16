@@ -16,9 +16,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using SnowRabbit.RuntimeEngine;
-using SnowRabbit.Compiler.Assembler.Symbols;
 using System.Linq;
+using System.Text;
+using SnowRabbit.Compiler.Assembler.Symbols;
+using SnowRabbit.IO;
+using SnowRabbit.RuntimeEngine;
 
 namespace SnowRabbit.Compiler.Assembler
 {
@@ -41,6 +43,11 @@ namespace SnowRabbit.Compiler.Assembler
             AllocateStringPool(data);
             AssignGlobalAddress(data);
             ResolveAddress(data);
+
+
+            var binaryIO = new SrBinaryIO(outStream);
+            WriteHeader(data, binaryIO);
+            WriteCode(data, binaryIO);
         }
 
 
@@ -107,6 +114,36 @@ namespace SnowRabbit.Compiler.Assembler
                 if (!code[i].UnresolvedAddress) continue;
                 code[i].Instruction.Int = addressTranslateTable[code[i].Instruction.Int];
                 code[i].UnresolvedAddress = false;
+            }
+        }
+
+
+        private void WriteHeader(SrAssemblyData data, SrBinaryIO binaryIO)
+        {
+            binaryIO.Write(data.CodeSize);
+            binaryIO.Write(data.GetSymbolAll<SrStringSymbol>().Count());
+        }
+
+
+        private void WriteCode(SrAssemblyData data, SrBinaryIO binaryIO)
+        {
+            var code = data.functionCodeTable[""];
+            for (int i = 0; i < code.Length; ++i)
+            {
+                binaryIO.Write(code[i].Instruction.Raw);
+            }
+        }
+
+
+        private void WriteStringPool(SrAssemblyData data, SrBinaryIO binaryIO)
+        {
+            var encoding = new UTF8Encoding(false);
+            foreach (var symbol in data.GetSymbolAll<SrStringSymbol>())
+            {
+                var utf8Data = encoding.GetBytes(symbol.String);
+                binaryIO.Write(symbol.Address);
+                binaryIO.Write(utf8Data.Length);
+                binaryIO.BaseStream.Write(utf8Data, 0, utf8Data.Length);
             }
         }
     }
