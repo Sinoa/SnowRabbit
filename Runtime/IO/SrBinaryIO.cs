@@ -181,6 +181,32 @@ namespace SnowRabbit.IO
 
         #region Read functions
         /// <summary>
+        /// 指定されたバイト配列に直接読み込みます
+        /// </summary>
+        /// <param name="buffer">読み取ったバイト配列を受け取るバッファ</param>
+        /// <returns>ストリームから読み出された長さを返します</returns>
+        public int Read(byte[] buffer)
+        {
+            // そのまま直接読み込む
+            return BaseStream.Read(buffer, 0, buffer.Length);
+        }
+
+
+        /// <summary>
+        /// 指定されたバイト配列の範囲に直接読み込みます
+        /// </summary>
+        /// <param name="buffer">読み取ったバイト配列を受け取るバッファ</param>
+        /// <param name="offset">受け取るバッファの開始位置</param>
+        /// <param name="count">受け取る長さ</param>
+        /// <returns>ストリームから読み出された長さを返します</returns>
+        public int Read(byte[] buffer, int offset, int count)
+        {
+            // そのまま直接読み込む
+            return BaseStream.Read(buffer, offset, count);
+        }
+
+
+        /// <summary>
         /// 符号付き8bit整数を読み込みます
         /// </summary>
         /// <returns>読み込まれた値を返します</returns>
@@ -325,6 +351,30 @@ namespace SnowRabbit.IO
 
 
         #region Write functions
+        /// <summary>
+        /// 指定されたバイト配列をそのまま書き込みます
+        /// </summary>
+        /// <param name="buffer">書き込むバイト配列</param>
+        public void Write(byte[] buffer)
+        {
+            // 直接指定バイト配列を流し込む
+            BaseStream.Write(buffer, 0, buffer.Length);
+        }
+
+
+        /// <summary>
+        /// 指定されたバイト配列と範囲でそのまま書き込みます
+        /// </summary>
+        /// <param name="buffer">書き込むバイト配列</param>
+        /// <param name="offset">書き込むバイト配列の開始位置</param>
+        /// <param name="count">書き込むバイト配列の長さ</param>
+        public void Write(byte[] buffer, int offset, int count)
+        {
+            // 直接指定バイト配列を流し込む
+            BaseStream.Write(buffer, offset, count);
+        }
+
+
         /// <summary>
         /// 符号付き8bit整数を書き込みます
         /// </summary>
