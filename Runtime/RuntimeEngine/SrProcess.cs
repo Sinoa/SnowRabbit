@@ -29,7 +29,8 @@ namespace SnowRabbit.RuntimeEngine
         public int InvalidProcessID = -1;
 
         // メンバ変数定義
-        private SrvmMachine machine;
+        private bool disposed;
+        private readonly SrvmMachine machine;
         internal readonly MemoryBlock<SrValue> ProcessorContext;
         internal readonly SrVirtualMemory VirtualMemory;
         internal readonly Stopwatch RunningStopwatch;
@@ -70,6 +71,23 @@ namespace SnowRabbit.RuntimeEngine
             ProcessorContext = processorContext;
             ProcessState = SrProcessStatus.Ready;
             this.machine = machine;
+        }
+
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposed) return;
+
+
+            if (disposing)
+            {
+                ProcessState = SrProcessStatus.Stopped;
+                Task.Dispose();
+            }
+
+
+            disposed = true;
+            base.Dispose(disposing);
         }
     }
 }
