@@ -51,6 +51,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 instruction.Set(OpCode.Cpfl, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR8Index, 0, peripheralFunction.ParameterTable.Count);
                 context.AddBodyCode(instruction, false);
             }
+
+
+            if (argumentList != null)
+            {
+                instruction.Set(OpCode.Addl, SrvmProcessor.RegisterSPIndex, SrvmProcessor.RegisterSPIndex, 0, argumentList.Children.Count);
+                context.AddBodyCode(instruction, false);
+            }
         }
     }
 }

@@ -31,7 +31,7 @@ function void main()
 	local int counter = 0;
 	local int result = Add(counter, 123);
 	Write("Testメッセージ");
-	Wait(5);
+	Wait(5000);
 	Write("Testメッセージ二回目");
 	Check(1, 2, 3);
 
