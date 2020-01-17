@@ -39,7 +39,7 @@ namespace SnowRabbit.RuntimeEngine.Data
     public class SrExecutableData
     {
         // 定数定義
-        public const uint MagicNumber = (byte)'S' << 24 | (byte)'R' << 16 | (byte)'O' << 8 | (byte)'F';
+        public const uint MagicNumber = (byte)'F' << 24 | (byte)'O' << 16 | (byte)'R' << 8 | (byte)'S'; // for LittleEndian
 
         // クラス変数宣言
         private static readonly Encoding encoding = new UTF8Encoding(false);
