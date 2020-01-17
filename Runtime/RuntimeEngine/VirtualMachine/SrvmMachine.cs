@@ -35,6 +35,14 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         /// <summary>
         /// SrvmMachine クラスのインスタンスを初期化します
         /// </summary>
+        public SrvmMachine() : this(new SrvmDefaultMachinePartsFactory())
+        {
+        }
+
+
+        /// <summary>
+        /// SrvmMachine クラスのインスタンスを初期化します
+        /// </summary>
         /// <param name="factory">仮想マシンが使用する各種パーツクラスを生成する SrvmMachinePartsFactory のインスタンス</param>
         /// <exception cref="ArgumentNullException">factory が null です</exception>
         /// <exception cref="SrMachinePartsMissingException">Processor マシンパーツを見失いました</exception>
