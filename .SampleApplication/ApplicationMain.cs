@@ -15,6 +15,7 @@
 
 using System.IO;
 using SnowRabbit.Compiler;
+using SnowRabbit.RuntimeEngine.VirtualMachine;
 
 namespace SampleApplication
 {
@@ -26,6 +27,12 @@ namespace SampleApplication
             var compiler = new SrCompiler();
             compiler.Compile("Sample.srs", outStream);
             outStream.Dispose();
+
+
+            var vm = new SrvmMachine();
+            var process = vm.CreateProcess("sample.bin");
+            process.Run();
+            process.Dispose();
         }
     }
 }
