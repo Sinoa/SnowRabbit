@@ -21,6 +21,7 @@ using System.Text;
 using SnowRabbit.Compiler.Assembler.Symbols;
 using SnowRabbit.IO;
 using SnowRabbit.RuntimeEngine;
+using SnowRabbit.RuntimeEngine.Data;
 
 namespace SnowRabbit.Compiler.Assembler
 {
@@ -45,9 +46,7 @@ namespace SnowRabbit.Compiler.Assembler
             ResolveAddress(data);
 
 
-            var binaryIO = new SrBinaryIO(outStream);
-            WriteHeader(data, binaryIO);
-            WriteCode(data, binaryIO);
+            OutputObject(data, outStream);
         }
 
 
@@ -118,32 +117,42 @@ namespace SnowRabbit.Compiler.Assembler
         }
 
 
-        private void WriteHeader(SrAssemblyData data, SrBinaryIO binaryIO)
+        private void OutputObject(SrAssemblyData data, Stream stream)
         {
-            binaryIO.Write(data.CodeSize);
-            binaryIO.Write(data.GetSymbolAll<SrStringSymbol>().Count());
-        }
-
-
-        private void WriteCode(SrAssemblyData data, SrBinaryIO binaryIO)
-        {
-            var code = data.functionCodeTable[""];
-            for (int i = 0; i < code.Length; ++i)
+            var codes = new SrValue[data.CodeSize];
+            var assemblyCodes = data.functionCodeTable[""];
+            for (int i = 0; i < codes.Length; ++i)
             {
-                binaryIO.Write(code[i].Instruction.Raw);
+                var value = new SrValue();
+                value.Primitive.Ulong = assemblyCodes[i].Instruction.Raw;
+                codes[i] = value;
             }
-        }
 
 
-        private void WriteStringPool(SrAssemblyData data, SrBinaryIO binaryIO)
-        {
-            var encoding = new UTF8Encoding(false);
+            var encode = new UTF8Encoding(false);
+            var buffer = new MemoryStream();
+            var offset = 0;
+            var records = new StringRecord[data.GetSymbolAll<SrStringSymbol>().Count()];
             foreach (var symbol in data.GetSymbolAll<SrStringSymbol>())
             {
-                var utf8Data = encoding.GetBytes(symbol.String);
-                binaryIO.Write(symbol.Address);
-                binaryIO.Write(utf8Data.Length);
-                binaryIO.BaseStream.Write(utf8Data, 0, utf8Data.Length);
+                var utf8Data = encode.GetBytes(symbol.String);
+
+
+                var record = new StringRecord();
+                record.Address = symbol.Address;
+                record.Offset = offset;
+                record.Length = utf8Data.Length;
+
+
+                offset += utf8Data.Length;
+                buffer.Write(utf8Data, 0, utf8Data.Length);
+            }
+
+
+            var executableData = new SrExecutableData(codes, records, buffer.ToArray());
+            using (var writer = new SrExecutableDataWriter(stream))
+            {
+                writer.Write(executableData);
             }
         }
     }
