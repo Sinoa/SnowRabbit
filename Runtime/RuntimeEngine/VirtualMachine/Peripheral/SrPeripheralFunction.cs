@@ -234,8 +234,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
         /// <summary>
         /// 指定された値配列の位置と長さから引数を取り出し、関数を呼び出します。
-        /// 引数は記述とは逆に設定されている前提となっています。
-        /// Hint : [Code] arg1, arg2, arg3 [Data] arg3, arg2, arg1
         /// </summary>
         /// <param name="memory">関数呼び出しに使用する仮想メモリ</param>
         /// <param name="address">引数として使用する開始アドレス</param>
@@ -260,7 +258,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
                 // 引数設定関数を用いて値配列から引数配列へ参照コピー（ボクシングは現状やむなし、改善方法を検討）
-                arguments[i] = argumentSetters[i](memory[address + count - 1 - i + indexGap]);
+                arguments[i] = argumentSetters[i](memory[address + i + indexGap]);
             }
 
 

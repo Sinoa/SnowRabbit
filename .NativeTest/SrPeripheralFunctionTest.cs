@@ -83,11 +83,11 @@ namespace SnowRabbitTest
             Assert.True(task.IsCompleted);
 
 
-            // 周辺機器から引数付き関数を取り出して実行する（引数は第一引数からプッシュする仮想マシンになるので、配列に収める順番は逆順になる）
+            // 周辺機器から引数付き関数を取り出して実行する
             function = peripheral.GetPeripheralFunction("SimpleEx");
-            memory[3] = "足し算をするよ";
+            memory[3] = 123;
             memory[4] = 456;
-            memory[5] = 123;
+            memory[5] = "足し算をするよ";
             Assert.IsNotNull(function);
             task = function.Call(memory, 3, 3, 0);
             Assert.True(task.IsCompleted);
@@ -103,8 +103,8 @@ namespace SnowRabbitTest
             // 単純な引数の受け取りと結果を返す関数を取り出して実行する
             function = peripheral.GetPeripheralFunction("RetSimpleEx");
             Assert.IsNotNull(function);
-            memory[0] = 456;
-            memory[1] = 123;
+            memory[0] = 123;
+            memory[1] = 456;
             function.Call(memory, 0, 2, 0);
             Assert.AreEqual(579, function.GetResult().Primitive.Int);
         }
@@ -133,8 +133,8 @@ namespace SnowRabbitTest
             // 結果を返してくれるタスクを実行して結果が想定通りか確認する
             taskFunc = peripheral.GetPeripheralFunction("AddTaskFunc");
             Assert.IsNotNull(taskFunc);
-            memory[2] = 456;
-            memory[3] = 123;
+            memory[2] = 123;
+            memory[3] = 456;
             task = taskFunc.Call(memory, 2, 2, 0);
             Assert.True(task.IsCompleted);
             task.Wait();
@@ -145,8 +145,8 @@ namespace SnowRabbitTest
             // 少しだけ待つ時の結果を返すタスクを実行して結果が想定通りか確認する
             taskFunc = peripheral.GetPeripheralFunction("CombWaitTaskFunc");
             Assert.IsNotNull(taskFunc);
-            memory[0] = "結合されるはずです。";
-            memory[1] = "このメッセージは、";
+            memory[0] = "このメッセージは、";
+            memory[1] = "結合されるはずです。";
             task = taskFunc.Call(memory, 0, 2, 0);
             Assert.False(task.IsCompleted);
             task.Wait();
@@ -164,8 +164,8 @@ namespace SnowRabbitTest
             // プロセスIDが渡ってくする関数の呼び出しをするが、プロセスIDは引数リストからは渡すことはない（ここからは見えない引数として扱う）
             var function = peripheral.GetPeripheralFunction("ProcFunc");
             Assert.IsNotNull(function);
-            memory[0] = 456;
-            memory[1] = 123;
+            memory[0] = 123;
+            memory[1] = 456;
             function.Call(memory, 0, 2, 579);
 
 
