@@ -18,7 +18,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
     /// <summary>
     /// SnowRabbit が提供する既定マシンパーツ生成クラスです
     /// </summary>
-    internal class SrvmDefaultMachinePartsFactory : SrvmMachinePartsFactory
+    public class SrvmDefaultMachinePartsFactory : SrvmMachinePartsFactory
     {
         /// <summary>
         /// ファームウェアを生成します

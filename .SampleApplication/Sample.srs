@@ -1,6 +1,11 @@
 ﻿// 周辺機器関数宣言のテスト
-using MyFunction = object HogePeripheral.MyFunc(int, number, string, object, bool);
-using MyFunctionEx = void HogePeripheral.MyFuncEx();
+//using MyFunction = object HogePeripheral.MyFunc(int, number, string, object, bool);
+//using MyFunctionEx = void HogePeripheral.MyFuncEx();
+
+using MyAdd = string Sample.MyAdd(int, int);
+using Write = void Sample.Write(string);
+using Wait = void Sample.Wait(int);
+using Check = void Sample.Check(int, int, int);
 
 // 初期化付きグローバル変数宣言
 global string g_TestName = "HogeMoge";
@@ -25,6 +30,9 @@ function void main()
 
 	local int counter = 0;
 	local int result = Add(counter, 123);
-	MyFunctionEx();
+	Write("Testメッセージ");
+	Wait(5);
+	Write("Testメッセージ二回目");
+	Check(1, 2, 3);
 
 end

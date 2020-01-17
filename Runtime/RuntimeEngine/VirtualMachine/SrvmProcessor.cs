@@ -198,7 +198,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             else if (process.ProcessState == SrProcessStatus.Suspended)
             {
                 // プロセスが一時停止中なら、プロセスのタスクの状態を確認して未完了なら
-                if (process.Task == null || !process.Task.IsCompleted)
+                if (process.Task != null && !process.Task.IsCompleted)
                 {
                     // まだプロセスは再開できない
                     SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Execute paused, for Process status is '{process.ProcessState}'.");
@@ -677,7 +677,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                     case OpCode.Cpf:
                     case OpCode.Cpfl:
                         var function = context[r2].Object as SrPeripheralFunction;
-                        var task = process.PeripheralFunction.Call(memory, context[RegisterSPIndex].Primitive.Int, instruction.OpCode == OpCode.Cpf ? context[r3].Primitive.Int : instruction.Int, process.ProcessID);
+                        var task = function.Call(memory, context[RegisterSPIndex].Primitive.Int, instruction.OpCode == OpCode.Cpf ? context[r3].Primitive.Int : instruction.Int, process.ProcessID);
                         if (task.IsCompleted)
                         {
                             context[r1] = function.GetResult();

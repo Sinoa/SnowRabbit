@@ -14,8 +14,11 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System.IO;
+using System.Threading.Tasks;
 using SnowRabbit.Compiler;
 using SnowRabbit.RuntimeEngine.VirtualMachine;
+using SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral;
+using SnowRabbit.RuntimeEngine;
 
 namespace SampleApplication
 {
@@ -29,10 +32,56 @@ namespace SampleApplication
             outStream.Dispose();
 
 
-            var vm = new SrvmMachine();
+            var vm = new SrvmMachine(new MyFactory());
             var process = vm.CreateProcess("sample.bin");
-            process.Run();
+            while (process.ProcessState != SrProcessStatus.Stopped)
+            {
+                process.Run();
+            }
             process.Dispose();
+        }
+    }
+
+
+    public class MyFactory : SrvmDefaultMachinePartsFactory
+    {
+        public override SrvmFirmware CreateFirmware()
+        {
+            var firmWare = base.CreateFirmware();
+            firmWare.AttachPeripheral(new SamplePeripheral());
+            return firmWare;
+        }
+    }
+
+
+    [SrPeripheral("Sample")]
+    public class SamplePeripheral
+    {
+        [SrHostFunction("MyAdd")]
+        public string MyAdd(int a, int b)
+        {
+            return (a + b).ToString();
+        }
+
+
+        [SrHostFunction("Write")]
+        public void Write(string text)
+        {
+            System.Console.WriteLine(text);
+        }
+
+
+        [SrHostFunction("Wait")]
+        public Task Wait(int second)
+        {
+            return Task.Delay(second);
+        }
+
+
+        [SrHostFunction("Check")]
+        public void ArgumentCheck(int a, int b, int c, [SrProcessID] int d)
+        {
+            return;
         }
     }
 }

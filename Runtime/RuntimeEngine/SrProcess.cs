@@ -83,7 +83,6 @@ namespace SnowRabbit.RuntimeEngine
             if (disposing)
             {
                 ProcessState = SrProcessStatus.Stopped;
-                Task.Dispose();
             }
 
 
