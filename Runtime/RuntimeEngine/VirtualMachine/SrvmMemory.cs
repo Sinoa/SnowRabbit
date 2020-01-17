@@ -47,7 +47,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             var heapMemory = CreateHeapMemory(executableData);
             var stackMemory = CreateStackMemory(executableData);
             var contextMemory = CreateContextMemory(executableData);
-            return new SrProcess(nextProcessID++, codeMemory, globalMemory, heapMemory, stackMemory, contextMemory);
+            return new SrProcess(nextProcessID++, codeMemory, globalMemory, heapMemory, stackMemory, contextMemory, Machine);
         }
 
 

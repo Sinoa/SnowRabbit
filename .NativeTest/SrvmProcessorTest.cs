@@ -70,7 +70,7 @@ namespace SnowRabbitTest
             // メモリをクリアして、事前に割り当てたメモリブロックを使ってプロセスを生成後、コンテキストの初期化
             Array.Clear(rawMemory, 0, rawMemory.Length);
             var programMemory = new MemoryBlock<SrValue>(programCode, 0, programCode.Length);
-            var process = new SrProcess(processID, programMemory, globalMemory, heapMemory, stackMemory, processorContext);
+            var process = new SrProcess(processID, programMemory, globalMemory, heapMemory, stackMemory, processorContext, null);
             SrvmProcessor.InitializeProcessorContext(process);
             return process;
         }

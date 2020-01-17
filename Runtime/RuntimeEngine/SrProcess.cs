@@ -15,6 +15,7 @@
 
 using System.Diagnostics;
 using System.Threading.Tasks;
+using SnowRabbit.RuntimeEngine.VirtualMachine;
 using SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral;
 
 namespace SnowRabbit.RuntimeEngine
@@ -28,6 +29,7 @@ namespace SnowRabbit.RuntimeEngine
         public int InvalidProcessID = -1;
 
         // メンバ変数定義
+        private SrvmMachine machine;
         internal readonly MemoryBlock<SrValue> ProcessorContext;
         internal readonly SrVirtualMemory VirtualMemory;
         internal readonly Stopwatch RunningStopwatch;
@@ -59,13 +61,15 @@ namespace SnowRabbit.RuntimeEngine
         /// <param name="heapMemory">仮想メモリが持つヒープメモリのメモリブロック</param>
         /// <param name="stackMemory">仮想メモリが持つスタックメモリのメモリブロック</param>
         /// <param name="processorContext">このプロセスが使用するプロセッサコンテキストのメモリブロック</param>
-        internal SrProcess(int processID, MemoryBlock<SrValue> programCode, MemoryBlock<SrValue> globalMemory, MemoryBlock<SrValue> heapMemory, MemoryBlock<SrValue> stackMemory, MemoryBlock<SrValue> processorContext)
+        /// <param name="machine">このプロセスに紐づくマシンへの参照</param>
+        internal SrProcess(int processID, MemoryBlock<SrValue> programCode, MemoryBlock<SrValue> globalMemory, MemoryBlock<SrValue> heapMemory, MemoryBlock<SrValue> stackMemory, MemoryBlock<SrValue> processorContext, SrvmMachine machine)
         {
             // すべて受け取って初期化をする
             ProcessID = processID;
             VirtualMemory = new SrVirtualMemory(programCode, globalMemory, heapMemory, stackMemory);
             ProcessorContext = processorContext;
             ProcessState = SrProcessStatus.Ready;
+            this.machine = machine;
         }
     }
 }

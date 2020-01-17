@@ -97,13 +97,9 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         }
 
 
-        /// <summary>
-        /// この仮想マシンの状態を更新します
-        /// </summary>
-        public void Update()
+        public SrProcess CreateProcess(string path)
         {
-            ThrowExceptionIfObjectDisposed();
-            throw new NotImplementedException();
+            return Memory.CreateProcess(path);
         }
 
 
