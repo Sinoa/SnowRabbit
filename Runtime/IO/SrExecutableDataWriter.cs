@@ -1,0 +1,60 @@
+﻿// zlib/libpng License
+//
+// Copyright(c) 2020 Sinoa
+//
+// This software is provided 'as-is', without any express or implied warranty.
+// In no event will the authors be held liable for any damages arising from the use of this software.
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it freely,
+// subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software.
+//    If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
+using System;
+using System.IO;
+
+namespace SnowRabbit.IO
+{
+    /// <summary>
+    /// SnowRabbit の実行可能データの書き込みクラスです
+    /// </summary>
+    public class SrExecutableDataWriter : SrDisposable
+    {
+        // メンバ変数定義
+        private readonly SrBinaryIO binaryIO;
+
+
+
+        /// <summary>
+        /// SrExecutableDataWriter クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="stream">書き込みを行うストリーム</param>
+        /// <exception cref="ArgumentNullException">stream が null です</exception>
+        /// <exception cref="ArgumentException">stream に書き込みが許可されていません</exception>
+        /// <exception cref="ArgumentException">stream にシークが許可されていません</exception>
+        public SrExecutableDataWriter(Stream stream)
+        {
+            // 書き込み許可をされていないなら
+            if (!(stream ?? throw new ArgumentNullException(nameof(stream))).CanWrite)
+            {
+                // 書き込み許可が無いので駄目
+                throw new ArgumentException("stream に書き込みが許可されていません");
+            }
+
+
+            // シーク許可をされていないなら
+            if (!stream.CanSeek)
+            {
+                // シーク許可が無いので駄目
+                throw new ArgumentException("stream にシークが許可されていません");
+            }
+
+
+            // バイナリIOを生成する
+            binaryIO = new SrBinaryIO(stream ?? throw new ArgumentNullException(nameof(stream)));
+        }
+    }
+}
