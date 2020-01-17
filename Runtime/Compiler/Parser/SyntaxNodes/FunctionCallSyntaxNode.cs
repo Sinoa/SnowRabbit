@@ -46,9 +46,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             else if (functionSymbol is SrPeripheralFunctionSymbol peripheralFunction)
             {
                 var globalVariableAddress = context.AssemblyData.GetVariableSymbol(peripheralFunction.PeripheralGlobalVariableName, null).InitialAddress;
-                instruction.Set(OpCode.Ldrl, SrvmProcessor.RegisterAIndex, 0, 0, globalVariableAddress);
+                instruction.Set(OpCode.Ldrl, SrvmProcessor.RegisterR8Index, 0, 0, globalVariableAddress);
                 context.AddBodyCode(instruction, true);
-                instruction.Set(OpCode.Cpfl, SrvmProcessor.RegisterAIndex, 0, 0, peripheralFunction.ParameterTable.Count);
+                instruction.Set(OpCode.Cpfl, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR8Index, 0, peripheralFunction.ParameterTable.Count);
                 context.AddBodyCode(instruction, false);
             }
         }
