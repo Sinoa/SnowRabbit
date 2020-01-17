@@ -13,6 +13,7 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
 using System.Collections.Generic;
 using SnowRabbit.IO;
 using SnowRabbit.RuntimeEngine.Data;
@@ -42,7 +43,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             }
 
 
-            var codeMemory = CreateCode(executableData);
+            var codeMemory = CreateCodeMemory(executableData);
             var globalMemory = CreateGlobalMemory(executableData);
             var heapMemory = CreateHeapMemory(executableData);
             var stackMemory = CreateStackMemory(executableData);
@@ -51,10 +52,19 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         }
 
 
-        protected virtual MemoryBlock<SrValue> CreateCode(SrExecutableData data)
+        protected virtual MemoryBlock<SrValue> CreateCodeMemory(SrExecutableData data)
         {
-            var codes = data.GetInstructionCodes();
-            return new MemoryBlock<SrValue>(codes, 0, codes.Length);
+            var instructionCodes = data.GetInstructionCodes();
+            var codeMemory = new SrValue[instructionCodes.Length + data.StringRecordCount];
+            Array.Copy(instructionCodes, 0, codeMemory, 0, instructionCodes.Length);
+            for (int i = 0; i < data.StringRecordCount; ++i)
+            {
+                var record = data.GetString(i);
+                codeMemory[record.Address].Object = record.String;
+            }
+
+
+            return new MemoryBlock<SrValue>(codeMemory, 0, codeMemory.Length);
         }
 
 

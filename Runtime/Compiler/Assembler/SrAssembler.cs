@@ -133,6 +133,7 @@ namespace SnowRabbit.Compiler.Assembler
             var buffer = new MemoryStream();
             var offset = 0;
             var records = new StringRecord[data.GetSymbolAll<SrStringSymbol>().Count()];
+            var counter = 0;
             foreach (var symbol in data.GetSymbolAll<SrStringSymbol>())
             {
                 var utf8Data = encode.GetBytes(symbol.String);
@@ -146,6 +147,7 @@ namespace SnowRabbit.Compiler.Assembler
 
                 offset += utf8Data.Length;
                 buffer.Write(utf8Data, 0, utf8Data.Length);
+                records[counter++] = record;
             }
 
 

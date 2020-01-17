@@ -93,6 +93,9 @@ namespace SnowRabbit.IO
                 record.Offset = binaryIO.ReadInt();
                 record.Length = binaryIO.ReadInt();
                 dataSize += record.Length;
+
+
+                recodes[i] = record;
             }
 
 
