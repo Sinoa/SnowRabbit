@@ -24,6 +24,9 @@ namespace SnowRabbit.RuntimeEngine
     /// </summary>
     public class SrProcess : SrDisposable
     {
+        // 定数定義
+        public int InvalidProcessID = -1;
+
         // メンバ変数定義
         internal readonly MemoryBlock<SrValue> ProcessorContext;
         internal readonly SrVirtualMemory VirtualMemory;
