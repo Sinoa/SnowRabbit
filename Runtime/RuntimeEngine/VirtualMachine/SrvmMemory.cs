@@ -13,6 +13,10 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System.Collections.Generic;
+using SnowRabbit.IO;
+using SnowRabbit.RuntimeEngine.Data;
+
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
 {
     /// <summary>
@@ -20,5 +24,61 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
     /// </summary>
     public class SrvmMemory : SrvmMachineParts
     {
+        // 以下メンバ変数定義
+        private readonly Dictionary<string, SrExecutableData> executableDataTable = new Dictionary<string, SrExecutableData>();
+        private int nextProcessID = 1;
+
+
+
+        internal SrProcess CreateProcess(string path)
+        {
+            if (!executableDataTable.TryGetValue(path, out var executableData))
+            {
+                using (var reader = new SrExecutableDataReader(Machine.Storage.Open(path)))
+                {
+                    executableData = reader.Read();
+                    executableDataTable[path] = executableData;
+                }
+            }
+
+
+            var codeMemory = CreateCode(executableData);
+            var globalMemory = CreateGlobalMemory(executableData);
+            var heapMemory = CreateHeapMemory(executableData);
+            var stackMemory = CreateStackMemory(executableData);
+            var contextMemory = CreateContextMemory(executableData);
+            return new SrProcess(nextProcessID++, codeMemory, globalMemory, heapMemory, stackMemory, contextMemory);
+        }
+
+
+        protected virtual MemoryBlock<SrValue> CreateCode(SrExecutableData data)
+        {
+            var codes = data.GetInstructionCodes();
+            return new MemoryBlock<SrValue>(codes, 0, codes.Length);
+        }
+
+
+        protected virtual MemoryBlock<SrValue> CreateGlobalMemory(SrExecutableData data)
+        {
+            return new MemoryBlock<SrValue>(new SrValue[512], 0, 512);
+        }
+
+
+        protected virtual MemoryBlock<SrValue> CreateHeapMemory(SrExecutableData data)
+        {
+            return new MemoryBlock<SrValue>(new SrValue[512], 0, 512);
+        }
+
+
+        protected virtual MemoryBlock<SrValue> CreateStackMemory(SrExecutableData data)
+        {
+            return new MemoryBlock<SrValue>(new SrValue[512], 0, 512);
+        }
+
+
+        protected virtual MemoryBlock<SrValue> CreateContextMemory(SrExecutableData data)
+        {
+            return new MemoryBlock<SrValue>(new SrValue[SrvmProcessor.TotalRegisterCount], 0, SrvmProcessor.TotalRegisterCount);
+        }
     }
 }
