@@ -60,7 +60,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
                 case SrRuntimeType.String:
                     var symbol = context.CreateOrGetStringSymbol(Token.Text);
-                    instruction.Set(OpCode.Movl, SrvmProcessor.RegisterAIndex, 0, 0, symbol.Address);
+                    instruction.Set(OpCode.Ldrl, SrvmProcessor.RegisterAIndex, 0, 0, symbol.InitialAddress);
                     context.AddBodyCode(instruction, true);
                     break;
             }
