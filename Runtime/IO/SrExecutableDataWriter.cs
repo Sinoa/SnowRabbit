@@ -86,7 +86,7 @@ namespace SnowRabbit.IO
             var codes = data.GetInstructionCodes();
             for (int i = 0; i < data.CodeCount; ++i)
             {
-                binaryIO.Write(codes[i].Raw);
+                binaryIO.Write(codes[i].Primitive.Ulong);
             }
 
 

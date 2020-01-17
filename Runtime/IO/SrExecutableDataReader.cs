@@ -75,11 +75,11 @@ namespace SnowRabbit.IO
             var recordCount = binaryIO.ReadInt();
 
 
-            var codes = new SrInstruction[codeCount];
+            var codes = new SrValue[codeCount];
             for (int i = 0; i < codeCount; ++i)
             {
-                var code = new SrInstruction();
-                code.Raw = binaryIO.ReadULong();
+                var code = new SrValue();
+                code.Primitive.Ulong = binaryIO.ReadULong();
                 codes[i] = code;
             }
 

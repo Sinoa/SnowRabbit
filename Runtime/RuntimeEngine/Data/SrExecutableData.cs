@@ -45,7 +45,7 @@ namespace SnowRabbit.RuntimeEngine.Data
         private static readonly Encoding encoding = new UTF8Encoding(false);
 
         // メンバ変数定義
-        private readonly SrInstruction[] codes;
+        private readonly SrValue[] codes;
         private StringRecord[] records;
         private byte[] stringPool;
 
@@ -61,7 +61,7 @@ namespace SnowRabbit.RuntimeEngine.Data
 
 
 
-        public SrExecutableData(SrInstruction[] codes, StringRecord[] records, byte[] stringPool)
+        public SrExecutableData(SrValue[] codes, StringRecord[] records, byte[] stringPool)
         {
             this.codes = codes ?? throw new ArgumentNullException(nameof(codes));
             this.records = records ?? throw new ArgumentNullException(nameof(records));
@@ -69,7 +69,7 @@ namespace SnowRabbit.RuntimeEngine.Data
         }
 
 
-        public SrInstruction[] GetInstructionCodes()
+        public SrValue[] GetInstructionCodes()
         {
             return codes;
         }
