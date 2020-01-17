@@ -61,10 +61,10 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
             // プロセッサ、メモリ、ファームウェア、ストレージ を生成する
             SrLogger.Trace(SharedString.LogTag.VIRTUAL_MACHINE, "Create SrvmMachine.");
-            Processor = factory.CreateProcessor() ?? throw new SrMachinePartsMissingException("Processor マシンパーツを見失いました");
-            Memory = factory.CreateMemory() ?? throw new SrMachinePartsMissingException("Memory マシンパーツを見失いました");
-            Firmware = factory.CreateFirmware() ?? throw new SrMachinePartsMissingException("Firmware マシンパーツを見失いました");
-            Storage = factory.CreateStorage() ?? throw new SrMachinePartsMissingException("Storage マシンパーツを見失いました");
+            (Processor = factory.CreateProcessor() ?? throw new SrMachinePartsMissingException("Processor マシンパーツを見失いました")).Machine = this;
+            (Memory = factory.CreateMemory() ?? throw new SrMachinePartsMissingException("Memory マシンパーツを見失いました")).Machine = this;
+            (Firmware = factory.CreateFirmware() ?? throw new SrMachinePartsMissingException("Firmware マシンパーツを見失いました")).Machine = this;
+            (Storage = factory.CreateStorage() ?? throw new SrMachinePartsMissingException("Storage マシンパーツを見失いました")).Machine = this;
             SrLogger.Trace(SharedString.LogTag.VIRTUAL_MACHINE, "Created SrvmMachine.");
         }
 

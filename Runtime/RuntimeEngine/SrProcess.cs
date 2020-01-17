@@ -70,6 +70,7 @@ namespace SnowRabbit.RuntimeEngine
             VirtualMemory = new SrVirtualMemory(programCode, globalMemory, heapMemory, stackMemory);
             ProcessorContext = processorContext;
             ProcessState = SrProcessStatus.Ready;
+            RunningStopwatch = new Stopwatch();
             this.machine = machine;
         }
 
