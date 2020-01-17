@@ -22,9 +22,10 @@ namespace SampleApplication
     {
         private static void Main()
         {
-            var outStream = new MemoryStream();
+            var outStream = new FileStream("sample.bin", FileMode.Create);
             var compiler = new SrCompiler();
             compiler.Compile("Sample.srs", outStream);
+            outStream.Dispose();
         }
     }
 }
