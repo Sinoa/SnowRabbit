@@ -28,6 +28,8 @@ StringPool          [x] : Hint StringRecord content info
 */
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace SnowRabbit.RuntimeEngine
@@ -45,8 +47,8 @@ namespace SnowRabbit.RuntimeEngine
 
         // メンバ変数定義
         private readonly SrInstruction[] codes;
-        private readonly StringRecord[] records;
-        private readonly byte[] stringPool;
+        private StringRecord[] records;
+        private byte[] stringPool;
 
 
 
@@ -68,11 +70,47 @@ namespace SnowRabbit.RuntimeEngine
         }
 
 
+        public StringRecord[] GetRawRecords()
+        {
+            return records;
+        }
+
+
+        public byte[] GetRawStringPool()
+        {
+            return stringPool;
+        }
+
+
         public (int Address, string String) GetString(int index)
         {
             var record = records[index];
             var text = encoding.GetString(stringPool, record.Offset, record.Length);
             return (record.Address, text);
+        }
+
+
+        public void SetStrings(IEnumerable<(int Address, string String)> strings)
+        {
+            List<StringRecord> recordList = new List<StringRecord>();
+            var buffer = new MemoryStream(1 << 10);
+            var offset = 0;
+            foreach (var info in strings)
+            {
+                var data = encoding.GetBytes(info.String);
+                var record = new StringRecord();
+                record.Address = info.Address;
+                record.Offset = offset;
+                record.Length = data.Length;
+
+
+                buffer.Write(data, 0, data.Length);
+                offset += data.Length;
+            }
+
+
+            records = recordList.ToArray();
+            stringPool = buffer.ToArray();
         }
     }
 }
