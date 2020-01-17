@@ -89,5 +89,11 @@ namespace SnowRabbit.RuntimeEngine
             disposed = true;
             base.Dispose(disposing);
         }
+
+
+        public void Run()
+        {
+            machine.Processor.Execute(this);
+        }
     }
 }
