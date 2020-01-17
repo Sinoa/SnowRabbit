@@ -15,6 +15,7 @@
 
 using System;
 using System.IO;
+using SnowRabbit.RuntimeEngine.Data;
 
 namespace SnowRabbit.IO
 {
@@ -24,6 +25,7 @@ namespace SnowRabbit.IO
     public class SrExecutableDataWriter : SrDisposable
     {
         // メンバ変数定義
+        private bool disposed;
         private readonly SrBinaryIO binaryIO;
 
 
@@ -55,6 +57,51 @@ namespace SnowRabbit.IO
 
             // バイナリIOを生成する
             binaryIO = new SrBinaryIO(stream ?? throw new ArgumentNullException(nameof(stream)));
+        }
+
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposed) return;
+
+
+            if (disposing)
+            {
+                binaryIO.Dispose();
+            }
+
+
+            disposed = true;
+            base.Dispose(disposing);
+        }
+
+
+        public void Write(SrExecutableData data)
+        {
+            binaryIO.Write(SrExecutableData.MagicNumber);
+            binaryIO.Write(data.CodeCount);
+            binaryIO.Write(data.StringRecordCount);
+
+
+            var codes = data.GetInstructionCodes();
+            for (int i = 0; i < data.CodeCount; ++i)
+            {
+                binaryIO.Write(codes[i].Raw);
+            }
+
+
+            var records = data.GetRawRecords();
+            var dataSize = 0;
+            for (int i = 0; i < data.StringRecordCount; ++i)
+            {
+                binaryIO.Write(records[i].Address);
+                binaryIO.Write(records[i].Offset);
+                binaryIO.Write(records[i].Length);
+                dataSize += records[i].Length;
+            }
+
+
+            binaryIO.Write(data.GetRawStringPool());
         }
     }
 }

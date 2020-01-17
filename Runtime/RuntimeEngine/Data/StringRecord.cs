@@ -15,7 +15,7 @@
 
 using System;
 
-namespace SnowRabbit.RuntimeEngine
+namespace SnowRabbit.RuntimeEngine.Data
 {
     public struct StringRecord : IEquatable<StringRecord>
     {

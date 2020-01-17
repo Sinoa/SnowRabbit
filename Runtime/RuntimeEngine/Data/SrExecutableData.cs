@@ -18,10 +18,9 @@
 SnowRabbit Object Format
 
 MagicNumber         [4] : "SROF"
-CodeSize            [4] : int
+CodeCount           [4] : int
 StringRecordCount   [4] : int
-StringPoolOffset    [4] : int
-Code                [x] : Hint CodeSize
+Code                [x] : Hint CodeCount * sizeof(ulong)
 StringRecords       [x] : Hint StringRecordCount * StringRecord
 StringPool          [x] : Hint StringRecord content info
 
@@ -32,7 +31,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace SnowRabbit.RuntimeEngine
+namespace SnowRabbit.RuntimeEngine.Data
 {
     /// <summary>
     /// SnowRabbit ランタイムが実行可能とするデータを持つクラスです
@@ -50,6 +49,12 @@ namespace SnowRabbit.RuntimeEngine
         private StringRecord[] records;
         private byte[] stringPool;
 
+
+
+        public int CodeCount => codes.Length;
+
+
+        public int CodeSize => codes.Length * sizeof(ulong);
 
 
         public int StringRecordCount => records.Length;
