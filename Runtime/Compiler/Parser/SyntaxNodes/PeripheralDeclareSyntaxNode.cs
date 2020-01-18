@@ -49,7 +49,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             int typeCount = 0;
             foreach (var type in typeList.Children)
             {
-                var  runtimeType = context.ToRuntimeType(type.Token.Kind);
+                var runtimeType = context.ToRuntimeType(type.Token.Kind);
                 if (!IsSupportType(runtimeType))
                 {
                     // 未サポートの型

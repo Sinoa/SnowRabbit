@@ -16,9 +16,9 @@
 using System.IO;
 using System.Threading.Tasks;
 using SnowRabbit.Compiler;
+using SnowRabbit.RuntimeEngine;
 using SnowRabbit.RuntimeEngine.VirtualMachine;
 using SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral;
-using SnowRabbit.RuntimeEngine;
 
 namespace SampleApplication
 {

@@ -13,7 +13,6 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-using System;
 using System.Collections.Generic;
 using SnowRabbit.Compiler.Assembler;
 using SnowRabbit.Compiler.Assembler.Symbols;
@@ -29,9 +28,9 @@ namespace SnowRabbit.Compiler.Parser
     {
         // メンバ変数定義
         private int nextVirtualAddress = -1;
-        private List<SrAssemblyCode> headCodeList = new List<SrAssemblyCode>(1024);
-        private List<SrAssemblyCode> bodyCodeList = new List<SrAssemblyCode>(1024);
-        private List<SrAssemblyCode> tailCodeList = new List<SrAssemblyCode>(1024);
+        private readonly List<SrAssemblyCode> headCodeList = new List<SrAssemblyCode>(1024);
+        private readonly List<SrAssemblyCode> bodyCodeList = new List<SrAssemblyCode>(1024);
+        private readonly List<SrAssemblyCode> tailCodeList = new List<SrAssemblyCode>(1024);
 
 
 
