@@ -179,5 +179,23 @@ namespace SnowRabbit.Compiler.Parser
         {
             tailCodeList.Add(new SrAssemblyCode(instruction, unresolved));
         }
+
+
+        public void UpdateHeadCode(int index, in SrInstruction instruction, bool unresolved)
+        {
+            headCodeList[index] = new SrAssemblyCode(instruction, unresolved);
+        }
+
+
+        public void UpdateBodyCode(int index, in SrInstruction instruction, bool unresolved)
+        {
+            bodyCodeList[index] = new SrAssemblyCode(instruction, unresolved);
+        }
+
+
+        public void UpdateTailCode(int index, in SrInstruction instruction, bool unresolved)
+        {
+            tailCodeList[index] = new SrAssemblyCode(instruction, unresolved);
+        }
     }
 }

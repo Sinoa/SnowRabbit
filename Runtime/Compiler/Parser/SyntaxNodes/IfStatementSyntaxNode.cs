@@ -13,9 +13,37 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.RuntimeEngine;
+using SnowRabbit.RuntimeEngine.VirtualMachine;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     public class IfStatementSyntaxNode : SyntaxNode
     {
+        public override void Compile(SrCompileContext context)
+        {
+            var condition = Children[0];
+            condition.Compile(context);
+            var instruction = new SrInstruction();
+            instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, 0, 0, 2);
+            context.AddBodyCode(instruction, false);
+            instruction.Set(OpCode.Brl, 0, 0, 0, -1);
+            context.AddBodyCode(instruction, false);
+            var updateTargetAddress = context.BodyCodeList.Count;
+            for (int i = 1; i < Children.Count; ++i)
+            {
+                var child = Children[i];
+                if (child is ElseStatementSyntaxNode)
+                {
+                    instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, context.BodyCodeList.Count - updateTargetAddress);
+                    context.UpdateBodyCode(updateTargetAddress, instruction, false);
+                    child.Compile(context);
+                    break;
+                }
+
+
+                child.Compile(context);
+            }
+        }
     }
 }
