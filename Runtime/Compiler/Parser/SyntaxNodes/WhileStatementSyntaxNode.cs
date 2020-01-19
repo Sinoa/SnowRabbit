@@ -13,9 +13,27 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.RuntimeEngine;
+using SnowRabbit.RuntimeEngine.VirtualMachine;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     public class WhileStatementSyntaxNode : SyntaxNode
     {
+        public override void Compile(SrCompileContext context)
+        {
+            var condition = Children[0];
+            var jumpAddress = context.BodyCodeList.Count;
+            for (int i = 1; i < Children.Count; ++i)
+            {
+                Children[i].Compile(context);
+            }
+
+
+            condition.Compile(context);
+            var instruction = new SrInstruction();
+            instruction.Set(OpCode.Bnzl, 0, SrvmProcessor.RegisterAIndex, 0, jumpAddress);
+            context.AddBodyCode(instruction, false);
+        }
     }
 }
