@@ -33,7 +33,6 @@ namespace SnowRabbit.Compiler.Parser
         private readonly List<SrAssemblyCode> headCodeList = new List<SrAssemblyCode>(1024);
         private readonly List<SrAssemblyCode> bodyCodeList = new List<SrAssemblyCode>(1024);
         private readonly List<SrAssemblyCode> tailCodeList = new List<SrAssemblyCode>(1024);
-        private readonly ISrCompileReportPrinter reportPrinter;
 
 
 
@@ -41,6 +40,9 @@ namespace SnowRabbit.Compiler.Parser
         /// 現在のコンテキストが持っているアセンブリデータ
         /// </summary>
         public SrAssemblyData AssemblyData { get; } = new SrAssemblyData();
+
+
+        public SyntaxErrorReporter ErrorReporter { get; }
 
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace SnowRabbit.Compiler.Parser
             HeadCodeList = headCodeList.AsReadOnly();
             BodyCodeList = bodyCodeList.AsReadOnly();
             TailCodeList = tailCodeList.AsReadOnly();
-            reportPrinter = printer ?? throw new ArgumentNullException(nameof(printer));
+            ErrorReporter = new SyntaxErrorReporter(printer);
         }
 
 

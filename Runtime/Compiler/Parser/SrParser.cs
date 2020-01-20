@@ -242,7 +242,7 @@ namespace SnowRabbit.Compiler.Parser
     {
         // メンバ変数定義
         private readonly ISrScriptStorage scriptStorage;
-        private readonly ISrCompileReportPrinter reportPrinter;
+        private readonly SyntaxErrorReporter errorReporter;
         private readonly Stack<SrLexer> lexerStack;
         private SrLexer currentLexer;
 
@@ -271,7 +271,7 @@ namespace SnowRabbit.Compiler.Parser
         {
             // 諸々初期化する
             scriptStorage = storage ?? throw new ArgumentNullException(nameof(storage));
-            reportPrinter = printer ?? throw new ArgumentNullException(nameof(printer));
+            errorReporter = new SyntaxErrorReporter(printer);
             lexerStack = new Stack<SrLexer>();
         }
 
