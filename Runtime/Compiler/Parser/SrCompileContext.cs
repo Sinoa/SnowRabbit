@@ -13,10 +13,12 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
 using System.Collections.Generic;
 using SnowRabbit.Compiler.Assembler;
 using SnowRabbit.Compiler.Assembler.Symbols;
 using SnowRabbit.Compiler.Lexer;
+using SnowRabbit.Compiler.Reporter;
 using SnowRabbit.RuntimeEngine;
 
 namespace SnowRabbit.Compiler.Parser
@@ -31,6 +33,7 @@ namespace SnowRabbit.Compiler.Parser
         private readonly List<SrAssemblyCode> headCodeList = new List<SrAssemblyCode>(1024);
         private readonly List<SrAssemblyCode> bodyCodeList = new List<SrAssemblyCode>(1024);
         private readonly List<SrAssemblyCode> tailCodeList = new List<SrAssemblyCode>(1024);
+        private readonly ISrCompileReportPrinter reportPrinter;
 
 
 
@@ -59,11 +62,17 @@ namespace SnowRabbit.Compiler.Parser
 
 
 
-        public SrCompileContext()
+        public SrCompileContext() : this(new SrCompileReportConsolePrinter())
+        {
+        }
+
+
+        public SrCompileContext(ISrCompileReportPrinter printer)
         {
             HeadCodeList = headCodeList.AsReadOnly();
             BodyCodeList = bodyCodeList.AsReadOnly();
             TailCodeList = tailCodeList.AsReadOnly();
+            reportPrinter = printer ?? throw new ArgumentNullException(nameof(printer));
         }
 
 

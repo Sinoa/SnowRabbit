@@ -19,6 +19,7 @@ using SnowRabbit.Compiler.Assembler;
 using SnowRabbit.Compiler.IO;
 using SnowRabbit.Compiler.Parser;
 using SnowRabbit.Compiler.Parser.SyntaxNodes;
+using SnowRabbit.Compiler.Reporter;
 
 namespace SnowRabbit.Compiler
 {
@@ -29,6 +30,7 @@ namespace SnowRabbit.Compiler
     {
         // メンバ変数定義
         private readonly ISrScriptStorage scriptStorage;
+        private readonly ISrCompileReportPrinter reportPrinter;
 
 
 
@@ -45,10 +47,16 @@ namespace SnowRabbit.Compiler
         /// </summary>
         /// <param name="storage">スクリプトを保持しているストレージ</param>
         /// <exception cref="ArgumentNullException">storage が null です</exception>
-        public SrCompiler(ISrScriptStorage storage)
+        public SrCompiler(ISrScriptStorage storage) : this(storage, new SrCompileReportConsolePrinter())
+        {
+        }
+
+
+        public SrCompiler(ISrScriptStorage storage, ISrCompileReportPrinter printer)
         {
             // 参照を受け取る
             scriptStorage = storage ?? throw new ArgumentNullException(nameof(storage));
+            reportPrinter = printer ?? throw new ArgumentNullException(nameof(printer));
         }
 
 
@@ -76,7 +84,7 @@ namespace SnowRabbit.Compiler
         private void Parse(string path, out SyntaxNode node)
         {
             // パーサを生成して構文解析をする
-            node = new SrParser(scriptStorage).Parse(path);
+            node = new SrParser(scriptStorage, reportPrinter).Parse(path);
         }
 
 

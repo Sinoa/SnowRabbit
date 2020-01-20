@@ -231,6 +231,7 @@ using SnowRabbit.Compiler.IO;
 using SnowRabbit.Compiler.Lexer;
 using SnowRabbit.Compiler.Parser.SyntaxErrors;
 using SnowRabbit.Compiler.Parser.SyntaxNodes;
+using SnowRabbit.Compiler.Reporter;
 
 namespace SnowRabbit.Compiler.Parser
 {
@@ -241,6 +242,7 @@ namespace SnowRabbit.Compiler.Parser
     {
         // メンバ変数定義
         private readonly ISrScriptStorage scriptStorage;
+        private readonly ISrCompileReportPrinter reportPrinter;
         private readonly Stack<SrLexer> lexerStack;
         private SrLexer currentLexer;
 
@@ -260,10 +262,16 @@ namespace SnowRabbit.Compiler.Parser
         /// </summary>
         /// <param name="storage">構文解析するスクリプトを読み込むストレージ</param>
         /// <exception cref="ArgumentNullException">storage が null です</exception>
-        public SrParser(ISrScriptStorage storage)
+        public SrParser(ISrScriptStorage storage) : this(storage, new SrCompileReportConsolePrinter())
+        {
+        }
+
+
+        public SrParser(ISrScriptStorage storage, ISrCompileReportPrinter printer)
         {
             // 諸々初期化する
             scriptStorage = storage ?? throw new ArgumentNullException(nameof(storage));
+            reportPrinter = printer ?? throw new ArgumentNullException(nameof(printer));
             lexerStack = new Stack<SrLexer>();
         }
 
