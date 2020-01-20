@@ -37,6 +37,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         public string Name { get; }
 
 
+        /// <summary>
+        /// このインスタンスに紐付いたターゲットインスタンス
+        /// </summary>
+        public object TargetInstance { get; }
+
+
 
         /// <summary>
         /// SrPeripheral クラスのインスタンスを初期化します
@@ -54,6 +60,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             // 名前の取得と関数の登録をする
             Name = GetPeripheralAttribute(targetType).Name;
             RegisterHostFunctions(targetInstance, GetHostFunctions(targetType));
+            TargetInstance = targetInstance;
             SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"SrPeripheral Initialize Success '{targetType.FullName}'.");
         }
 

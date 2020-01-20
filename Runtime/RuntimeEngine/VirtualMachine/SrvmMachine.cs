@@ -99,7 +99,15 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
         public SrProcess CreateProcess(string path)
         {
+            ThrowExceptionIfObjectDisposed();
             return Memory.CreateProcess(path);
+        }
+
+
+        public T GetPeripheral<T>(string peripheralName) where T : class
+        {
+            ThrowExceptionIfObjectDisposed();
+            return Firmware.GetPeripheral(peripheralName).TargetInstance as T;
         }
 
 
