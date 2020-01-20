@@ -13,6 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Lexer;
+
 namespace SnowRabbit.Compiler.Reporter
 {
     /// <summary>
@@ -22,5 +24,15 @@ namespace SnowRabbit.Compiler.Reporter
     {
         public string Message { get; }
         public CompileReportLevel Level { get; }
+        public Token Token { get; }
+
+
+
+        public CompileReport(in Token token, string message, CompileReportLevel level)
+        {
+            Token = token;
+            Message = message;
+            Level = level;
+        }
     }
 }

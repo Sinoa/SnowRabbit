@@ -41,7 +41,7 @@ namespace SnowRabbit.Compiler.Reporter
             var colorData = colorTable[report.Level];
             Console.BackgroundColor = colorData.BackgroundColor;
             Console.ForegroundColor = colorData.ForegroundColor;
-            Console.Write(report.Message);
+            Console.Write($"{report.Token.ReaderName} (Line:{report.Token.LineNumber} Column:{report.Token.ColumnNumber}) {report.Message}");
             Console.ResetColor();
         }
 
