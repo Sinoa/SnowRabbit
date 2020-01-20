@@ -18,8 +18,8 @@ namespace SnowRabbit.Compiler.Reporter
     /// <summary>
     /// SnowRabbit コンパイラからのレポートを表示するインターフェイスです
     /// </summary>
-    public interface ISrCompileReportDisplayer
+    public interface ISrCompileReportPrinter
     {
-        void DisplayReport(CompileReport report);
+        void PrintReport(CompileReport report);
     }
 }

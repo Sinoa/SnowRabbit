@@ -21,13 +21,13 @@ namespace SnowRabbit.Compiler.Reporter
     /// <summary>
     /// コンソールに対してコンパイルレポートを表示するクラスです
     /// </summary>
-    public class SrCompileReportConsoleDisplayer : ISrCompileReportDisplayer
+    public class SrCompileReportConsolePrinter : ISrCompileReportPrinter
     {
         private static readonly Dictionary<CompileReportLevel, ConsoleColorData> colorTable;
 
 
 
-        static SrCompileReportConsoleDisplayer()
+        static SrCompileReportConsolePrinter()
         {
             colorTable = new Dictionary<CompileReportLevel, ConsoleColorData>()
             {
@@ -36,7 +36,7 @@ namespace SnowRabbit.Compiler.Reporter
         }
 
 
-        public void DisplayReport(CompileReport report)
+        public void PrintReport(CompileReport report)
         {
             var colorData = colorTable[report.Level];
             Console.BackgroundColor = colorData.BackgroundColor;
