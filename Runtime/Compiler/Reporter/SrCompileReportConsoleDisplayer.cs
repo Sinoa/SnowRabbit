@@ -16,7 +16,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Packages.SnowRabbit.Runtime.Compiler.Reporter
+namespace SnowRabbit.Compiler.Reporter
 {
     /// <summary>
     /// コンソールに対してコンパイルレポートを表示するクラスです

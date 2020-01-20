@@ -13,7 +13,7 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-namespace Packages.SnowRabbit.Runtime.Compiler.Reporter
+namespace SnowRabbit.Compiler.Reporter
 {
     /// <summary>
     /// SnowRabbit から報告される内容を保持したクラスです
