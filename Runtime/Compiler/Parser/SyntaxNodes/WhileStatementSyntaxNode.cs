@@ -23,17 +23,30 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         public override void Compile(SrCompileContext context)
         {
             var condition = Children[0];
-            var jumpAddress = context.BodyCodeList.Count;
+            var whileHeadAddress = context.BodyCodeList.Count;
+            condition.Compile(context);
+            var instruction = new SrInstruction();
+            instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, 0, 0, 2);
+            context.AddBodyCode(instruction, false);
+            instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, 0);
+            context.AddBodyCode(instruction, false);
+            var updateTargetAddress = context.BodyCodeList.Count;
+
+
             for (int i = 1; i < Children.Count; ++i)
             {
                 Children[i].Compile(context);
             }
 
 
-            condition.Compile(context);
-            var instruction = new SrInstruction();
-            instruction.Set(OpCode.Bnzl, 0, SrvmProcessor.RegisterAIndex, 0, jumpAddress);
+            var whileHeadOffsetAddress = context.BodyCodeList.Count + 1 - whileHeadAddress;
+            instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, -whileHeadOffsetAddress);
             context.AddBodyCode(instruction, false);
+
+
+            var whileTailAddress = context.BodyCodeList.Count + 1;
+            instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, whileTailAddress - updateTargetAddress);
+            context.UpdateBodyCode(updateTargetAddress, instruction, false);
         }
     }
 }
