@@ -17,5 +17,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     public class ElseStatementSyntaxNode : SyntaxNode
     {
+        public override void Compile(SrCompileContext context)
+        {
+            foreach (var node in Children)
+            {
+                node.Compile(context);
+            }
+        }
     }
 }
