@@ -50,14 +50,17 @@ namespace SnowRabbit.Compiler.Assembler
 
 
             buffer.Append($"========== SymbolInfo ==========\n");
-            buffer.Append($"TotalSymbolCount : {symbols.Length}\n");
+            buffer.Append($"TotalSymbolCount : {symbols.Length} (peripheral and constant is not dumped.)\n");
             buffer.Append($"\n");
-            buffer.Append($"| Address    | Scope   | Type               | Name\n");
+            buffer.Append($"| Address    | Scope   | Type           | Name\n");
             foreach (var symbol in symbols)
             {
+                if (symbol.Kind == SrSymbolKind.PeripheralFunction || symbol.Kind == SrSymbolKind.Constant) continue;
+
+
                 var addressText = symbol.Address.ToString("X8");
                 var scopeText = symbol.Scope.ToString().PadRight(8);
-                var kindText = symbol.Kind.ToString().PadRight(19);
+                var kindText = symbol.Kind.ToString().PadRight(15);
 
 
                 buffer.Append($"| 0x{addressText} ");
