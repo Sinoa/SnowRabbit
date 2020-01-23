@@ -32,6 +32,7 @@ namespace SnowRabbit.Compiler.Parser
         private readonly List<SrAssemblyCode> headCodeList = new List<SrAssemblyCode>(1024);
         private readonly List<SrAssemblyCode> bodyCodeList = new List<SrAssemblyCode>(1024);
         private readonly List<SrAssemblyCode> tailCodeList = new List<SrAssemblyCode>(1024);
+        private readonly Stack<SrLabelSymbol> breakTargetAddressStack = new Stack<SrLabelSymbol>();
 
 
 
@@ -48,6 +49,9 @@ namespace SnowRabbit.Compiler.Parser
         /// 現在コンパイルをしている関数名
         /// </summary>
         public string CurrentCompileFunctionName { get; private set; }
+
+
+        public SrLabelSymbol CurrentBreakTargetLabel => breakTargetAddressStack.Peek();
 
 
         public IReadOnlyList<SrAssemblyCode> HeadCodeList { get; }
@@ -148,6 +152,34 @@ namespace SnowRabbit.Compiler.Parser
             symbol = new SrStringSymbol(text, GetNextVirtualAddress());
             AssemblyData.AddSymbol(symbol);
             return symbol;
+        }
+
+
+        public SrLabelSymbol EnterNestedBlock(string blockName)
+        {
+            if (string.IsNullOrWhiteSpace(CurrentCompileFunctionName))
+            {
+                // 関数定義前にネストされたブロックは許容しない
+                throw new System.InvalidOperationException();
+            }
+
+
+            if (string.IsNullOrWhiteSpace(blockName))
+            {
+                // 有効なブロック名であるべき
+                throw new System.Exception();
+            }
+
+
+            var labelSymbol = CreateLabelSymbol($"___NB_{CurrentCompileFunctionName}_{blockName}_{GetNextVirtualAddress()}___");
+            breakTargetAddressStack.Push(labelSymbol);
+            return labelSymbol;
+        }
+
+
+        public void ExitNestedBlock()
+        {
+            breakTargetAddressStack.Pop();
         }
 
 
