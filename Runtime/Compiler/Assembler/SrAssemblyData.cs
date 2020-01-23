@@ -94,6 +94,18 @@ namespace SnowRabbit.Compiler.Assembler
 
 
         /// <summary>
+        /// 指定された名前のラベルシンボルを取得します
+        /// </summary>
+        /// <param name="name">取得するラベル名</param>
+        /// <returns>指定されたラベルシンボルがある場合はラベルシンボルを返しますが、見つけられなかった場合は null を返します</returns>
+        public SrLabelSymbol GetLabelSymbol(string name)
+        {
+            // グローバルシンボルテーブルにまず指定された名前のシンボルがあるかを取得して、定数シンボルなら返す
+            return (globalSymbolTable.TryGetValue(name, out var symbol) && symbol is SrLabelSymbol) ? (SrLabelSymbol)symbol : null;
+        }
+
+
+        /// <summary>
         /// 指定された文字列のシンボルを取得します
         /// </summary>
         /// <param name="text">取得する文字列シンボルの文字列</param>

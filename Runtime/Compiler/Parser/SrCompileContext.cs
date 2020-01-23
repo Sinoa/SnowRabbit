@@ -132,6 +132,13 @@ namespace SnowRabbit.Compiler.Parser
         }
 
 
+        public SrLabelSymbol CreateLabelSymbol(string labelName)
+        {
+            var symbol = new SrLabelSymbol(labelName, GetNextVirtualAddress());
+            return AssemblyData.AddSymbol(symbol) ? symbol : null;
+        }
+
+
         public SrStringSymbol CreateOrGetStringSymbol(string text)
         {
             var symbol = AssemblyData.GetStringSymbol(text);
