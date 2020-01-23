@@ -13,6 +13,7 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using SnowRabbit.Compiler.Assembler.Symbols;
@@ -23,7 +24,8 @@ namespace SnowRabbit.Compiler.Assembler
 {
     public class SrDisassembler
     {
-        private static readonly string[] RegisterNameList = new string[] { "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "ip" };
+        private static readonly string[] RegisterNameList = new string[] { "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "ip", "zero" };
+        private readonly Dictionary<int, string> labelTable = new Dictionary<int, string>();
 
 
 
@@ -37,6 +39,7 @@ namespace SnowRabbit.Compiler.Assembler
             var buffer = new StringBuilder();
             DumpSymbols(executableData, buffer);
             DumpStringTable(executableData, buffer);
+            DumpProgramCode(executableData, buffer);
 
 
             return buffer.ToString();
@@ -67,6 +70,12 @@ namespace SnowRabbit.Compiler.Assembler
                 buffer.Append($"| {scopeText}");
                 buffer.Append($"| {kindText}");
                 buffer.Append($"| {(symbol.Kind == SrSymbolKind.String ? data.GetStringFromAddress(symbol.Address) : symbol.Name)}\n");
+
+
+                if ((symbol.Kind == SrSymbolKind.Label || symbol.Kind == SrSymbolKind.ScriptFunction) && symbol.Name != "______init_LeaveLable___")
+                {
+                    labelTable[symbol.Address] = symbol.Name;
+                }
             }
 
 
@@ -89,6 +98,39 @@ namespace SnowRabbit.Compiler.Assembler
                 var stringData = data.GetString(i);
                 var addressText = stringData.Address.ToString("X8");
                 buffer.Append($"| 0x{addressText} | {stringData.String}\n");
+            }
+
+
+            buffer.Append("\n\n\n");
+        }
+
+
+        private void DumpProgramCode(SrExecutableData data, StringBuilder buffer)
+        {
+            var codes = data.GetInstructionCodes();
+            buffer.Append($"========== ProgramCode ==========\n");
+            buffer.Append($"Length : {codes.Length}\n");
+            buffer.Append($"\n");
+            for (int i = 0; i < codes.Length; ++i)
+            {
+                var instruction = codes[i].Primitive.Instruction;
+
+
+                var addressText = i.ToString("X8");
+                var opCodeText = instruction.OpCode.ToString().ToLower().PadRight(8);
+                instruction.GetRegisterNumber(out var r1, out var r2, out var r3);
+                var operand1 = RegisterNameList[r1];
+                var operand2 = RegisterNameList[r2];
+                var operand3 = RegisterNameList[r3];
+
+
+                if (labelTable.ContainsKey(i))
+                {
+                    buffer.Append($"{labelTable[i]}:\n");
+                }
+
+
+                buffer.Append($"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n");
             }
 
 
