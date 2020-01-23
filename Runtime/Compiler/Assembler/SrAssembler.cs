@@ -57,14 +57,14 @@ namespace SnowRabbit.Compiler.Assembler
         private void MergeAllFunction(SrAssemblyData data)
         {
             var allCode = new SrAssemblyCode[data.CodeSize];
-            var initCode = data.GetFunctionCode("__init");
+            var initCode = data.GetFunctionCode("___init");
             Array.Copy(initCode, 0, allCode, 0, initCode.Length);
             var currentIndex = initCode.Length;
 
 
             foreach (var function in data.functionCodeTable)
             {
-                if (function.Key == "__init") continue;
+                if (function.Key == "___init") continue;
 
                 var name = function.Key;
                 var code = function.Value;

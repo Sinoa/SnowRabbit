@@ -38,7 +38,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
         private void CompileStartupCode(SrCompileContext context)
         {
-            context.EnterFunctionCompile(SrRuntimeType.Void, "__init");
+            context.EnterFunctionCompile(SrRuntimeType.Void, "___init");
             CompilePeripheralLoadCode(context);
             CompileCallMainFunctionCode(context);
             CompileStopCode(context);

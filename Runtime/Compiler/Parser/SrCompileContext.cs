@@ -195,6 +195,7 @@ namespace SnowRabbit.Compiler.Parser
             var symbol = new SrScriptFunctionSymbol(functionName, GetNextVirtualAddress());
             var leaveLabel = CreateLabelSymbol($"___{functionName}_LeaveLable___");
             symbol.ReturnType = returnType;
+            leaveLabel.FunctionName = functionName;
             if (!AssemblyData.AddSymbol(symbol)) return null;
             CurrentCompileFunctionName = functionName;
             CurrentFunctionLeaveLabelSymbol = leaveLabel;
@@ -218,6 +219,9 @@ namespace SnowRabbit.Compiler.Parser
 
 
             AssemblyData.SetFunctionCode(CurrentCompileFunctionName, codeArray);
+            CurrentFunctionLeaveLabelSymbol.Address = HeadCodeList.Count + bodyCodeList.Count;
+
+
             CurrentCompileFunctionName = null;
             CurrentFunctionLeaveLabelSymbol = null;
 
