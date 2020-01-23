@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using SnowRabbit.RuntimeEngine;
+using SnowRabbit.RuntimeEngine.VirtualMachine;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
@@ -27,26 +28,42 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var instruction = new SrInstruction();
 
 
+            // for initialize expression code
             initializeExpression?.Compile(context);
+
+
+            // goto conditional temporary code
+            var updateTargetAddress = context.BodyCodeList.Count;
             instruction.Set(OpCode.Br);
             context.AddBodyCode(instruction, false);
 
+
+            // for counting expression code
             var forCountingHeadAddress = context.BodyCodeList.Count;
             countingExpression?.Compile(context);
 
 
+            // update goto conditional code
             var forConditionalHeadAddress = context.BodyCodeList.Count;
+            instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, updateTargetAddress - forConditionalHeadAddress);
+            context.UpdateBodyCode(updateTargetAddress, instruction, false);
+
+
+            // for conditional code
             conditionalExpression?.Compile(context);
 
 
+            // for body code
             for (int i = 3; i < Children.Count; ++i)
             {
                 Children[i].Compile(context);
             }
 
 
-            var 
-            var jumpOffsetAddress = 0;
+            // goto for counting expression code
+            var forTailAddress = context.BodyCodeList.Count;
+            instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, forCountingHeadAddress - forTailAddress);
+            context.AddBodyCode(instruction, false);
         }
     }
 }
