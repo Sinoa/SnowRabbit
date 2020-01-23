@@ -13,9 +13,32 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Assembler.Symbols;
+using SnowRabbit.RuntimeEngine;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     public class ReturnStatementSyntaxNode : SyntaxNode
     {
+        public override void Compile(SrCompileContext context)
+        {
+            var functionSymbol = context.AssemblyData.GetFunctionSymbol(context.CurrentCompileFunctionName);
+            if (Children.Count > 0)
+            {
+                if (functionSymbol.ReturnType == SrRuntimeType.Void)
+                {
+                    // 関数は戻り地を返さない
+                    throw new System.Exception();
+                }
+
+
+                Children[0].Compile(context);
+            }
+
+
+            var instruction = new SrInstruction();
+            instruction.Set(OpCode.Brl, 0, 0, 0, context.CurrentFunctionLeaveLabelSymbol.InitialAddress);
+            context.AddBodyCode(instruction, true);
+        }
     }
 }

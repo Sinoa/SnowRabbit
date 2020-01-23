@@ -13,9 +13,25 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.RuntimeEngine;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     public class BreakStatementSyntaxNode : SyntaxNode
     {
+        public override void Compile(SrCompileContext context)
+        {
+            var breakTargetLabel = context.CurrentBreakTargetLabel;
+            if (breakTargetLabel == null)
+            {
+                // そもそもネストされたブロックの位置に居ない
+                throw new System.Exception();
+            }
+
+
+            var instruction = new SrInstruction();
+            instruction.Set(OpCode.Brl, 0, 0, 0, breakTargetLabel.InitialAddress);
+            context.AddBodyCode(instruction, true);
+        }
     }
 }
