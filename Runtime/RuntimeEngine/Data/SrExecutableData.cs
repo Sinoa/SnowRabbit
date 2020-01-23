@@ -31,6 +31,7 @@ SymbolRecords       [x] : Hint SymbolRecord count * SymbolRecord
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using SnowRabbit.Compiler.Assembler.Symbols;
 
@@ -103,6 +104,14 @@ namespace SnowRabbit.RuntimeEngine.Data
             var record = records[index];
             var text = encoding.GetString(stringPool, record.Offset, record.Length);
             return (record.Address, text);
+        }
+
+
+        public string GetStringFromAddress(int address)
+        {
+            var record = records.Where(x => x.Address == address).FirstOrDefault();
+            if (record.Offset == 0 && record.Length == 0) return null;
+            return encoding.GetString(stringPool, record.Offset, record.Length);
         }
 
 

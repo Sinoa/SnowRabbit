@@ -16,6 +16,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using SnowRabbit.Compiler;
+using SnowRabbit.Compiler.Assembler;
 using SnowRabbit.RuntimeEngine;
 using SnowRabbit.RuntimeEngine.VirtualMachine;
 using SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral;
@@ -33,13 +34,18 @@ namespace SampleApplication
             outStream.Dispose();
 
 
-            var vm = new SrvmMachine(new MyFactory());
-            var process = vm.CreateProcess("sample.bin");
-            while (process.ProcessState != SrProcessStatus.Stopped)
-            {
-                process.Run();
-            }
-            process.Dispose();
+            //var vm = new SrvmMachine(new MyFactory());
+            //var process = vm.CreateProcess("sample.bin");
+            //while (process.ProcessState != SrProcessStatus.Stopped)
+            //{
+            //    process.Run();
+            //}
+            //process.Dispose();
+
+
+
+            var disassembleDumpText = new SrDisassembler().Disassemble(new FileStream("sample.bin", FileMode.Open));
+            File.WriteAllText("dump.txt", disassembleDumpText);
         }
     }
 
