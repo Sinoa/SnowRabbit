@@ -18,14 +18,16 @@ using System.IO;
 using System.Text;
 using SnowRabbit.Compiler.Assembler.Symbols;
 using SnowRabbit.IO;
+using SnowRabbit.RuntimeEngine;
 using SnowRabbit.RuntimeEngine.Data;
 
 namespace SnowRabbit.Compiler.Assembler
 {
     public class SrDisassembler
     {
-        private static readonly string[] RegisterNameList = new string[] { "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "ip", "zero" };
+        private static readonly string[] RegisterNameList = new string[] { "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", " r8", " r9", "r10", "r11", "r12", "r13", "r14", "r15", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", "[Reserved]", " ip", "zero" };
         private readonly Dictionary<int, string> labelTable = new Dictionary<int, string>();
+        private readonly Dictionary<int, string> symbolTable = new Dictionary<int, string>();
 
 
 
@@ -76,6 +78,15 @@ namespace SnowRabbit.Compiler.Assembler
                 {
                     labelTable[symbol.Address] = symbol.Name;
                 }
+
+
+                if (symbol.Name != "______init_LeaveLable___")
+                {
+                    symbolTable[symbol.Address] =
+                        symbol.Kind == SrSymbolKind.String ?
+                            $"string[0x{symbol.Address.ToString("X8")}({data.GetStringFromAddress(symbol.Address)})]" :
+                            $"{symbol.Kind.ToString().ToLower()}[0x{symbol.Address.ToString("X8")}({symbol.Name})]";
+                }
             }
 
 
@@ -122,6 +133,7 @@ namespace SnowRabbit.Compiler.Assembler
                 var operand1 = RegisterNameList[r1];
                 var operand2 = RegisterNameList[r2];
                 var operand3 = RegisterNameList[r3];
+                var immediate = symbolTable.ContainsKey(instruction.Int) ? symbolTable[instruction.Int] : instruction.Int.ToString();
 
 
                 if (labelTable.ContainsKey(i))
@@ -130,11 +142,92 @@ namespace SnowRabbit.Compiler.Assembler
                 }
 
 
-                buffer.Append($"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n");
+                buffer.Append(CodeToString(instruction.OpCode, addressText, opCodeText, operand1, operand2, operand3, immediate));
             }
 
 
             buffer.Append("\n\n\n");
+        }
+
+
+        private string CodeToString(OpCode opCode, string addressText, string opCodeText, string operand1, string operand2, string operand3, string immediate)
+        {
+            switch (opCode)
+            {
+                case OpCode.Halt: return $"    0x{addressText}  {opCodeText}\n";
+                case OpCode.Mov: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}\n";
+                case OpCode.Movl: return $"    0x{addressText}  {opCodeText}{operand1}, {immediate}\n";
+                case OpCode.Ldr: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Ldrl: return $"    0x{addressText}  {opCodeText}{operand1}, {immediate}\n";
+                case OpCode.Str: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Strl: return $"    0x{addressText}  {opCodeText}{operand1}, {immediate}\n";
+                case OpCode.Push: return $"    0x{addressText}  {opCodeText}{operand1}\n";
+                case OpCode.Pushl: return $"    0x{addressText}  {opCodeText}{immediate}\n";
+                case OpCode.Pop: return $"    0x{addressText}  {opCodeText}{operand1}\n";
+                case OpCode.Fmovl: return $"    0x{addressText}  {opCodeText}{immediate}\n";
+                case OpCode.Fpushl: return $"    0x{addressText}  {opCodeText}{immediate}\n";
+                case OpCode.Movfti: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}\n";
+                case OpCode.Movitf: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}\n";
+                case OpCode.Add: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Addl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Sub: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Subl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Mul: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Mull: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Div: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Divl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Mod: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Modl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Pow: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Powl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Neg: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}\n";
+                case OpCode.Negl: return $"    0x{addressText}  {opCodeText}{operand1}, {immediate}\n";
+                case OpCode.Fadd: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Faddl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Fsub: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Fsubl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Fmul: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Fmull: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Fdiv: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Fdivl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Fmod: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Fmodl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Fpow: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Fpowl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Fneg: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}\n";
+                case OpCode.Fnegl: return $"    0x{addressText}  {opCodeText}{operand1}, {immediate}\n";
+                case OpCode.Or: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Xor: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.And: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Not: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}\n";
+                case OpCode.Shl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Shr: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Teq: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Tne: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Tg: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Tge: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Tl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Tle: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Toeq: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Tone: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Tonull: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}\n";
+                case OpCode.Tonnull: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}\n";
+                case OpCode.Br: return $"    0x{addressText}  {opCodeText}{operand1}, {immediate}\n";
+                case OpCode.Brl: return $"    0x{addressText}  {opCodeText}{immediate}\n";
+                case OpCode.Bnz: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Bnzl: return $"    0x{addressText}  {opCodeText}xxx, {operand2}, {immediate}\n";
+                case OpCode.Call: return $"    0x{addressText}  {opCodeText}{operand1}, {immediate}\n";
+                case OpCode.Calll: return $"    0x{addressText}  {opCodeText}{immediate}\n";
+                case OpCode.Callnz: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+                case OpCode.Callnzl: return $"    0x{addressText}  {opCodeText}xxx, {operand2}, {immediate}\n";
+                case OpCode.Ret: return $"    0x{addressText}  {opCodeText}\n";
+                case OpCode.Gpf: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Cpf: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Cpfl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
+            }
+
+
+            return $"    0x{addressText}  {opCodeText}\n";
         }
     }
 }
