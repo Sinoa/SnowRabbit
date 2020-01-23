@@ -33,6 +33,7 @@ namespace SnowRabbit.Compiler.Parser
         private readonly List<SrAssemblyCode> bodyCodeList = new List<SrAssemblyCode>(1024);
         private readonly List<SrAssemblyCode> tailCodeList = new List<SrAssemblyCode>(1024);
         private readonly Stack<SrLabelSymbol> breakTargetAddressStack = new Stack<SrLabelSymbol>();
+        private readonly List<SrLabelSymbol> patchTargetLabelList = new List<SrLabelSymbol>();
 
 
 
@@ -49,6 +50,9 @@ namespace SnowRabbit.Compiler.Parser
         /// 現在コンパイルをしている関数名
         /// </summary>
         public string CurrentCompileFunctionName { get; private set; }
+
+
+        public SrLabelSymbol CurrentFunctionLeaveLabelSymbol { get; private set; }
 
 
         public SrLabelSymbol CurrentBreakTargetLabel => breakTargetAddressStack.Peek();
@@ -172,6 +176,7 @@ namespace SnowRabbit.Compiler.Parser
 
 
             var labelSymbol = CreateLabelSymbol($"___NB_{CurrentCompileFunctionName}_{blockName}_{GetNextVirtualAddress()}___");
+            labelSymbol.FunctionName = CurrentCompileFunctionName;
             breakTargetAddressStack.Push(labelSymbol);
             return labelSymbol;
         }
@@ -179,16 +184,20 @@ namespace SnowRabbit.Compiler.Parser
 
         public void ExitNestedBlock()
         {
-            breakTargetAddressStack.Pop();
+            var symbol = breakTargetAddressStack.Pop();
+            symbol.Address = bodyCodeList.Count;
+            patchTargetLabelList.Add(symbol);
         }
 
 
         public SrScriptFunctionSymbol EnterFunctionCompile(SrRuntimeType returnType, string functionName)
         {
             var symbol = new SrScriptFunctionSymbol(functionName, GetNextVirtualAddress());
+            var leaveLabel = CreateLabelSymbol($"___{functionName}_LeaveLable___");
             symbol.ReturnType = returnType;
             if (!AssemblyData.AddSymbol(symbol)) return null;
             CurrentCompileFunctionName = functionName;
+            CurrentFunctionLeaveLabelSymbol = leaveLabel;
             return symbol;
         }
 
@@ -202,13 +211,21 @@ namespace SnowRabbit.Compiler.Parser
             tailCodeList.CopyTo(codeArray, headCodeList.Count + bodyCodeList.Count);
 
 
+            foreach (var labelSymbol in patchTargetLabelList)
+            {
+                labelSymbol.Address += headCodeList.Count;
+            }
+
+
             AssemblyData.SetFunctionCode(CurrentCompileFunctionName, codeArray);
             CurrentCompileFunctionName = null;
+            CurrentFunctionLeaveLabelSymbol = null;
 
 
             headCodeList.Clear();
             bodyCodeList.Clear();
             tailCodeList.Clear();
+            patchTargetLabelList.Clear();
         }
 
 

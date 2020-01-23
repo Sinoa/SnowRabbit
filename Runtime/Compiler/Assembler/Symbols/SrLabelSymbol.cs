@@ -17,6 +17,10 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     public class SrLabelSymbol : SrSymbol
     {
+        public string FunctionName { get; set; }
+
+
+
         public SrLabelSymbol(string name, int initialAddress) : base(name, initialAddress, SrScopeType.Global)
         {
         }

@@ -22,6 +22,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     {
         public override void Compile(SrCompileContext context)
         {
+            context.EnterNestedBlock("while");
+
+
             var condition = Children[0];
             var whileHeadAddress = context.BodyCodeList.Count;
             condition.Compile(context);
@@ -47,6 +50,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var whileTailAddress = context.BodyCodeList.Count + 1;
             instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, whileTailAddress - updateTargetAddress);
             context.UpdateBodyCode(updateTargetAddress, instruction, false);
+
+
+            context.ExitNestedBlock();
         }
     }
 }

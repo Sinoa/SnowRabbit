@@ -22,6 +22,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     {
         public override void Compile(SrCompileContext context)
         {
+            context.EnterNestedBlock("for");
+
+
             var initializeExpression = Children[0];
             var conditionalExpression = Children[1];
             var countingExpression = Children[2];
@@ -64,6 +67,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var forTailAddress = context.BodyCodeList.Count;
             instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, forCountingHeadAddress - forTailAddress);
             context.AddBodyCode(instruction, false);
+
+
+            context.ExitNestedBlock();
         }
     }
 }

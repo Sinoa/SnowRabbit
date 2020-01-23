@@ -67,12 +67,23 @@ namespace SnowRabbit.Compiler.Assembler
 
                 data.GetFunctionSymbol(name).Address = currentIndex;
                 Array.Copy(code, 0, allCode, currentIndex, code.Length);
+                ResolveLabelOffsetAddress(data, name, currentIndex);
                 currentIndex += code.Length;
             }
 
 
             data.functionCodeTable.Clear();
             data.functionCodeTable[""] = allCode;
+        }
+
+
+        private void ResolveLabelOffsetAddress(SrAssemblyData data, string functionName, int offset)
+        {
+            var targetLabels = data.GetSymbolAll<SrLabelSymbol>().Where(x => x.FunctionName == functionName);
+            foreach (var label in targetLabels)
+            {
+                label.Address += offset;
+            }
         }
 
 
