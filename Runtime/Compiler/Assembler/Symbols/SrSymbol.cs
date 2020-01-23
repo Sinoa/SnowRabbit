@@ -46,6 +46,12 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         public SrScopeType Scope { get; }
 
 
+        /// <summary>
+        /// シンボルの種類
+        /// </summary>
+        public SrSymbolKind Kind { get; }
+
+
 
         /// <summary>
         /// SrSymbol のインスタンスを初期化します
@@ -65,13 +71,19 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         /// <param name="initialAddress">初期アドレス</param>
         /// <param name="scope">シンボルのスコープ範囲、既定はグローバルです</param>
         /// <exception cref="ArgumentNullException">name が null です</exception>
-        protected SrSymbol(string name, int initialAddress, SrScopeType scope)
+        protected SrSymbol(string name, int initialAddress, SrScopeType scope) : this(name, initialAddress, scope, SrSymbolKind.Unknown)
+        {
+        }
+
+
+        protected SrSymbol(string name, int initialAddress, SrScopeType scope, SrSymbolKind kind)
         {
             // 種別と名前はそのまま覚える
             Name = name ?? throw new ArgumentNullException(nameof(name));
             InitialAddress = initialAddress;
             Address = initialAddress;
             Scope = scope;
+            Kind = kind;
         }
     }
 }

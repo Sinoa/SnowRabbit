@@ -30,6 +30,10 @@ namespace SnowRabbit.Compiler.Assembler
     /// </summary>
     public class SrAssembler
     {
+        public bool IsContainSymbolInfo { get; set; }
+
+
+
         /// <summary>
         /// 指定されたアセンブリコードデータから、実行コードをアセンブルします
         /// </summary>
@@ -162,7 +166,8 @@ namespace SnowRabbit.Compiler.Assembler
             }
 
 
-            var executableData = new SrExecutableData(codes, records, buffer.ToArray());
+            var symbols = IsContainSymbolInfo ? data.GetSymbolAll<SrSymbol>().ToArray() : null;
+            var executableData = new SrExecutableData(codes, records, buffer.ToArray(), symbols);
             using (var writer = new SrExecutableDataWriter(stream))
             {
                 writer.Write(executableData);

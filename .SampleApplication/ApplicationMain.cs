@@ -28,6 +28,7 @@ namespace SampleApplication
         {
             var outStream = new FileStream("sample.bin", FileMode.Create);
             var compiler = new SrCompiler();
+            compiler.IsContainSymbolInfo = true;
             compiler.Compile("Sample.srs", outStream);
             outStream.Dispose();
 

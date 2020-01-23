@@ -44,7 +44,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
-        public SrPeripheralFunctionSymbol(string name, int initialAddress) : base(name, initialAddress)
+        public SrPeripheralFunctionSymbol(string name, int initialAddress) : base(name, initialAddress, SrSymbolKind.PeripheralFunction)
         {
             PeripheralGlobalVariableName = $"___PF__{name}___";
         }

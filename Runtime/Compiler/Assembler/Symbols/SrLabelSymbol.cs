@@ -21,7 +21,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
 
 
 
-        public SrLabelSymbol(string name, int initialAddress) : base(name, initialAddress, SrScopeType.Global)
+        public SrLabelSymbol(string name, int initialAddress) : base(name, initialAddress, SrScopeType.Global, SrSymbolKind.Label)
         {
         }
     }

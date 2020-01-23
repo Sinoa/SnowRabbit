@@ -46,5 +46,10 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         protected SrVariableSymbol(string name, int initialAddress, SrScopeType scope) : base(name, initialAddress, scope)
         {
         }
+
+
+        protected SrVariableSymbol(string name, int initialAddress, SrScopeType scope, SrSymbolKind kind) : base(name, initialAddress, scope, kind)
+        {
+        }
     }
 }

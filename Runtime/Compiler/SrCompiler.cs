@@ -34,6 +34,10 @@ namespace SnowRabbit.Compiler
 
 
 
+        public bool IsContainSymbolInfo { get; set; }
+
+
+
         /// <summary>
         /// SrCompiler クラスのインタンスを初期化します
         /// </summary>
@@ -110,7 +114,7 @@ namespace SnowRabbit.Compiler
         private void Assemble(SrAssemblyData assemblyData, Stream outStream)
         {
             // アセンブラを生成してアセンブル
-            new SrAssembler().Assemble(assemblyData, outStream);
+            new SrAssembler() { IsContainSymbolInfo = IsContainSymbolInfo }.Assemble(assemblyData, outStream);
         }
     }
 }

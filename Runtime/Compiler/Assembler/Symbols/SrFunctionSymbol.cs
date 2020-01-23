@@ -46,7 +46,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
-        protected SrFunctionSymbol(string name, int initialAddress) : base(name, initialAddress)
+        protected SrFunctionSymbol(string name, int initialAddress, SrSymbolKind kind) : base(name, initialAddress, SrScopeType.Global, kind)
         {
             // 関数の付随情報の初期化
             ParameterTable = new Dictionary<string, SrParameterVariableSymbol>();

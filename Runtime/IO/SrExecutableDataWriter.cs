@@ -16,6 +16,7 @@
 using System;
 using System.IO;
 using SnowRabbit.RuntimeEngine.Data;
+using SnowRabbit.Compiler.Assembler.Symbols;
 
 namespace SnowRabbit.IO
 {
@@ -78,9 +79,13 @@ namespace SnowRabbit.IO
 
         public void Write(SrExecutableData data)
         {
+            var symbols = data.GetSymbols();
+
+
             binaryIO.Write(SrExecutableData.MagicNumber);
             binaryIO.Write(data.CodeCount);
             binaryIO.Write(data.StringRecordCount);
+            binaryIO.Write(symbols.Length > 0 ? symbols.Length : -1);
 
 
             var codes = data.GetInstructionCodes();
@@ -102,6 +107,15 @@ namespace SnowRabbit.IO
 
 
             binaryIO.Write(data.GetRawStringPool());
+
+
+            for (int i = 0; i < symbols.Length; ++i)
+            {
+                binaryIO.Write(symbols[i].Name);
+                binaryIO.Write(symbols[i].Address);
+                binaryIO.Write((int)symbols[i].Scope);
+                binaryIO.Write((int)symbols[i].Kind);
+            }
         }
     }
 }

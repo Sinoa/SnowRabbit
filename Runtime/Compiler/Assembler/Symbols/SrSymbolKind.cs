@@ -13,20 +13,19 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+
 namespace SnowRabbit.Compiler.Assembler.Symbols
 {
-    /// <summary>
-    /// スクリプト関数シンボルを表す関数シンボルクラスです
-    /// </summary>
-    public class SrScriptFunctionSymbol : SrFunctionSymbol
+    public enum SrSymbolKind
     {
-        /// <summary>
-        /// SrScriptFunctionSymbol クラスのインスタンスを初期化します
-        /// </summary>
-        /// <param name="name">シンボル名</param>
-        /// <param name="initialAddress">初期アドレス</param>
-        public SrScriptFunctionSymbol(string name, int initialAddress) : base(name, initialAddress, SrSymbolKind.ScriptFunction)
-        {
-        }
+        Unknown,
+        Constant,
+        ScriptFunction,
+        PeripheralFunction,
+        GlobalVariable,
+        LocalVariable,
+        ParameterVariable,
+        Label,
+        String,
     }
 }

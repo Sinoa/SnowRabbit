@@ -15,6 +15,7 @@
 
 using System;
 using System.IO;
+using SnowRabbit.Compiler.Assembler.Symbols;
 using SnowRabbit.RuntimeEngine;
 using SnowRabbit.RuntimeEngine.Data;
 
@@ -73,6 +74,7 @@ namespace SnowRabbit.IO
 
             var codeCount = binaryIO.ReadInt();
             var recordCount = binaryIO.ReadInt();
+            var symbolCount = binaryIO.ReadInt();
 
 
             var codes = new SrValue[codeCount];
@@ -103,7 +105,21 @@ namespace SnowRabbit.IO
             binaryIO.Read(stringPool);
 
 
-            return new SrExecutableData(codes, recodes, stringPool);
+            SrSymbol[] symbols = symbolCount > 0 ? new SrSymbol[symbolCount] : Array.Empty<SrSymbol>();
+            if (symbolCount > 0)
+            {
+                for (int i = 0; i < symbolCount; ++i)
+                {
+                    var symbolName = binaryIO.ReadString();
+                    var symbolAddress = binaryIO.ReadInt();
+                    var symbolScope = binaryIO.ReadInt();
+                    var symbolKind = binaryIO.ReadInt();
+                    symbols[i] = new SrLoadedSymbol(symbolName, symbolAddress, (SrScopeType)symbolScope, (SrSymbolKind)symbolKind);
+                }
+            }
+
+
+            return new SrExecutableData(codes, recodes, stringPool, symbols);
         }
     }
 }

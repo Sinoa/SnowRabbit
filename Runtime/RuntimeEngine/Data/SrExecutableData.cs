@@ -20,9 +20,11 @@ SnowRabbit Object Format
 MagicNumber         [4] : "SROF"
 CodeCount           [4] : int
 StringRecordCount   [4] : int
+SymbolRecordCount   [4] : int (if release compile is -1)
 Code                [x] : Hint CodeCount * sizeof(ulong)
 StringRecords       [x] : Hint StringRecordCount * StringRecord
 StringPool          [x] : Hint StringRecord content info
+SymbolRecords       [x] : Hint SymbolRecord count * SymbolRecord
 
 */
 
@@ -30,6 +32,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using SnowRabbit.Compiler.Assembler.Symbols;
 
 namespace SnowRabbit.RuntimeEngine.Data
 {
@@ -48,6 +51,7 @@ namespace SnowRabbit.RuntimeEngine.Data
         private readonly SrValue[] codes;
         private StringRecord[] records;
         private byte[] stringPool;
+        private SrSymbol[] symbols;
 
 
 
@@ -61,11 +65,18 @@ namespace SnowRabbit.RuntimeEngine.Data
 
 
 
-        public SrExecutableData(SrValue[] codes, StringRecord[] records, byte[] stringPool)
+        public SrExecutableData(SrValue[] codes, StringRecord[] records, byte[] stringPool, SrSymbol[] symbols)
         {
             this.codes = codes ?? throw new ArgumentNullException(nameof(codes));
             this.records = records ?? throw new ArgumentNullException(nameof(records));
             this.stringPool = stringPool ?? throw new ArgumentNullException(nameof(stringPool));
+            this.symbols = symbols ?? Array.Empty<SrSymbol>();
+        }
+
+
+        public SrSymbol[] GetSymbols()
+        {
+            return symbols;
         }
 
 

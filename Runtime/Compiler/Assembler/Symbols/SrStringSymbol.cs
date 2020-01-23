@@ -29,7 +29,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         /// </summary>
         /// <param name="text">固定文字列</param>
         /// <param name="initialAddress">初期アドレス</param>
-        public SrStringSymbol(string text, int initialAddress) : base(text.GetHashCode().ToString(), initialAddress, SrScopeType.Global)
+        public SrStringSymbol(string text, int initialAddress) : base(text.GetHashCode().ToString(), initialAddress, SrScopeType.Global, SrSymbolKind.String)
         {
             String = text;
         }
