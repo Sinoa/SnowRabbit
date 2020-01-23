@@ -21,7 +21,7 @@ namespace SnowRabbit.Compiler.Reporter
 {
     public class SyntaxErrorReporter
     {
-        private ISrCompileReportPrinter reportPrinter;
+        private readonly ISrCompileReportPrinter reportPrinter;
 
 
 
