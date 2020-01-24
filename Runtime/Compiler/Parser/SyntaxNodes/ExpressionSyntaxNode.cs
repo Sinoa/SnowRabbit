@@ -26,39 +26,17 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class ExpressionSyntaxNode : SyntaxNode
     {
-        private static readonly Dictionary<int, int> operationPriorityTable;
-        private static readonly HashSet<int> assignmentTokenKinds;
+        // メンバ変数定義
+        private HashSet<byte> usedRegisterIndexs;
+        private Stack<byte> freeRegisterStack;
 
 
 
-        static ExpressionSyntaxNode()
-        {
-            operationPriorityTable = new Dictionary<int, int>()
-            {
-                { TokenKind.Asterisk, 5 }, { TokenKind.Slash, 5 },                      // * /
-                { TokenKind.Plus, 10 }, { TokenKind.Minus, 10 },                        // + -
-                { TokenKind.DoubleOpenAngle, 15 }, { TokenKind.DoubleCloseAngle, 15 },  // << >>
-                { TokenKind.OpenAngle, 20 }, { TokenKind.CloseAngle, 20 },              //
-                { TokenKind.LesserEqual, 20 }, { TokenKind.GreaterEqual, 20 },          // < > <= >=
-                { TokenKind.DoubleEqual, 25 }, { TokenKind.NotEqual, 25 },              // == !=
-                { TokenKind.And, 30 },                                                  // &
-                { TokenKind.Circumflex, 35 },                                           // ^
-                { TokenKind.Verticalbar, 40 },                                          // |
-                { TokenKind.DoubleAnd, 45 },                                            // &&
-                { TokenKind.DoubleVerticalbar, 50 },                                    // ||
-                { TokenKind.Equal, 55 }, { TokenKind.PlusEqual, 55 },                   //
-                { TokenKind.MinusEqual, 55 }, { TokenKind.AsteriskEqual, 55 },          //
-                { TokenKind.SlashEqual, 55 }, { TokenKind.AndEqual, 55 },               //
-                { TokenKind.VerticalbarEqual, 55 }, { TokenKind.CircumflexEqual, 55 },  // = += -= *= /= &= |= ^=
-            };
+        /// <summary>
+        /// この式構文による結果を出力する先のレジスタインデックス
+        /// </summary>
+        public byte ResultRegisterIndex { get; private set; }
 
-
-            assignmentTokenKinds = new HashSet<int>()
-            {
-                TokenKind.Equal, TokenKind.PlusEqual, TokenKind.MinusEqual, TokenKind.AsteriskEqual,
-                TokenKind.SlashEqual, TokenKind.AndEqual, TokenKind.VerticalbarEqual, TokenKind.CircumflexEqual,
-            };
-        }
 
 
         /// <summary>
@@ -70,8 +48,89 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
+        #region Register control utility
+        private static Stack<byte> CreateFreeRegisterStack()
+        {
+            return new Stack<byte>(new byte[]
+            {
+                SrvmProcessor.RegisterR28Index,
+                SrvmProcessor.RegisterR27Index,
+                SrvmProcessor.RegisterR26Index,
+                SrvmProcessor.RegisterR25Index,
+                SrvmProcessor.RegisterR24Index,
+                SrvmProcessor.RegisterR23Index,
+                SrvmProcessor.RegisterR22Index,
+                SrvmProcessor.RegisterR21Index,
+                SrvmProcessor.RegisterR20Index,
+                SrvmProcessor.RegisterR19Index,
+                SrvmProcessor.RegisterR18Index,
+                SrvmProcessor.RegisterR17Index,
+                SrvmProcessor.RegisterR16Index,
+                SrvmProcessor.RegisterR15Index,
+                SrvmProcessor.RegisterR14Index,
+                SrvmProcessor.RegisterR13Index,
+                SrvmProcessor.RegisterR12Index,
+                SrvmProcessor.RegisterR11Index,
+                SrvmProcessor.RegisterR10Index,
+                SrvmProcessor.RegisterR9Index,
+                SrvmProcessor.RegisterR8Index,
+                SrvmProcessor.RegisterDIndex,
+                SrvmProcessor.RegisterCIndex,
+                SrvmProcessor.RegisterBIndex,
+                SrvmProcessor.RegisterAIndex,
+            });
+        }
+
+
+        private void InitializeRegisterInformation()
+        {
+            if (Parent is ExpressionSyntaxNode parentExpression)
+            {
+                usedRegisterIndexs = parentExpression.usedRegisterIndexs;
+                freeRegisterStack = parentExpression.freeRegisterStack;
+                return;
+            }
+
+
+            usedRegisterIndexs = new HashSet<byte>();
+            freeRegisterStack = CreateFreeRegisterStack();
+        }
+
+
+        private byte TakeFreeRegisterIndex()
+        {
+            if (freeRegisterStack.Count == 0)
+            {
+                // 空きレジスタがもうない
+                throw new System.Exception();
+            }
+
+
+            var freeRegisterIndex = freeRegisterStack.Pop();
+            usedRegisterIndexs.Add(freeRegisterIndex);
+            return freeRegisterIndex;
+        }
+
+
+        private void ReleaseRegister(byte registerIndex)
+        {
+            freeRegisterStack.Push(registerIndex);
+        }
+        #endregion
+
+
+        #region Load Store control
+        #endregion
+
+
+
+
+
         public override void Compile(SrCompileContext context)
         {
+            InitializeRegisterInformation();
+
+
             if (Children.Count == 1)
             {
                 CompileUnaryExpression(Children[0], Token, context);
@@ -79,6 +138,50 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             else if (Children.Count == 2)
             {
                 CompileExpression(Children[0], Children[1], Token, context);
+            }
+        }
+
+
+        private void CompileStoreCode(IdentifierSyntaxNode node, byte targetRegisterIndex, SrCompileContext context)
+        {
+            var variableSymbol = context.AssemblyData.GetVariableSymbol(node.Token.Text, context.CurrentCompileFunctionName);
+            var instruction = new SrInstruction();
+            if (variableSymbol is SrGlobalVariableSymbol)
+            {
+                instruction.Set(OpCode.Strl, targetRegisterIndex, 0, 0, variableSymbol.InitialAddress);
+                context.AddBodyCode(instruction, true);
+            }
+            else if (variableSymbol is SrLocalVariableSymbol)
+            {
+                instruction.Set(OpCode.Str, targetRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, -variableSymbol.Address - 1);
+                context.AddBodyCode(instruction, false);
+            }
+            else if (variableSymbol is SrParameterVariableSymbol)
+            {
+                instruction.Set(OpCode.Str, targetRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, variableSymbol.Address + 1);
+                context.AddBodyCode(instruction, false);
+            }
+        }
+
+
+        private void CompileLoadCode(IdentifierSyntaxNode node, byte targetRegisterIndex, SrCompileContext context)
+        {
+            var variableSymbol = context.AssemblyData.GetVariableSymbol(node.Token.Text, context.CurrentCompileFunctionName);
+            var instruction = new SrInstruction();
+            if (variableSymbol is SrGlobalVariableSymbol)
+            {
+                instruction.Set(OpCode.Ldrl, targetRegisterIndex, 0, 0, variableSymbol.InitialAddress);
+                context.AddBodyCode(instruction, true);
+            }
+            else if (variableSymbol is SrLocalVariableSymbol)
+            {
+                instruction.Set(OpCode.Ldr, targetRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, -variableSymbol.Address - 1);
+                context.AddBodyCode(instruction, false);
+            }
+            else if (variableSymbol is SrParameterVariableSymbol)
+            {
+                instruction.Set(OpCode.Ldr, targetRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, variableSymbol.Address + 1);
+                context.AddBodyCode(instruction, false);
             }
         }
 
@@ -106,6 +209,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
+            if (expression is IdentifierSyntaxNode identifierExpression)
+            {
+                var targetRegister = TakeFreeRegisterIndex();
+
+            }
+
+
             if (returnType == SrRuntimeType.String || returnType == SrRuntimeType.Object || returnType == SrRuntimeType.Void)
             {
                 // 文字列 オブジェクト void に対する単項式は今の所未実装
@@ -113,7 +223,16 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
-            expression.Compile(context);
+            if (expression is LiteralSyntaxNode literalSyntax)
+            {
+                literalSyntax.StoreRegisterIndex = TakeFreeRegisterIndex();
+                expression.Compile(context);
+                ReleaseRegister(literalSyntax.StoreRegisterIndex);
+            }
+            else
+            {
+                expression.Compile(context);
+            }
 
 
             var instruction = new SrInstruction();
@@ -166,44 +285,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
         private void CompileExpression(SyntaxNode leftExpression, SyntaxNode rightExpression, in Token operation, SrCompileContext context)
         {
-            if (assignmentTokenKinds.Contains(operation.Kind))
-            {
-                if (!(leftExpression is IdentifierSyntaxNode))
-                {
-                    // 代入先は変数でなければいけない
-                    throw new System.Exception();
-                }
-
-
-                var variableSymbol = context.AssemblyData.GetVariableSymbol(leftExpression.Token.Text, context.CurrentCompileFunctionName);
-                if (variableSymbol == null)
-                {
-                    // 代入先は変数でなければいけない
-                    throw new System.Exception();
-                }
-
-
-                rightExpression.Compile(context);
-                var instruction = new SrInstruction();
-                instruction.Set(OpCode.Strl, SrvmProcessor.RegisterAIndex, 0, 0, variableSymbol.InitialAddress);
-                context.AddBodyCode(instruction, true);
-                return;
-            }
-
-
-            if (leftExpression is ExpressionSyntaxNode && rightExpression is ExpressionSyntaxNode)
-            {
-                var leftOperationPriority = operationPriorityTable[leftExpression.Token.Kind];
-                var rightOperationPriority = operationPriorityTable[rightExpression.Token.Kind];
-                if (leftOperationPriority >= rightOperationPriority)
-                {
-                    leftExpression.Compile(context);
-                }
-                else
-                {
-                    rightExpression.Compile(context);
-                }
-            }
         }
     }
 }

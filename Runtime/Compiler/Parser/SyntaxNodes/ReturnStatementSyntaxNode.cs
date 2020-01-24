@@ -34,6 +34,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
                 Children[0].Compile(context);
             }
+            else
+            {
+                if (functionSymbol.ReturnType != SrRuntimeType.Void)
+                {
+                    // 関数に戻り地を必要とする
+                    throw new System.Exception();
+                }
+            }
 
 
             var instruction = new SrInstruction();

@@ -25,6 +25,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class LiteralSyntaxNode : SyntaxNode
     {
+        public byte StoreRegisterIndex { get; set; } = SrvmProcessor.RegisterAIndex;
+
+
         /// <summary>
         /// LiteralSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
@@ -40,27 +43,27 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             switch (context.ToRuntimeType(Token.Kind))
             {
                 case SrRuntimeType.Integer:
-                    instruction.Set(OpCode.Movl, SrvmProcessor.RegisterAIndex, 0, 0, (int)Token.Integer);
+                    instruction.Set(OpCode.Movl, StoreRegisterIndex, 0, 0, (int)Token.Integer);
                     context.AddBodyCode(instruction, false);
                     break;
 
 
                 case SrRuntimeType.Number:
-                    instruction.Set(OpCode.Movl, SrvmProcessor.RegisterAIndex, 0, 0, (float)Token.Number);
+                    instruction.Set(OpCode.Movl, StoreRegisterIndex, 0, 0, (float)Token.Number);
                     context.AddBodyCode(instruction, false);
                     break;
 
 
                 case SrRuntimeType.Boolean:
                     var boolValue = Token.Text == "true" ? 1 : 0;
-                    instruction.Set(OpCode.Movl, SrvmProcessor.RegisterAIndex, 0, 0, boolValue);
+                    instruction.Set(OpCode.Movl, StoreRegisterIndex, 0, 0, boolValue);
                     context.AddBodyCode(instruction, false);
                     break;
 
 
                 case SrRuntimeType.String:
                     var symbol = context.CreateOrGetStringSymbol(Token.Text);
-                    instruction.Set(OpCode.Ldrl, SrvmProcessor.RegisterAIndex, 0, 0, symbol.InitialAddress);
+                    instruction.Set(OpCode.Ldrl, StoreRegisterIndex, 0, 0, symbol.InitialAddress);
                     context.AddBodyCode(instruction, true);
                     break;
             }
