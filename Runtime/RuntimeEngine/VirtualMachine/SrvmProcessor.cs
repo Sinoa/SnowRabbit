@@ -675,9 +675,8 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
                     case OpCode.Cpf:
-                    case OpCode.Cpfl:
                         var function = context[r2].Object as SrPeripheralFunction;
-                        var task = function.Call(memory, context[RegisterSPIndex].Primitive.Int, instruction.OpCode == OpCode.Cpf ? context[r3].Primitive.Int : instruction.Int, process.ProcessID);
+                        var task = function.Call(memory, context[RegisterSPIndex].Primitive.Int, process.ProcessID);
                         if (task.IsCompleted)
                         {
                             context[r1] = function.GetResult();

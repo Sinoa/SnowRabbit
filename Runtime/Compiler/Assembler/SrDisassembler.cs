@@ -223,7 +223,6 @@ namespace SnowRabbit.Compiler.Assembler
                 case OpCode.Ret: return $"    0x{addressText}  {opCodeText}\n";
                 case OpCode.Gpf: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
                 case OpCode.Cpf: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
-                case OpCode.Cpfl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
             }
 
 

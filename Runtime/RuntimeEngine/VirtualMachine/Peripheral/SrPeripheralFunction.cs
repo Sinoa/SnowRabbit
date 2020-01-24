@@ -237,10 +237,9 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         /// </summary>
         /// <param name="memory">関数呼び出しに使用する仮想メモリ</param>
         /// <param name="address">引数として使用する開始アドレス</param>
-        /// <param name="count">引数として使用する長さ</param>
         /// <param name="processID">プロセスIDとして渡す値</param>
         /// <returns>呼び出した関数を待機するタスクを返します</returns>
-        public Task Call(SrVirtualMemory memory, int address, int count, int processID)
+        public Task Call(SrVirtualMemory memory, int address, int processID)
         {
             // 配列外参照例外を承知でいきなりループでアクセス（呼び出しコードは極力実行速度優先で実装）
             SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"CallPeripheralFunction '{methodInfo.Name}'.");

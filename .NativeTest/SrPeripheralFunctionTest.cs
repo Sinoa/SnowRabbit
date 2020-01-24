@@ -79,7 +79,7 @@ namespace SnowRabbitTest
             // 周辺機器から関数を取り出して実行する
             var function = peripheral.GetPeripheralFunction("Simple");
             Assert.IsNotNull(function);
-            var task = function.Call(memory, 0, 0, 0);
+            var task = function.Call(memory, 0, 0);
             Assert.True(task.IsCompleted);
 
 
@@ -89,14 +89,14 @@ namespace SnowRabbitTest
             memory[4] = 456;
             memory[5] = "足し算をするよ";
             Assert.IsNotNull(function);
-            task = function.Call(memory, 3, 3, 0);
+            task = function.Call(memory, 3, 0);
             Assert.True(task.IsCompleted);
 
 
             // 単純な戻り地を受け取る関数を取り出して実行する
             function = peripheral.GetPeripheralFunction("RetSimple");
             Assert.IsNotNull(function);
-            function.Call(memory, 0, 0, 0);
+            function.Call(memory, 0, 0);
             Assert.AreEqual("Simple Return Function", function.GetResult().Object);
 
 
@@ -105,7 +105,7 @@ namespace SnowRabbitTest
             Assert.IsNotNull(function);
             memory[0] = 123;
             memory[1] = 456;
-            function.Call(memory, 0, 2, 0);
+            function.Call(memory, 0, 0);
             Assert.AreEqual(579, function.GetResult().Primitive.Int);
         }
 
@@ -119,13 +119,13 @@ namespace SnowRabbitTest
             // 直ちに完了するはずの関数を取り出して完了済みであることを確認する
             var taskFunc = peripheral.GetPeripheralFunction("CompTaskFunc");
             Assert.IsNotNull(taskFunc);
-            Assert.True(taskFunc.Call(memory, 0, 0, 0).IsCompleted);
+            Assert.True(taskFunc.Call(memory, 0, 0).IsCompleted);
 
 
             // 少しだけ待つタスクを取得して待機しているかを確認する
             taskFunc = peripheral.GetPeripheralFunction("WaitTaskFunc");
             Assert.IsNotNull(taskFunc);
-            var task = taskFunc.Call(memory, 0, 0, 0);
+            var task = taskFunc.Call(memory, 0, 0);
             Assert.False(task.IsCompleted);
             task.Wait();
 
@@ -135,7 +135,7 @@ namespace SnowRabbitTest
             Assert.IsNotNull(taskFunc);
             memory[2] = 123;
             memory[3] = 456;
-            task = taskFunc.Call(memory, 2, 2, 0);
+            task = taskFunc.Call(memory, 2, 0);
             Assert.True(task.IsCompleted);
             task.Wait();
             var result = taskFunc.GetResult();
@@ -147,7 +147,7 @@ namespace SnowRabbitTest
             Assert.IsNotNull(taskFunc);
             memory[0] = "このメッセージは、";
             memory[1] = "結合されるはずです。";
-            task = taskFunc.Call(memory, 0, 2, 0);
+            task = taskFunc.Call(memory, 0, 0);
             Assert.False(task.IsCompleted);
             task.Wait();
             result = taskFunc.GetResult();
@@ -166,19 +166,19 @@ namespace SnowRabbitTest
             Assert.IsNotNull(function);
             memory[0] = 123;
             memory[1] = 456;
-            function.Call(memory, 0, 2, 579);
+            function.Call(memory, 0, 579);
 
 
             // プライベートな関数でも属性がついている場合はアクセスが可能であることを確認する
             function = peripheral.GetPeripheralFunction("PrivateFunc");
             Assert.IsNotNull(function);
-            function.Call(memory, 0, 0, 0);
+            function.Call(memory, 0, 0);
 
 
             // 静的な関数でも呼び出せることを確認
             function = peripheral.GetPeripheralFunction("StaticFunc");
             Assert.IsNotNull(function);
-            function.Call(memory, 0, 0, 0);
+            function.Call(memory, 0, 0);
         }
 
 
@@ -195,7 +195,7 @@ namespace SnowRabbitTest
             obj.ParameterA = 123;
             obj.ParameterB = "Message";
             memory[0] = new SrValue() { Object = obj };
-            function.Call(memory, 0, 1, 123);
+            function.Call(memory, 0, 123);
             var result = (MyDataClass)function.GetResult().Object;
             Assert.AreEqual(12300, result.ParameterA);
             Assert.AreEqual("ParameterB : Message", result.ParameterB);
@@ -205,7 +205,7 @@ namespace SnowRabbitTest
             function = peripheral.GetPeripheralFunction("MyDataFuncAsync");
             Assert.IsNotNull(function);
             obj.ParameterA = 456;
-            var task = function.Call(memory, 0, 1, 456);
+            var task = function.Call(memory, 0, 456);
             Assert.False(task.IsCompleted);
             task.Wait();
             result = (MyDataClass)function.GetResult().Object;
