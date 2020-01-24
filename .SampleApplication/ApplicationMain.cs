@@ -89,5 +89,12 @@ namespace SampleApplication
         {
             return;
         }
+
+
+        [SrHostFunction("CheckBool")]
+        public void CheckBool(bool result)
+        {
+            System.Console.WriteLine(result.ToString());
+        }
     }
 }
