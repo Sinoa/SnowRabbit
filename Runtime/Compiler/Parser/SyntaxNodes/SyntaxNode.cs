@@ -29,6 +29,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
         /// <summary>
+        /// この構文ノードの親ノード
+        /// </summary>
+        public SyntaxNode Parent { get; private set; }
+
+
+        /// <summary>
         /// 現れたトークンのコピーを受け取ります
         /// </summary>
         public Token Token { get; private set; }
@@ -74,6 +80,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
             // 追加する
             children.Add(node);
+            if (node != null) node.Parent = this;
         }
 
 
