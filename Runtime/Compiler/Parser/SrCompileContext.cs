@@ -108,6 +108,9 @@ namespace SnowRabbit.Compiler.Parser
                 typeKind == TokenKind.Integer ? SrRuntimeType.Integer :
                 typeKind == TokenKind.Number ? SrRuntimeType.Number :
                 typeKind == TokenKind.String ? SrRuntimeType.String :
+                typeKind == SrTokenKind.Null ? SrRuntimeType.Object :
+                typeKind == SrTokenKind.True ? SrRuntimeType.Boolean :
+                typeKind == SrTokenKind.False ? SrRuntimeType.Boolean :
                 SrRuntimeType.Void;
         }
 
