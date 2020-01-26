@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "CarrotAssemblerTokenViewer": {
-      "commandName": "Project",
-      "commandLineArgs": "Assets/SampleScript.txt"
-    }
-  }
-}
