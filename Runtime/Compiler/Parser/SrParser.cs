@@ -886,14 +886,17 @@ namespace SnowRabbit.Compiler.Parser
             }
 
 
-            if (CheckTokenAndReadNext(SrTokenKind.End))
+            if (elseStatement != null)
+            {
+                ifStatement.Add(elseStatement);
+                return ifStatement;
+            }
+            else if (CheckTokenAndReadNext(SrTokenKind.End))
             {
                 return ifStatement;
             }
-
-
-            ifStatement.Add(elseStatement);
-            return ifStatement;
+            
+            throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, "end");
         }
 
 
