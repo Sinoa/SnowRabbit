@@ -204,14 +204,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     returnType = SrRuntimeType.Integer;
                     instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, (int)Token.Integer);
                     context.AddBodyCode(instruction, false);
-                    break;
+                    return targetRegisterIndex;
 
 
                 case SrRuntimeType.Number:
                     returnType = SrRuntimeType.Number;
                     instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, (float)Token.Number);
                     context.AddBodyCode(instruction, false);
-                    break;
+                    return targetRegisterIndex;
 
 
                 case SrRuntimeType.Boolean:
@@ -219,7 +219,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     var boolValue = Token.Text == "true" ? 1 : 0;
                     instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, boolValue);
                     context.AddBodyCode(instruction, false);
-                    break;
+                    return targetRegisterIndex;
 
 
                 case SrRuntimeType.String:
@@ -227,14 +227,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     var symbol = context.CreateOrGetStringSymbol(Token.Text);
                     instruction.Set(OpCode.Ldrl, targetRegisterIndex, 0, 0, symbol.InitialAddress);
                     context.AddBodyCode(instruction, true);
-                    break;
+                    return targetRegisterIndex;
 
 
                 case SrRuntimeType.Object:
                     returnType = SrRuntimeType.Object;
                     instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, 0);
                     context.AddBodyCode(instruction, false);
-                    break;
+                    return targetRegisterIndex;
             }
 
 
