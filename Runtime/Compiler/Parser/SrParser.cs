@@ -534,7 +534,7 @@ namespace SnowRabbit.Compiler.Parser
                     null;
 
 
-                if (node == null) return null;
+                if (node == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
                 compileUnit.Add(node);
             }
 
@@ -561,7 +561,7 @@ namespace SnowRabbit.Compiler.Parser
         private SyntaxNode ParseScriptCompileDirective()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Compile)) return null;
-            if (!CheckToken(TokenKind.String)) return null;
+            if (!CheckToken(TokenKind.String)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             GetCurrentTokenAndReadNext(out var token);
             return Parse(token.Text);
         }
@@ -570,7 +570,7 @@ namespace SnowRabbit.Compiler.Parser
         private SyntaxNode ParseLinkObjectDirective()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Link)) return null;
-            if (!CheckToken(TokenKind.String)) return null;
+            if (!CheckToken(TokenKind.String)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             GetCurrentTokenAndReadNext(out var token);
             return new LinkObjectDirectiveSyntaxNode(token);
         }
@@ -580,9 +580,9 @@ namespace SnowRabbit.Compiler.Parser
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Const)) return null;
             var name = ParseIdentifier();
-            if (name == null) return null;
+            if (name == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             var literal = ParseLiteral();
-            if (literal == null) return null;
+            if (literal == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
 
             var constant = new ConstantDefineDirectiveSyntaxNode();
@@ -601,7 +601,7 @@ namespace SnowRabbit.Compiler.Parser
 
             var name = ParseIdentifier();
             if (name == null) return null;
-            if (!CheckTokenAndReadNext(TokenKind.Equal)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.Equal)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
 
             var type = ParseType();
@@ -609,18 +609,18 @@ namespace SnowRabbit.Compiler.Parser
 
 
             var peripheralName = ParseIdentifier();
-            if (peripheralName == null) return null;
-            if (!CheckTokenAndReadNext(TokenKind.Period)) return null;
+            if (peripheralName == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
+            if (!CheckTokenAndReadNext(TokenKind.Period)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
 
             var functionName = ParseIdentifier();
-            if (functionName == null) return null;
-            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
+            if (functionName == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
+            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
 
             var typeList = ParseTypeList();
-            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
-            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
+            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
 
 
             var peripheralDeclare = new PeripheralDeclareSyntaxNode();
@@ -639,11 +639,11 @@ namespace SnowRabbit.Compiler.Parser
 
 
             var type = ParseType();
-            if (type == null) return null;
+            if (type == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
 
             var name = ParseIdentifier();
-            if (name == null) return null;
+            if (name == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
 
             var globalVariableDeclare = new GlobalVariableDeclareSyntaxNode();
@@ -654,12 +654,12 @@ namespace SnowRabbit.Compiler.Parser
             if (CheckTokenAndReadNext(TokenKind.Equal))
             {
                 var literal = ParseLiteral();
-                if (literal == null) return null;
+                if (literal == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
                 globalVariableDeclare.Add(literal);
             }
 
 
-            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
             return globalVariableDeclare;
         }
 
@@ -670,11 +670,11 @@ namespace SnowRabbit.Compiler.Parser
 
 
             var type = ParseType();
-            if (type == null) return null;
+            if (type == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
 
             var name = ParseIdentifier();
-            if (name == null) return null;
+            if (name == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
 
             var localVariableDeclare = new LocalVariableDeclareSyntaxNode();
@@ -685,12 +685,12 @@ namespace SnowRabbit.Compiler.Parser
             if (CheckTokenAndReadNext(TokenKind.Equal))
             {
                 var literal = ParseExpression();
-                if (literal == null) return null;
+                if (literal == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
                 localVariableDeclare.Add(literal);
             }
 
 
-            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
             return localVariableDeclare;
         }
 
@@ -702,25 +702,25 @@ namespace SnowRabbit.Compiler.Parser
 
 
             var type = ParseType();
-            if (type == null) return null;
+            if (type == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             functionDeclare.Add(type);
 
 
             var name = ParseIdentifier();
-            if (name == null) return null;
+            if (name == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             functionDeclare.Add(name);
 
 
-            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             var parameterList = ParseParameterList();
             functionDeclare.Add(parameterList);
-            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
 
 
             while (!CheckToken(SrTokenKind.End))
             {
                 var block = ParseBlock();
-                if (block == null) return null;
+                if (block == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
                 functionDeclare.Add(block);
             }
 
@@ -753,7 +753,8 @@ namespace SnowRabbit.Compiler.Parser
 
 
             result = ParseExpression();
-            if (result == null || !CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
+            if (result == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
+            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
             return result;
         }
         #endregion
@@ -782,11 +783,11 @@ namespace SnowRabbit.Compiler.Parser
             else
             {
                 var initializeExpression = ParseExpression();
-                if (initializeExpression == null) return null;
+                if (initializeExpression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
                 forStatement.Add(initializeExpression);
 
 
-                if (!CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
+                if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
             }
 
 
@@ -797,11 +798,11 @@ namespace SnowRabbit.Compiler.Parser
             else
             {
                 var conditionExpression = ParseExpression();
-                if (conditionExpression == null) return null;
+                if (conditionExpression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
                 forStatement.Add(conditionExpression);
 
 
-                if (!CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
+                if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
             }
 
 
@@ -812,18 +813,18 @@ namespace SnowRabbit.Compiler.Parser
             else
             {
                 var loopExpression = ParseExpression();
-                if (loopExpression == null) return null;
+                if (loopExpression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
                 forStatement.Add(loopExpression);
 
 
-                if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
+                if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
             }
 
 
             while (!CheckToken(SrTokenKind.End))
             {
                 var block = ParseBlock();
-                if (block == null) return null;
+                if (block == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
                 forStatement.Add(block);
             }
 
@@ -836,22 +837,22 @@ namespace SnowRabbit.Compiler.Parser
         private SyntaxNode ParseWhileStatement()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.While)) return null;
-            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             var whileStatement = new WhileStatementSyntaxNode();
 
 
             var conditionExpression = ParseExpression();
-            if (conditionExpression == null) return null;
+            if (conditionExpression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             whileStatement.Add(conditionExpression);
 
 
-            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
 
 
             while (!CheckToken(SrTokenKind.End))
             {
                 var block = ParseBlock();
-                if (block == null) return null;
+                if (block == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
                 whileStatement.Add(block);
             }
 
@@ -864,23 +865,23 @@ namespace SnowRabbit.Compiler.Parser
         private SyntaxNode ParseIfStatement()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.If)) return null;
-            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             var ifStatement = new IfStatementSyntaxNode();
 
 
             var expression = ParseExpression();
-            if (expression == null) return null;
+            if (expression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             ifStatement.Add(expression);
 
 
-            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
 
 
             SyntaxNode elseStatement = null;
             while (!CheckToken(SrTokenKind.End) && (elseStatement = ParseElseStatement()) == null)
             {
                 var block = ParseBlock();
-                if (block == null) return null;
+                if (block == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
                 ifStatement.Add(block);
             }
 
@@ -913,7 +914,7 @@ namespace SnowRabbit.Compiler.Parser
             while (!CheckToken(SrTokenKind.End))
             {
                 var block = ParseBlock();
-                if (block == null) return null;
+                if (block == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
                 elseStatement.Add(block);
             }
 
@@ -946,8 +947,8 @@ namespace SnowRabbit.Compiler.Parser
 
 
             var expression = ParseExpression();
-            if (expression == null) return null;
-            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) return null;
+            if (expression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
+            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
             var returnStatement = new ReturnStatementSyntaxNode();
             returnStatement.Add(expression);
             return returnStatement;
@@ -1187,7 +1188,7 @@ namespace SnowRabbit.Compiler.Parser
             var functionCall = new FunctionCallSyntaxNode();
             functionCall.Add(expression);
             functionCall.Add(ParseArgumentList());
-            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
             return functionCall;
         }
 

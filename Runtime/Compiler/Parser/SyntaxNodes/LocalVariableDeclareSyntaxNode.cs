@@ -28,7 +28,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             if (context.AssemblyData.GetVariableSymbol(name, context.CurrentCompileFunctionName) != null)
             {
                 // すでに定義済みローカル変数
-                throw new System.Exception();
+                throw context.ErrorReporter.PredefinedSymbol(Children[1].Token, name);
             }
 
 

@@ -38,7 +38,7 @@ namespace SnowRabbit.Compiler.Reporter
         }
 
 
-        public SrSyntaxErrorException NotSymbolNotPair(in Token token, string startSymbol, string endSymbol)
+        public SrSyntaxErrorException NotSymbolPair(in Token token, string startSymbol, string endSymbol)
         {
             return CreateAndReportErrorMessage(token, $"'{startSymbol}' に対応する '{endSymbol}' がありません。");
         }
@@ -59,6 +59,18 @@ namespace SnowRabbit.Compiler.Reporter
         public SrSyntaxErrorException MainFunctionNotFound(in Token token)
         {
             return CreateAndReportErrorMessage(token, "main関数が見つかりませんでした。");
+        }
+
+
+        public SrSyntaxErrorException NotSymbolEnd(in Token token, string symbolText)
+        {
+            return CreateAndReportErrorMessage(token, $"'{symbolText}' で終了していません。");
+        }
+
+
+        public SrSyntaxErrorException PredefinedSymbol(in Token token, string symbolName)
+        {
+            return CreateAndReportErrorMessage(token, $"'{symbolName}' は、既に定義済みのシンボルです。");
         }
     }
 }
