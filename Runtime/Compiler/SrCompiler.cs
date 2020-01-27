@@ -100,7 +100,7 @@ namespace SnowRabbit.Compiler
         private void Compile(SyntaxNode node, out SrAssemblyData assemblyData)
         {
             // コンパイルしてアセンブリデータを渡す
-            var compileContext = new SrCompileContext();
+            var compileContext = new SrCompileContext(reportPrinter);
             node.Compile(compileContext);
             assemblyData = compileContext.AssemblyData;
         }

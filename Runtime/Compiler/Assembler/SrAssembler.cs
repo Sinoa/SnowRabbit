@@ -168,7 +168,7 @@ namespace SnowRabbit.Compiler.Assembler
 
             var symbols = IsContainSymbolInfo ? data.GetSymbolAll<SrSymbol>().ToArray() : null;
             var executableData = new SrExecutableData(codes, records, buffer.ToArray(), symbols);
-            using (var writer = new SrExecutableDataWriter(stream))
+            using (var writer = new SrExecutableDataWriter(stream, true))
             {
                 writer.Write(executableData);
             }

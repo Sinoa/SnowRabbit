@@ -32,7 +32,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
-            CompileStartupCode(context);
+            if (Parent == null)
+            {
+                CompileStartupCode(context);
+            }
         }
 
 
@@ -74,7 +77,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             if (mainFunctionSymbol == null)
             {
                 // メイン関数がない
-                throw new System.Exception();
+                throw context.ErrorReporter.MainFunctionNotFound(Token);
             }
 
 

@@ -38,7 +38,12 @@ namespace SnowRabbit.IO
         /// <exception cref="ArgumentNullException">stream が null です</exception>
         /// <exception cref="ArgumentException">stream に書き込みが許可されていません</exception>
         /// <exception cref="ArgumentException">stream にシークが許可されていません</exception>
-        public SrExecutableDataWriter(Stream stream)
+        public SrExecutableDataWriter(Stream stream) : this(stream, false)
+        {
+        }
+
+
+        public SrExecutableDataWriter(Stream stream, bool leaveOpen)
         {
             // 書き込み許可をされていないなら
             if (!(stream ?? throw new ArgumentNullException(nameof(stream))).CanWrite)
@@ -57,7 +62,7 @@ namespace SnowRabbit.IO
 
 
             // バイナリIOを生成する
-            binaryIO = new SrBinaryIO(stream ?? throw new ArgumentNullException(nameof(stream)));
+            binaryIO = new SrBinaryIO(stream ?? throw new ArgumentNullException(nameof(stream)), leaveOpen);
         }
 
 
