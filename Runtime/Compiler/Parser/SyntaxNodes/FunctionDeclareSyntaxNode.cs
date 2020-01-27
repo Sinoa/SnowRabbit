@@ -70,7 +70,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
             // push rbp
             // mov rbp, rsp
-            // subl rsp, rsp, LocalVarCount
+            // subl rsp, rsp, LocalVarCount + UsedRegisterCount
+            // UsedRegister backup code
+            // str rax, rbp[LocalVarCount + ...]
+            // ...
             var rsp = SrvmProcessor.RegisterSPIndex;
             var rbp = SrvmProcessor.RegisterBPIndex;
             var instruction = default(SrInstruction);
@@ -78,15 +81,25 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddHeadCode(instruction, false);
             instruction.Set(OpCode.Mov, rbp, rsp);
             context.AddHeadCode(instruction, false);
-            instruction.Set(OpCode.Subl, rsp, rsp, 0, symbol.LocalVariableTable.Count);
+            instruction.Set(OpCode.Subl, rsp, rsp, 0, symbol.LocalVariableTable.Count + symbol.UsedRegisterSet.Count);
             context.AddHeadCode(instruction, false);
+
+            int count = 0;
+            foreach (var targetRegister in symbol.UsedRegisterSet)
+            {
+                var backupAddressOffset = -symbol.LocalVariableTable.Count - count - 1;
+                instruction.Set(OpCode.Str, targetRegister, rbp, 0, backupAddressOffset);
+                context.AddHeadCode(instruction, false);
+                count++;
+            }
         }
 
 
         private void CompileFunctionLeaveCode(SrCompileContext context, SrScriptFunctionSymbol symbol)
         {
             // mov r29, rax (if non void return function)
-            // addl rsp, rsp, LocalVarCount
+            // UsedRegister restore code
+            // addl rsp, rsp, LocalVarCount + UsedRegisterCount
             // mov rsp, rbp
             // pop rbp
             // ret
@@ -100,7 +113,19 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 instruction.Set(OpCode.Mov, r29, rax);
                 context.AddTailCode(instruction, false);
             }
-            instruction.Set(OpCode.Addl, rsp, rsp, 0, symbol.LocalVariableTable.Count);
+
+
+            int count = 0;
+            foreach (var targetRegister in symbol.UsedRegisterSet)
+            {
+                var backupAddressOffset = -symbol.LocalVariableTable.Count - count - 1;
+                instruction.Set(OpCode.Ldr, targetRegister, rbp, 0, backupAddressOffset);
+                context.AddTailCode(instruction, false);
+                count++;
+            }
+
+
+            instruction.Set(OpCode.Addl, rsp, rsp, 0, symbol.LocalVariableTable.Count + symbol.UsedRegisterSet.Count);
             context.AddTailCode(instruction, false);
             instruction.Set(OpCode.Mov, rsp, rsp);
             context.AddTailCode(instruction, false);
