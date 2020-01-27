@@ -41,7 +41,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             expression.Compile(context);
             SrInstruction instruction = default;
-            instruction.Set(OpCode.Str, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterBPIndex, 0, -localSymbol.Address - 1);
+            instruction.Set(OpCode.Str, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterBPIndex, 0, -localSymbol.Address);
             context.AddBodyCode(instruction, false);
         }
     }

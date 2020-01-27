@@ -85,7 +85,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
         private void CompileFunctionLeaveCode(SrCompileContext context, SrScriptFunctionSymbol symbol)
         {
-            // mov r29, rax
+            // mov r29, rax (if non void return function)
             // addl rsp, rsp, LocalVarCount
             // mov rsp, rbp
             // pop rbp
@@ -93,10 +93,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var rax = SrvmProcessor.RegisterAIndex;
             var rsp = SrvmProcessor.RegisterSPIndex;
             var rbp = SrvmProcessor.RegisterBPIndex;
-            var r29 = SrvmProcessor.RegisterR29Index;
             var instruction = default(SrInstruction);
-            instruction.Set(OpCode.Mov, r29, rax);
-            context.AddTailCode(instruction, false);
+            if (symbol.ReturnType != SrRuntimeType.Void)
+            {
+                var r29 = SrvmProcessor.RegisterR29Index;
+                instruction.Set(OpCode.Mov, r29, rax);
+                context.AddTailCode(instruction, false);
+            }
             instruction.Set(OpCode.Addl, rsp, rsp, 0, symbol.LocalVariableTable.Count);
             context.AddTailCode(instruction, false);
             instruction.Set(OpCode.Mov, rsp, rsp);

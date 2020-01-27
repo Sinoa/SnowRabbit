@@ -592,6 +592,26 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         break;
 
 
+                    case OpCode.Ftg:
+                        context[r1].Primitive.Long = context[r2].Primitive.Float > context[r3].Primitive.Float ? 1L : 0L;
+                        break;
+
+
+                    case OpCode.Ftge:
+                        context[r1].Primitive.Long = context[r2].Primitive.Float >= context[r3].Primitive.Float ? 1L : 0L;
+                        break;
+
+
+                    case OpCode.Ftl:
+                        context[r1].Primitive.Long = context[r2].Primitive.Float < context[r3].Primitive.Float ? 1L : 0L;
+                        break;
+
+
+                    case OpCode.Ftle:
+                        context[r1].Primitive.Long = context[r2].Primitive.Float <= context[r3].Primitive.Float ? 1L : 0L;
+                        break;
+
+
                     case OpCode.Toeq:
                         context[r1].Primitive.Long = context[r2].Object == context[r3].Object ? 1L : 0L;
                         break;

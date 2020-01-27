@@ -40,6 +40,9 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         public Dictionary<string, SrLocalVariableSymbol> LocalVariableTable { get; }
 
 
+        public HashSet<byte> UsedRegisterSet { get; }
+
+
 
         /// <summary>
         /// SrFunctionSymbol クラスのインスタンスを初期化します
@@ -51,6 +54,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
             // 関数の付随情報の初期化
             ParameterTable = new Dictionary<string, SrParameterVariableSymbol>();
             LocalVariableTable = new Dictionary<string, SrLocalVariableSymbol>();
+            UsedRegisterSet = new HashSet<byte>();
         }
 
 
@@ -63,7 +67,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         public SrParameterVariableSymbol AddOrGetParameter(string name, SrRuntimeType type)
         {
             if (ParameterTable.TryGetValue(name, out var value)) return value;
-            value = new SrParameterVariableSymbol(name, ParameterTable.Count);
+            value = new SrParameterVariableSymbol(name, ParameterTable.Count + 1);
             value.Type = type;
             return ParameterTable[name] = value;
         }
@@ -78,7 +82,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         public SrLocalVariableSymbol AddOrGetLocalVariable(string name, SrRuntimeType type)
         {
             if (LocalVariableTable.TryGetValue(name, out var value)) return value;
-            value = new SrLocalVariableSymbol(name, LocalVariableTable.Count);
+            value = new SrLocalVariableSymbol(name, LocalVariableTable.Count + 1);
             value.Type = type;
             return LocalVariableTable[name] = value;
         }

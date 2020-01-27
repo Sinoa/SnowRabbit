@@ -66,6 +66,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     instruction.Set(OpCode.Ldrl, StoreRegisterIndex, 0, 0, symbol.InitialAddress);
                     context.AddBodyCode(instruction, true);
                     break;
+
+
+                case SrRuntimeType.Object:
+                    instruction.Set(OpCode.Movl, StoreRegisterIndex, 0, 0, 0);
+                    context.AddBodyCode(instruction, false);
+                    break;
             }
         }
     }

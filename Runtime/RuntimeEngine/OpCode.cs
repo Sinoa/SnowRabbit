@@ -231,7 +231,7 @@ namespace SnowRabbit.RuntimeEngine
         Fneg = 0x4C,
 
         /// <summary>
-        /// 即値を符号反転します：Ra = -Rb
+        /// 即値を符号反転します：Ra = -Imm
         /// </summary>
         Fnegl = 0x4D,
         #endregion
@@ -298,6 +298,26 @@ namespace SnowRabbit.RuntimeEngine
         Tle = 0x3B,
 
         /// <summary>
+        /// レジスタ間の大なりテストを浮動小数点として行い、真であれば1を偽であれば0をレジスタに設定します：Ra = Rb > Rc ? 1 : 0
+        /// </summary>
+        Ftg = 0x50,
+
+        /// <summary>
+        /// レジスタ間の大なり等価テストを浮動小数点として行い、真であれば1を偽であれば0をレジスタに設定します：Ra = Rb >= Rc ? 1 : 0
+        /// </summary>
+        Ftge = 0x51,
+
+        /// <summary>
+        /// レジスタ間の小なりテストを浮動小数点として行い、真であれば1を偽であれば0をレジスタに設定します：Ra = Rb < Rc ? 1 : 0
+        /// </summary>
+        Ftl = 0x52,
+
+        /// <summary>
+        /// レジスタ間の小なり等価テストを浮動小数点として行い、真であれば1を偽であれば0をレジスタに設定します：Ra = Rb <= Rc ? 1 : 0
+        /// </summary>
+        Ftle = 0x53,
+
+        /// <summary>
         /// レジスタ間のオブジェクト等価テストを行い、真であれば1を偽であれば0をレジスタに設定します：Ra = [Rb].obj == [Rc].obj ? 1 : 0
         /// </summary>
         Toeq = 0x3C,
@@ -313,7 +333,7 @@ namespace SnowRabbit.RuntimeEngine
         Tonull = 0x3E,
 
         /// <summary>
-        /// レジスタのオブジェクト参照がnullであれば1を偽であれば0をレジスタに設定します：Ra = [Rb].obj != null ? 1 : 0
+        /// レジスタのオブジェクト参照がnullでなければ1を偽であれば0をレジスタに設定します：Ra = [Rb].obj != null ? 1 : 0
         /// </summary>
         Tonnull = 0x3F,
         #endregion
