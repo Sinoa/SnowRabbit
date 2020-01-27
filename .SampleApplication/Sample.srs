@@ -30,11 +30,11 @@ end
 function void main()
 
 	local int counter = 0;
-	local int result = Add(counter, 123);
+	local int result = Add(counter, 123) + 10;
 	Write("Testメッセージ");
 	Wait(5000);
 	Write("Testメッセージ二回目");
-	Check(1, 2, 3);
+	Check(1, 2, 1 + 2 + 3 + 4);
 	CheckBool(1);
 	CheckBool(0);
 	CheckBool(2);

@@ -40,9 +40,18 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
             expression.Compile(context);
-            SrInstruction instruction = default;
-            instruction.Set(OpCode.Str, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterBPIndex, 0, -localSymbol.Address);
-            context.AddBodyCode(instruction, false);
+            if (expression is ExpressionSyntaxNode)
+            {
+                SrInstruction instruction = default;
+                instruction.Set(OpCode.Str, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterBPIndex, 0, -localSymbol.Address);
+                context.AddBodyCode(instruction, false);
+            }
+            else if (expression is FunctionCallSyntaxNode)
+            {
+                SrInstruction instruction = default;
+                instruction.Set(OpCode.Str, SrvmProcessor.RegisterR29Index, SrvmProcessor.RegisterBPIndex, 0, -localSymbol.Address);
+                context.AddBodyCode(instruction, false);
+            }
         }
     }
 }

@@ -202,21 +202,21 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             {
                 case SrRuntimeType.Integer:
                     returnType = SrRuntimeType.Integer;
-                    instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, (int)Token.Integer);
+                    instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, (int)literalToken.Integer);
                     context.AddBodyCode(instruction, false);
                     return targetRegisterIndex;
 
 
                 case SrRuntimeType.Number:
                     returnType = SrRuntimeType.Number;
-                    instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, (float)Token.Number);
+                    instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, (float)literalToken.Number);
                     context.AddBodyCode(instruction, false);
                     return targetRegisterIndex;
 
 
                 case SrRuntimeType.Boolean:
                     returnType = SrRuntimeType.Boolean;
-                    var boolValue = Token.Text == "true" ? 1 : 0;
+                    var boolValue = literalToken.Text == "true" ? 1 : 0;
                     instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, boolValue);
                     context.AddBodyCode(instruction, false);
                     return targetRegisterIndex;
@@ -224,7 +224,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
                 case SrRuntimeType.String:
                     returnType = SrRuntimeType.String;
-                    var symbol = context.CreateOrGetStringSymbol(Token.Text);
+                    var symbol = context.CreateOrGetStringSymbol(literalToken.Text);
                     instruction.Set(OpCode.Ldrl, targetRegisterIndex, 0, 0, symbol.InitialAddress);
                     context.AddBodyCode(instruction, true);
                     return targetRegisterIndex;
@@ -284,7 +284,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
         private byte LoadFromFunctionCall(FunctionCallSyntaxNode functionCall, SrCompileContext context, out SrRuntimeType returnType)
         {
-            var functionSymbol = context.AssemblyData.GetFunctionSymbol(functionCall.Token.Text);
+            var functionSymbol = context.AssemblyData.GetFunctionSymbol(functionCall.Children[0].Token.Text);
             if (functionSymbol == null)
             {
                 // 未定義の関数
