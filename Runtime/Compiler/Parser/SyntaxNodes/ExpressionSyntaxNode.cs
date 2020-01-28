@@ -170,13 +170,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
         #region Load Store control
-        private byte LoadFromExpression(SyntaxNode node, SrCompileContext context, out SrRuntimeType returnType, out bool isConstant)
+        private byte LoadFromExpression(SyntaxNode node, SrCompileContext context, out SrRuntimeType returnType)
         {
-            isConstant = false;
             switch (node)
             {
-                case LiteralSyntaxNode x: return LoadFromLiteral(x, context, out returnType, out isConstant);
-                case IdentifierSyntaxNode x: return LoadFromIdentifier(x, context, out returnType, out isConstant);
+                case LiteralSyntaxNode x: return LoadFromLiteral(x, context, out returnType);
+                case IdentifierSyntaxNode x: return LoadFromIdentifier(x, context, out returnType);
                 case FunctionCallSyntaxNode x: return LoadFromFunctionCall(x, context, out returnType);
             }
 
@@ -194,9 +193,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private byte LoadFromLiteral(LiteralSyntaxNode literal, SrCompileContext context, out SrRuntimeType returnType, out bool isConstant)
+        private byte LoadFromLiteral(LiteralSyntaxNode literal, SrCompileContext context, out SrRuntimeType returnType)
         {
-            isConstant = true;
             var literalToken = literal.Token;
             var instruction = new SrInstruction();
             var targetRegisterIndex = TakeFreeRegisterIndex();
@@ -245,7 +243,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private byte LoadFromIdentifier(IdentifierSyntaxNode identifier, SrCompileContext context, out SrRuntimeType returnType, out bool isConstant)
+        private byte LoadFromIdentifier(IdentifierSyntaxNode identifier, SrCompileContext context, out SrRuntimeType returnType)
         {
             var targetRegisterIndex = TakeFreeRegisterIndex();
             var identifierToken = identifier.Token;
@@ -258,7 +256,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
             returnType = variableSymbol.Type;
-            isConstant = false;
             var instruction = new SrInstruction();
             switch (variableSymbol)
             {
@@ -281,7 +278,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
                 case SrConstantSymbol constantSymbol:
-                    isConstant = true;
                     switch (constantSymbol.Type)
                     {
                         case SrRuntimeType.Integer:
@@ -416,15 +412,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
         private void CompileUnaryExpression(SyntaxNode expression, in Token operation, SrCompileContext context)
         {
-            var targetRegisterIndex = LoadFromExpression(expression, context, out var returnType, out var isConstant);
-
-
-            if (!isConstant && (returnType == SrRuntimeType.String || returnType == SrRuntimeType.Object || returnType == SrRuntimeType.Void))
-            {
-                // 文字列 オブジェクト void に対する単項式は今の所未実装
-                throw new System.Exception();
-            }
-
+            var targetRegisterIndex = LoadFromExpression(expression, context, out var returnType);
 
 
             var instruction = new SrInstruction();
@@ -435,6 +423,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
                 case TokenKind.Minus:
+                    if (returnType == SrRuntimeType.String || returnType == SrRuntimeType.Object || returnType == SrRuntimeType.Void)
+                    {
+                        // 文字列 オブジェクト void に対する処理は不可
+                        throw new System.Exception();
+                    }
                     instruction.Set(OpCode.Neg, targetRegisterIndex, targetRegisterIndex);
                     context.AddBodyCode(instruction, false);
                     break;
@@ -477,8 +470,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
         private void CompileExpression(SyntaxNode leftExpression, SyntaxNode rightExpression, in Token operation, SrCompileContext context)
         {
-            ResultRegisterIndex = LoadFromExpression(leftExpression, context, out var leftResultType, out _);
-            var rightRegisterIndex = LoadFromExpression(rightExpression, context, out var rightResultType, out _);
+            ResultRegisterIndex = LoadFromExpression(leftExpression, context, out var leftResultType);
+            var rightRegisterIndex = LoadFromExpression(rightExpression, context, out var rightResultType);
             ResultType = CompileCastExpression(ResultRegisterIndex, leftResultType, rightRegisterIndex, rightResultType, context);
 
 
