@@ -39,12 +39,16 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, context.BodyCodeList.Count - updateTargetAddress);
                     context.UpdateBodyCode(updateTargetAddress, instruction, false);
                     child.Compile(context);
-                    break;
+                    return;
                 }
 
 
                 child.Compile(context);
             }
+
+
+            instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, context.BodyCodeList.Count - updateTargetAddress);
+            context.UpdateBodyCode(updateTargetAddress, instruction, false);
         }
     }
 }
