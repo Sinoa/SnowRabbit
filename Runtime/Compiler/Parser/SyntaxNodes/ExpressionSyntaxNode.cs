@@ -305,7 +305,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             instruction.Set(OpCode.Mov, targetRegisterIndex, SrvmProcessor.RegisterR29Index);
             context.AddBodyCode(instruction, false);
             returnType = functionSymbol.ReturnType;
-            return 0;
+            return targetRegisterIndex;
         }
 
 
@@ -488,7 +488,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         #region Operation functions
         private static void OpAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
-            StoreResult(leftSyntaxNode, rightRegister, context);
+            var instruction = new SrInstruction();
+            instruction.Set(OpCode.Mov, leftRegister, rightRegister);
+            context.AddBodyCode(instruction, false);
+            StoreResult(leftSyntaxNode, leftRegister, context);
         }
 
 
