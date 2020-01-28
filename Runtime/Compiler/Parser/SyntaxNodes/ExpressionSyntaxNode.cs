@@ -27,7 +27,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class ExpressionSyntaxNode : SyntaxNode
     {
-        private static readonly Dictionary<int, Action<byte, byte, SrRuntimeType, SrCompileContext>> operationTable;
+        private static readonly Dictionary<int, Action<SyntaxNode, byte, SyntaxNode, byte, SrRuntimeType, SrCompileContext>> operationTable;
 
         // メンバ変数定義
         private HashSet<byte> usedRegisterIndexs;
@@ -50,7 +50,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
         static ExpressionSyntaxNode()
         {
-            operationTable = new Dictionary<int, Action<byte, byte, SrRuntimeType, SrCompileContext>>()
+            operationTable = new Dictionary<int, Action<SyntaxNode, byte, SyntaxNode, byte, SrRuntimeType, SrCompileContext>>()
             {
                 { TokenKind.Equal, OpAssignment },
                 { TokenKind.PlusEqual, OpPlusAssignment },
@@ -398,7 +398,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             ResultType = CompileCastExpression(ResultRegisterIndex, leftResultType, rightRegisterIndex, rightResultType, context);
 
 
-            operationTable[operation.Kind](ResultRegisterIndex, rightRegisterIndex, ResultType, context);
+            operationTable[operation.Kind](leftExpression, ResultRegisterIndex, rightExpression, rightRegisterIndex, ResultType, context);
             ReleaseRegister(rightRegisterIndex);
         }
 
@@ -447,7 +447,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
         #region Operation functions
-        private static void OpAssignment(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             var instruction = new SrInstruction();
             instruction.Set(OpCode.Mov, leftRegister, rightRegister);
@@ -455,7 +455,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpPlusAssignment(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpPlusAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
@@ -470,7 +470,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpMinusAssignment(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpMinusAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
@@ -485,7 +485,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpMullAssignment(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpMullAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
@@ -500,7 +500,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpDivAssignment(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpDivAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
@@ -515,7 +515,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpAndAssignment(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpAndAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
@@ -530,7 +530,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpOrAssignment(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpOrAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
@@ -545,7 +545,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpExOrAssignment(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpExOrAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
@@ -560,7 +560,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpConditionOr(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpConditionOr(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             var instruction = new SrInstruction();
             if (type == SrRuntimeType.Object || type == SrRuntimeType.String)
@@ -584,7 +584,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpConditionAnd(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpConditionAnd(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             var instruction = new SrInstruction();
             if (type == SrRuntimeType.Object || type == SrRuntimeType.String)
@@ -608,7 +608,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpLogicalOr(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpLogicalOr(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
@@ -623,7 +623,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpLogicalExOr(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpLogicalExOr(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
@@ -638,7 +638,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpLogicalAnd(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpLogicalAnd(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
@@ -653,7 +653,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpEqual(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpEqual(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             var instruction = new SrInstruction();
             if (type == SrRuntimeType.Object || type == SrRuntimeType.String)
@@ -669,7 +669,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpNotEqual(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpNotEqual(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             var instruction = new SrInstruction();
             if (type == SrRuntimeType.Object || type == SrRuntimeType.String)
@@ -685,7 +685,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpRelationLesser(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpRelationLesser(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
@@ -700,7 +700,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpRelationGrater(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpRelationGrater(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
@@ -715,7 +715,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpRelationLesserEqual(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpRelationLesserEqual(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
@@ -730,7 +730,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpRelationGraterEqual(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpRelationGraterEqual(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
@@ -745,7 +745,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpLeftBitShift(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpLeftBitShift(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
@@ -760,7 +760,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpRightBitShift(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpRightBitShift(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
@@ -775,7 +775,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpAdd(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpAdd(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
@@ -790,7 +790,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpSub(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpSub(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
@@ -805,7 +805,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpMull(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpMull(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
@@ -820,7 +820,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private static void OpDiv(byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpDiv(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
