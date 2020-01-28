@@ -72,5 +72,17 @@ namespace SnowRabbit.Compiler.Reporter
         {
             return CreateAndReportErrorMessage(token, $"'{symbolName}' は、既に定義済みのシンボルです。");
         }
+
+
+        public SrSyntaxErrorException InvalidIdentifier(in Token token)
+        {
+            return CreateAndReportErrorMessage(token, $"無効な識別子です");
+        }
+
+
+        public SrSyntaxErrorException NotVariable(in Token token, string identifierName)
+        {
+            return CreateAndReportErrorMessage(token, $"'{identifierName}' は、変数ではありません。");
+        }
     }
 }

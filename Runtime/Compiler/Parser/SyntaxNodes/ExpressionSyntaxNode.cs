@@ -307,6 +307,45 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             returnType = functionSymbol.ReturnType;
             return 0;
         }
+
+
+        private static void StoreResult(SyntaxNode identifierNode, byte srcRegisterIndex, SrCompileContext context)
+        {
+            if (!(identifierNode is IdentifierSyntaxNode))
+            {
+                throw context.ErrorReporter.InvalidIdentifier(identifierNode.Token);
+            }
+
+
+            var name = identifierNode.Token.Text;
+            var variableSymbol = context.AssemblyData.GetVariableSymbol(name, context.CurrentCompileFunctionName);
+            if (variableSymbol == null)
+            {
+                throw context.ErrorReporter.NotVariable(identifierNode.Token, name);
+            }
+
+
+            SrInstruction instruction = default;
+            switch (variableSymbol)
+            {
+                case SrGlobalVariableSymbol globalSymbol:
+                    instruction.Set(OpCode.Strl, srcRegisterIndex, 0, 0, globalSymbol.InitialAddress);
+                    context.AddBodyCode(instruction, true);
+                    break;
+
+
+                case SrLocalVariableSymbol localSymbol:
+                    instruction.Set(OpCode.Str, srcRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, -localSymbol.Address);
+                    context.AddBodyCode(instruction, false);
+                    break;
+
+
+                case SrParameterVariableSymbol parameterSymbol:
+                    instruction.Set(OpCode.Str, srcRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, parameterSymbol.Address + 1);
+                    context.AddBodyCode(instruction, false);
+                    break;
+            }
+        }
         #endregion
 
 
@@ -449,9 +488,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         #region Operation functions
         private static void OpAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
-            var instruction = new SrInstruction();
-            instruction.Set(OpCode.Mov, leftRegister, rightRegister);
-            context.AddBodyCode(instruction, false);
+            StoreResult(leftSyntaxNode, rightRegister, context);
         }
 
 
@@ -467,6 +504,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Add : OpCode.Fadd, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
+
+
+            StoreResult(leftSyntaxNode, leftRegister, context);
         }
 
 
@@ -482,6 +522,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Sub : OpCode.Fsub, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
+
+
+            StoreResult(leftSyntaxNode, leftRegister, context);
         }
 
 
@@ -497,6 +540,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Mul : OpCode.Fmul, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
+
+
+            StoreResult(leftSyntaxNode, leftRegister, context);
         }
 
 
@@ -512,6 +558,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Div : OpCode.Fdiv, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
+
+
+            StoreResult(leftSyntaxNode, leftRegister, context);
         }
 
 
@@ -527,6 +576,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var instruction = new SrInstruction();
             instruction.Set(OpCode.And, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
+
+
+            StoreResult(leftSyntaxNode, leftRegister, context);
         }
 
 
@@ -542,6 +594,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var instruction = new SrInstruction();
             instruction.Set(OpCode.Or, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
+
+
+            StoreResult(leftSyntaxNode, leftRegister, context);
         }
 
 
@@ -557,6 +612,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var instruction = new SrInstruction();
             instruction.Set(OpCode.Xor, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
+
+
+            StoreResult(leftSyntaxNode, leftRegister, context);
         }
 
 
