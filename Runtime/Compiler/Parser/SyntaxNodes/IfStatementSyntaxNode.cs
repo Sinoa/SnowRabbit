@@ -27,9 +27,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var instruction = new SrInstruction();
             instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, 0, 0, 2);
             context.AddBodyCode(instruction, false);
+
+            var updateTargetAddress = context.BodyCodeList.Count;
             instruction.Set(OpCode.Brl, 0, 0, 0, -1);
             context.AddBodyCode(instruction, false);
-            var updateTargetAddress = context.BodyCodeList.Count;
             for (int i = 1; i < Children.Count; ++i)
             {
                 var child = Children[i];
