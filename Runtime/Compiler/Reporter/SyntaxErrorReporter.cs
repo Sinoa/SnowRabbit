@@ -14,6 +14,7 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
+using SnowRabbit.Compiler.Assembler.Symbols;
 using SnowRabbit.Compiler.Lexer;
 using SnowRabbit.Compiler.Parser.SyntaxErrors;
 
@@ -83,6 +84,12 @@ namespace SnowRabbit.Compiler.Reporter
         public SrSyntaxErrorException NotVariable(in Token token, string identifierName)
         {
             return CreateAndReportErrorMessage(token, $"'{identifierName}' は、変数ではありません。");
+        }
+
+
+        public SrSyntaxErrorException NotSupportedType(in Token token, SrRuntimeType type)
+        {
+            return CreateAndReportErrorMessage(token, $"型 '{type.ToString()}' は、サポートされていません。");
         }
     }
 }

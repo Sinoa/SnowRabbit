@@ -170,12 +170,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
         #region Load Store control
-        private byte LoadFromExpression(SyntaxNode node, SrCompileContext context, out SrRuntimeType returnType)
+        private byte LoadFromExpression(SyntaxNode node, SrCompileContext context, out SrRuntimeType returnType, out bool isConstant)
         {
+            isConstant = false;
             switch (node)
             {
-                case LiteralSyntaxNode x: return LoadFromLiteral(x, context, out returnType);
-                case IdentifierSyntaxNode x: return LoadFromIdentifier(x, context, out returnType);
+                case LiteralSyntaxNode x: return LoadFromLiteral(x, context, out returnType, out isConstant);
+                case IdentifierSyntaxNode x: return LoadFromIdentifier(x, context, out returnType, out isConstant);
                 case FunctionCallSyntaxNode x: return LoadFromFunctionCall(x, context, out returnType);
             }
 
@@ -193,8 +194,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private byte LoadFromLiteral(LiteralSyntaxNode literal, SrCompileContext context, out SrRuntimeType returnType)
+        private byte LoadFromLiteral(LiteralSyntaxNode literal, SrCompileContext context, out SrRuntimeType returnType, out bool isConstant)
         {
+            isConstant = true;
             var literalToken = literal.Token;
             var instruction = new SrInstruction();
             var targetRegisterIndex = TakeFreeRegisterIndex();
@@ -243,7 +245,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        private byte LoadFromIdentifier(IdentifierSyntaxNode identifier, SrCompileContext context, out SrRuntimeType returnType)
+        private byte LoadFromIdentifier(IdentifierSyntaxNode identifier, SrCompileContext context, out SrRuntimeType returnType, out bool isConstant)
         {
             var targetRegisterIndex = TakeFreeRegisterIndex();
             var identifierToken = identifier.Token;
@@ -256,6 +258,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
             returnType = variableSymbol.Type;
+            isConstant = false;
             var instruction = new SrInstruction();
             switch (variableSymbol)
             {
@@ -274,6 +277,42 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 case SrParameterVariableSymbol parameterVariableSymbol:
                     instruction.Set(OpCode.Ldr, targetRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, parameterVariableSymbol.Address + 1);
                     context.AddBodyCode(instruction, false);
+                    break;
+
+
+                case SrConstantSymbol constantSymbol:
+                    isConstant = true;
+                    switch (constantSymbol.Type)
+                    {
+                        case SrRuntimeType.Integer:
+                            instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, (int)constantSymbol.ConstantValue.Integer);
+                            context.AddBodyCode(instruction, false);
+                            break;
+
+
+                        case SrRuntimeType.Number:
+                            instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, (float)constantSymbol.ConstantValue.Number);
+                            context.AddBodyCode(instruction, false);
+                            break;
+
+
+                        case SrRuntimeType.Boolean:
+                            var boolValue = constantSymbol.ConstantValue.Text == "true" ? 1 : 0;
+                            instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, boolValue);
+                            context.AddBodyCode(instruction, false);
+                            break;
+
+
+                        case SrRuntimeType.String:
+                            var stringSymbol = context.CreateOrGetStringSymbol(constantSymbol.ConstantValue.Text);
+                            instruction.Set(OpCode.Ldrl, targetRegisterIndex, 0, 0, stringSymbol.InitialAddress);
+                            context.AddBodyCode(instruction, true);
+                            break;
+
+
+                        default:
+                            throw context.ErrorReporter.NotSupportedType(identifierToken, constantSymbol.Type);
+                    }
                     break;
             }
 
@@ -331,20 +370,23 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 case SrGlobalVariableSymbol globalSymbol:
                     instruction.Set(OpCode.Strl, srcRegisterIndex, 0, 0, globalSymbol.InitialAddress);
                     context.AddBodyCode(instruction, true);
-                    break;
+                    return;
 
 
                 case SrLocalVariableSymbol localSymbol:
                     instruction.Set(OpCode.Str, srcRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, -localSymbol.Address);
                     context.AddBodyCode(instruction, false);
-                    break;
+                    return;
 
 
                 case SrParameterVariableSymbol parameterSymbol:
                     instruction.Set(OpCode.Str, srcRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, parameterSymbol.Address + 1);
                     context.AddBodyCode(instruction, false);
-                    break;
+                    return;
             }
+
+
+            throw context.ErrorReporter.NotVariable(identifierNode.Token, name);
         }
         #endregion
 
@@ -354,8 +396,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
             InitializeRegisterInformation();
 
-
-            if (Children.Count == 1)
+            if (Children.Count == 0)
+            {
+                CompileUnaryExpression(this, default, context);
+            }
+            else if (Children.Count == 1)
             {
                 CompileUnaryExpression(Children[0], Token, context);
             }
@@ -371,10 +416,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
         private void CompileUnaryExpression(SyntaxNode expression, in Token operation, SrCompileContext context)
         {
-            var targetRegisterIndex = LoadFromExpression(expression, context, out var returnType);
+            var targetRegisterIndex = LoadFromExpression(expression, context, out var returnType, out var isConstant);
 
 
-            if (returnType == SrRuntimeType.String || returnType == SrRuntimeType.Object || returnType == SrRuntimeType.Void)
+            if (!isConstant && (returnType == SrRuntimeType.String || returnType == SrRuntimeType.Object || returnType == SrRuntimeType.Void))
             {
                 // 文字列 オブジェクト void に対する単項式は今の所未実装
                 throw new System.Exception();
@@ -432,8 +477,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
         private void CompileExpression(SyntaxNode leftExpression, SyntaxNode rightExpression, in Token operation, SrCompileContext context)
         {
-            ResultRegisterIndex = LoadFromExpression(leftExpression, context, out var leftResultType);
-            var rightRegisterIndex = LoadFromExpression(rightExpression, context, out var rightResultType);
+            ResultRegisterIndex = LoadFromExpression(leftExpression, context, out var leftResultType, out _);
+            var rightRegisterIndex = LoadFromExpression(rightExpression, context, out var rightResultType, out _);
             ResultType = CompileCastExpression(ResultRegisterIndex, leftResultType, rightRegisterIndex, rightResultType, context);
 
 

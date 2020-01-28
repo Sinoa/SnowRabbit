@@ -23,9 +23,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <summary>
     /// 定数構文を表す構文ノードクラスです
     /// </summary>
-    public class LiteralSyntaxNode : SyntaxNode
+    public class LiteralSyntaxNode : ExpressionSyntaxNode
     {
-        public byte StoreRegisterIndex { get; set; } = SrvmProcessor.RegisterAIndex;
+        //public byte StoreRegisterIndex { get; set; } = SrvmProcessor.RegisterAIndex;
 
 
         /// <summary>
@@ -37,42 +37,42 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         }
 
 
-        public override void Compile(SrCompileContext context)
-        {
-            SrInstruction instruction = default;
-            switch (context.ToRuntimeType(Token.Kind))
-            {
-                case SrRuntimeType.Integer:
-                    instruction.Set(OpCode.Movl, StoreRegisterIndex, 0, 0, (int)Token.Integer);
-                    context.AddBodyCode(instruction, false);
-                    break;
+        //public override void Compile(SrCompileContext context)
+        //{
+        //    SrInstruction instruction = default;
+        //    switch (context.ToRuntimeType(Token.Kind))
+        //    {
+        //        case SrRuntimeType.Integer:
+        //            instruction.Set(OpCode.Movl, StoreRegisterIndex, 0, 0, (int)Token.Integer);
+        //            context.AddBodyCode(instruction, false);
+        //            break;
 
 
-                case SrRuntimeType.Number:
-                    instruction.Set(OpCode.Movl, StoreRegisterIndex, 0, 0, (float)Token.Number);
-                    context.AddBodyCode(instruction, false);
-                    break;
+        //        case SrRuntimeType.Number:
+        //            instruction.Set(OpCode.Movl, StoreRegisterIndex, 0, 0, (float)Token.Number);
+        //            context.AddBodyCode(instruction, false);
+        //            break;
 
 
-                case SrRuntimeType.Boolean:
-                    var boolValue = Token.Text == "true" ? 1 : 0;
-                    instruction.Set(OpCode.Movl, StoreRegisterIndex, 0, 0, boolValue);
-                    context.AddBodyCode(instruction, false);
-                    break;
+        //        case SrRuntimeType.Boolean:
+        //            var boolValue = Token.Text == "true" ? 1 : 0;
+        //            instruction.Set(OpCode.Movl, StoreRegisterIndex, 0, 0, boolValue);
+        //            context.AddBodyCode(instruction, false);
+        //            break;
 
 
-                case SrRuntimeType.String:
-                    var symbol = context.CreateOrGetStringSymbol(Token.Text);
-                    instruction.Set(OpCode.Ldrl, StoreRegisterIndex, 0, 0, symbol.InitialAddress);
-                    context.AddBodyCode(instruction, true);
-                    break;
+        //        case SrRuntimeType.String:
+        //            var symbol = context.CreateOrGetStringSymbol(Token.Text);
+        //            instruction.Set(OpCode.Ldrl, StoreRegisterIndex, 0, 0, symbol.InitialAddress);
+        //            context.AddBodyCode(instruction, true);
+        //            break;
 
 
-                case SrRuntimeType.Object:
-                    instruction.Set(OpCode.Movl, StoreRegisterIndex, 0, 0, 0);
-                    context.AddBodyCode(instruction, false);
-                    break;
-            }
-        }
+        //        case SrRuntimeType.Object:
+        //            instruction.Set(OpCode.Movl, StoreRegisterIndex, 0, 0, 0);
+        //            context.AddBodyCode(instruction, false);
+        //            break;
+        //    }
+        //}
     }
 }
