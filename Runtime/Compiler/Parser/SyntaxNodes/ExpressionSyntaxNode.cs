@@ -452,6 +452,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     }
                     instruction.Set(OpCode.Addl, targetRegisterIndex, targetRegisterIndex, 0, 1);
                     context.AddBodyCode(instruction, false);
+                    StoreResult(expression, targetRegisterIndex, context);
                     break;
 
 
@@ -463,6 +464,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     }
                     instruction.Set(OpCode.Subl, targetRegisterIndex, targetRegisterIndex, 0, 1);
                     context.AddBodyCode(instruction, false);
+                    StoreResult(expression, targetRegisterIndex, context);
                     break;
             }
         }
