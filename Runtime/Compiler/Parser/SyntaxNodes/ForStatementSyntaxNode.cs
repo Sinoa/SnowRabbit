@@ -48,12 +48,17 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             // update goto conditional code
             var forConditionalHeadAddress = context.BodyCodeList.Count;
-            instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, updateTargetAddress - forConditionalHeadAddress);
+            instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, forConditionalHeadAddress - updateTargetAddress);
             context.UpdateBodyCode(updateTargetAddress, instruction, false);
 
 
             // for conditional code
+            var breakTargetLabelSymbol = context.CurrentBreakTargetLabel;
             conditionalExpression?.Compile(context);
+            instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, SrvmProcessor.RegisterAIndex, 0, 2);
+            context.AddBodyCode(instruction, false);
+            instruction.Set(OpCode.Brl, 0, 0, 0, breakTargetLabelSymbol.InitialAddress);
+            context.AddBodyCode(instruction, true);
 
 
             // for body code
