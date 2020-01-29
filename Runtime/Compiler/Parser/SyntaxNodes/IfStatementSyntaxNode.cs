@@ -21,13 +21,20 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     public class IfStatementSyntaxNode : SyntaxNode
     {
-        private List<int> patchTargetAddressList;
+        public List<int> patchTargetAddressList;
+        private bool rootIfNode;
 
 
 
         public override void Compile(SrCompileContext context)
         {
-            patchTargetAddressList = (Parent is ElseStatementSyntaxNode elseNode) ? elseNode.patchTargetAddressList : new List<int>();
+            if (patchTargetAddressList == null)
+            {
+                patchTargetAddressList = new List<int>();
+                rootIfNode = true;
+            }
+
+
             var instruction = new SrInstruction();
 
 
@@ -35,26 +42,28 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             condition.Compile(context);
             instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, 0, 0, 2);
             context.AddBodyCode(instruction, false);
-
-
-            patchTargetAddressList.Add(context.BodyCodeList.Count);
-            instruction.Set(OpCode.Brl, 0, 0, 0, -1);
+            var updateTargetAddress = context.BodyCodeList.Count;
+            instruction.Set(OpCode.Br);
             context.AddBodyCode(instruction, false);
 
 
             for (int i = 1; i < Children.Count; ++i)
             {
                 var child = Children[i];
-                if (child is ElseStatementSyntaxNode childElseNode)
+                if (child is ElseStatementSyntaxNode elseNode)
                 {
                     patchTargetAddressList.Add(context.BodyCodeList.Count);
-                    instruction.Set(OpCode.Brl, 0, 0, 0, -1);
+                    instruction.Set(OpCode.Br);
                     context.AddBodyCode(instruction, false);
 
 
-                    childElseNode.patchTargetAddressList = patchTargetAddressList;
-                    childElseNode.Compile(context);
-                    break; ;
+                    instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, context.BodyCodeList.Count - updateTargetAddress);
+                    context.UpdateBodyCode(updateTargetAddress, instruction, false);
+
+
+                    elseNode.patchTargetAddressList = patchTargetAddressList;
+                    elseNode.Compile(context);
+                    break;
                 }
 
 
@@ -62,20 +71,21 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
-            PatchAddress(context);
-        }
-
-
-        private void PatchAddress(SrCompileContext context)
-        {
-            if (Parent is ElseStatementSyntaxNode) return;
-            var instruction = new SrInstruction();
-
-
-            foreach (var targetAddress in patchTargetAddressList)
+            if (rootIfNode)
             {
-                instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, context.BodyCodeList.Count - targetAddress);
-                context.UpdateBodyCode(targetAddress, instruction, false);
+                if (patchTargetAddressList.Count == 0)
+                {
+                    instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, context.BodyCodeList.Count - updateTargetAddress);
+                    context.UpdateBodyCode(updateTargetAddress, instruction, false);
+                }
+                else
+                {
+                    foreach (var targetAddress in patchTargetAddressList)
+                    {
+                        instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, context.BodyCodeList.Count - targetAddress);
+                        context.UpdateBodyCode(targetAddress, instruction, false);
+                    }
+                }
             }
         }
     }

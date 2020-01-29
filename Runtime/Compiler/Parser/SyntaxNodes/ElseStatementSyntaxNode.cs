@@ -25,6 +25,15 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
         public override void Compile(SrCompileContext context)
         {
+            if (Children.Count == 0) return;
+
+
+            if (Children[0] is IfStatementSyntaxNode ifNode)
+            {
+                ifNode.patchTargetAddressList = patchTargetAddressList;
+            }
+
+
             foreach (var node in Children)
             {
                 node.Compile(context);
