@@ -28,10 +28,16 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var childCount = Children.Count;
             for (int i = childCount - 1; i >= 0; --i)
             {
-                Children[i].Children[0].Compile(context);
+                var expression = Children[i].Children[0];
+                expression.Compile(context);
 
 
                 SrInstruction instruction = default;
+                if (expression is FunctionCallSyntaxNode)
+                {
+                    instruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR29Index);
+                    context.AddBodyCode(instruction, false);
+                }
                 instruction.Set(OpCode.Push, SrvmProcessor.RegisterAIndex);
                 context.AddBodyCode(instruction, false);
             }
