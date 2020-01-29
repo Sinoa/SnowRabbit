@@ -26,7 +26,8 @@ namespace SnowRabbit.RuntimeEngine
     public class SrProcess : SrDisposable
     {
         // 定数定義
-        public int InvalidProcessID = -1;
+        public const int InvalidProcessID = -1;
+        public const int DefaultInfinityLoopElapseTimeThreshold = 1000;
 
         // メンバ変数定義
         private bool disposed;
@@ -52,6 +53,18 @@ namespace SnowRabbit.RuntimeEngine
         public SrProcessStatus ProcessState { get; internal set; }
 
 
+        /// <summary>
+        /// プロセスが無限ループしていると思われる経過時間の閾値（ミリ秒）
+        /// </summary>
+        public int InfinityLoopElapseTimeThreshold { get; set; }
+
+
+        /// <summary>
+        /// プロセスの総実行時間（ナノ秒）
+        /// </summary>
+        public ulong RunningTime => (ulong)(RunningStopwatch.ElapsedTicks / (double)Stopwatch.Frequency * 1000.0 * 1000.0 * 1000.0);
+
+
 
         /// <summary>
         /// SrProcess クラスのインスタンスを初期化します
@@ -71,6 +84,7 @@ namespace SnowRabbit.RuntimeEngine
             ProcessorContext = processorContext;
             ProcessState = SrProcessStatus.Ready;
             RunningStopwatch = new Stopwatch();
+            InfinityLoopElapseTimeThreshold = DefaultInfinityLoopElapseTimeThreshold;
             this.machine = machine;
         }
 

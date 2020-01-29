@@ -138,6 +138,18 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
         /// <summary>
+        /// プロセスが無限ループしていると思われる時の処理をします
+        /// </summary>
+        /// <param name="process">無限ループしている疑いのあるプロセス</param>
+        protected virtual void OnProcessInfinityLoopingTriggered(SrProcess process, out bool isForceStop)
+        {
+            // 既定動作は停止させない
+            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessInfinityLoopingTriggered ID={process.ProcessID}");
+            isForceStop = false;
+        }
+
+
+        /// <summary>
         /// プロセスの実行中に発生した例外を処理します
         /// </summary>
         /// <param name="process">例外が発生したプロセス</param>
@@ -281,6 +293,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
             // プロセスの動作計測ストップウォッチを開始
+            var startElapsedTime = process.RunningStopwatch.ElapsedMilliseconds;
             process.RunningStopwatch.Start();
 
 
@@ -738,6 +751,21 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                 // 最終的な次に実行する命令位置をもどして実行後イベントも呼ぶ
                 context[RegisterIPIndex].Primitive.Int = nextInstructionPointer;
                 OnPostProcessInstruction_Debug(process, instruction);
+
+
+                // 現在の単位実行時間を確認して、もし無限ループ経過時間の閾値を超過していたら
+                var unitRunningTime = process.RunningStopwatch.ElapsedMilliseconds - startElapsedTime;
+                if (unitRunningTime > process.InfinityLoopElapseTimeThreshold)
+                {
+                    // 無限ループイベントを呼んで強制停止するかどうかも判断を委ねて、停止するなら
+                    OnProcessInfinityLoopingTriggered(process, out var isForceStop);
+                    if (isForceStop)
+                    {
+                        // 実行を停止してプロセス実行状態も停止にする
+                        running = false;
+                        process.ProcessState = SrProcessStatus.Stopped;
+                    }
+                }
             }
 
 
