@@ -15,7 +15,6 @@
 
 using System;
 using System.Collections.Generic;
-using SnowRabbit.Diagnostics.Logging;
 using SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral;
 
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
@@ -42,16 +41,10 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             // ペリフェラルを生成して存在を確認する
             var peripheral = new SrPeripheral(targetInstance ?? throw new ArgumentNullException(nameof(targetInstance)));
             var name = peripheral.Name;
-            if (peripheralTable.ContainsKey(name))
-            {
-                // 既にあるなら警告を出して何もせず終了
-                SrLogger.Warning(SharedString.LogTag.SR_VM_FIRMWARE, $"Already exsits peripheral '{peripheral.Name}'.");
-                return;
-            }
+            if (peripheralTable.ContainsKey(name)) return;
 
 
             // 存在していなければ追加する
-            SrLogger.Trace(SharedString.LogTag.SR_VM_FIRMWARE, $"Attach peripheral '{peripheral.Name}'.");
             peripheralTable[name] = peripheral;
         }
 

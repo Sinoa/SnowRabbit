@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using SnowRabbit.Diagnostics.Logging;
 
 namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 {
@@ -54,14 +53,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         {
             // まずは型情報を取得する
             var targetType = (targetInstance ?? throw new ArgumentNullException(nameof(targetInstance))).GetType();
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"SrPeripheral Initialize of '{targetType.FullName}'.");
 
 
             // 名前の取得と関数の登録をする
             Name = GetPeripheralAttribute(targetType).Name;
             RegisterHostFunctions(targetInstance, GetHostFunctions(targetType));
             TargetInstance = targetInstance;
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"SrPeripheral Initialize Success '{targetType.FullName}'.");
         }
 
 
@@ -73,21 +70,14 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private void RegisterHostFunctions(object targetInstance, IEnumerable<(MethodInfo info, SrHostFunctionAttribute attribute)> functions)
         {
             // 取得された関数をすべて回る
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"RegisterHostFunctions({targetInstance.GetType().FullName}, functions);");
             foreach (var (info, attribute) in functions)
             {
                 // 既に同じ名前の関数がテーブルに存在するなら
                 var functionName = attribute.Name;
-                if (functionTable.ContainsKey(functionName))
-                {
-                    // 警告を出して次へ
-                    SrLogger.Warning(SharedString.LogTag.PERIPHERAL, $"Type '{targetInstance.GetType().FullName}' is function '{functionName}' already exists.");
-                    continue;
-                }
+                if (functionTable.ContainsKey(functionName)) continue;
 
 
                 // 周辺機器関数オブジェクトを生成してテーブルに設定
-                SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"Create and Register '{functionName}' peripheral function.");
                 functionTable[functionName] = new SrPeripheralFunction(info.IsStatic ? null : targetInstance, info);
             }
         }
@@ -102,7 +92,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private static SrPeripheralAttribute GetPeripheralAttribute(Type targetType)
         {
             // SrPeripheralAttribute の取得をして成功したのならインスタンスを返す
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"GetPeripheralAttribute({targetType.FullName});");
             var attribute = targetType.GetCustomAttribute<SrPeripheralAttribute>();
             if (attribute != null) return attribute;
 
@@ -121,7 +110,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private static IEnumerable<(MethodInfo, SrHostFunctionAttribute)> GetHostFunctions(Type targetType)
         {
             // まずはすべての関数を取り出して、SrHostFunctionAttribute 属性を取得後に属性が null でない関数のみを列挙する
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"GetHostFunctions({targetType.FullName});");
             return targetType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
                 .Select(info => (info, attribute: info.GetCustomAttribute<SrHostFunctionAttribute>()))
                 .Where(x => x.attribute != null);
@@ -146,7 +134,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // 関数の取得を試みて成功したら返す
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"SrPeripheralFunction({name});");
             if (functionTable.TryGetValue(name, out var function)) return function;
 
 

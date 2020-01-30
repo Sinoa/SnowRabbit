@@ -14,7 +14,6 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
-using SnowRabbit.Diagnostics.Logging;
 
 namespace SnowRabbit
 {
@@ -50,9 +49,6 @@ namespace SnowRabbit
         /// <param name="disposing">マネージドを含む解放の場合は true を、アンマネージドのみ解放の場合は false を指定</param>
         protected virtual void Dispose(bool disposing)
         {
-            // このクラスでは実際の解放処理はありません
-            // 継承するクラスで適切なDisposeの実装をして下さい
-            SrLogger.Trace(SharedString.LogTag.SR_DISPOSABLE, "Called SnowRabbit.SrDisposable.Dispose(bool)");
         }
     }
 }

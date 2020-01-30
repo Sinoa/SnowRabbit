@@ -52,7 +52,7 @@ namespace SnowRabbit.RuntimeEngine.Data
         private readonly SrValue[] codes;
         private StringRecord[] records;
         private byte[] stringPool;
-        private SrSymbol[] symbols;
+        private readonly SrSymbol[] symbols;
 
 
 

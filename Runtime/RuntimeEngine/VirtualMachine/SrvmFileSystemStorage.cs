@@ -15,7 +15,6 @@
 
 using System;
 using System.IO;
-using SnowRabbit.Diagnostics.Logging;
 
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
 {
@@ -44,7 +43,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             if (!File.Exists(path))
             {
                 // エラーログ吐いてnullを返す
-                SrLogger.Error(SharedString.LogTag.SR_VM_FS_STORAGE, $"File '{path}' not found.");
                 return null;
             }
 

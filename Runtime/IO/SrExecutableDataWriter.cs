@@ -16,7 +16,6 @@
 using System;
 using System.IO;
 using SnowRabbit.RuntimeEngine.Data;
-using SnowRabbit.Compiler.Assembler.Symbols;
 
 namespace SnowRabbit.IO
 {

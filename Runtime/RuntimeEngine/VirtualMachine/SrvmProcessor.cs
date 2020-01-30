@@ -15,7 +15,6 @@
 
 using System;
 using System.Diagnostics;
-using SnowRabbit.Diagnostics.Logging;
 using SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral;
 
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
@@ -75,7 +74,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
             // 末尾のレジスタインデックスまでループ
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, "InitializeProcessorContext");
             for (var i = 0; i < TotalRegisterCount; ++i)
             {
                 // プロセッサコンテキストの値を初期化する
@@ -99,8 +97,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         /// <param name="process">起動を開始するプロセス</param>
         protected virtual void OnProcessStartup(SrProcess process)
         {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessStartup ID={process.ProcessID}");
         }
 
 
@@ -110,8 +106,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         /// <param name="process">動作を再開するプロセス</param>
         protected virtual void OnProcessResume(SrProcess process)
         {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessResume ID={process.ProcessID}");
         }
 
 
@@ -121,8 +115,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         /// <param name="process">一時停止したプロセス</param>
         protected virtual void OnProcessSuspended(SrProcess process)
         {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessSuspended ID={process.ProcessID}");
         }
 
 
@@ -132,8 +124,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         /// <param name="process">停止したプロセス</param>
         protected virtual void OnProcessStopped(SrProcess process)
         {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessStopped ID={process.ProcessID}");
         }
 
 
@@ -144,7 +134,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         protected virtual void OnProcessInfinityLoopingTriggered(SrProcess process, out bool isForceStop)
         {
             // 既定動作は停止させない
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnProcessInfinityLoopingTriggered ID={process.ProcessID}");
             isForceStop = false;
         }
 
@@ -156,8 +145,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         /// <param name="exception">発生した例外</param>
         protected virtual void OnExceptionOccurrenced(SrProcess process, Exception exception)
         {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnExceptionOccurrenced message={exception.Message}, ID={process.ProcessID}");
         }
 
 
@@ -169,8 +156,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         [Conditional(SharedString.Conditional.DEBUG)]
         protected virtual void OnPreProcessInstruction_Debug(SrProcess process, SrInstruction instruction)
         {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnPreProcessInstruction OpCode={instruction.OpCode} ID={process.ProcessID}");
         }
 
 
@@ -182,8 +167,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         [Conditional(SharedString.Conditional.DEBUG)]
         protected virtual void OnPostProcessInstruction_Debug(SrProcess process, SrInstruction instruction)
         {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnPostProcessInstruction OpCode={instruction.OpCode} ID={process.ProcessID}");
         }
 
 
@@ -195,8 +178,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         [Conditional(SharedString.Conditional.DEBUG)]
         protected virtual void OnUnknownInstructionExecution_Debug(SrProcess process, SrInstruction instruction)
         {
-            // トレースログくらいは出す
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"OnUnknownInstructionExecution InstructionCode={instruction.Raw.ToString("X16")}");
         }
         #endregion
 
@@ -211,14 +192,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         {
             // null を渡されたらむり
             if (process == null) throw new ArgumentNullException(nameof(process));
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Execute process ID={process.ProcessID}");
 
 
             // もしプロセスが 停止 または パニックなら
             if ((process.ProcessState & (SrProcessStatus.Stopped | SrProcessStatus.Panic)) != 0)
             {
                 // 何もせず終了
-                SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Execute stopped, for Process status is '{process.ProcessState}'.");
                 return;
             }
             else if (process.ProcessState == SrProcessStatus.Suspended)
@@ -227,7 +206,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                 if (process.Task != null && !process.Task.IsCompleted)
                 {
                     // まだプロセスは再開できない
-                    SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Execute paused, for Process status is '{process.ProcessState}'.");
                     return;
                 }
 
@@ -245,14 +223,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             else if (process.ProcessState == SrProcessStatus.Ready)
             {
                 // プロセスが準備完了状態なら、プロセスの動作開始イベントを実行して開始状態にする
-                SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Startup process ID={process.ProcessID}");
                 process.ProcessState = SrProcessStatus.Running;
                 OnProcessStartup(process);
             }
             else if (process.ProcessState == SrProcessStatus.ResumeRequested)
             {
                 // プロセスが再開要求状態なら、プロセスの動作再開イベントを実行して開始状態にする
-                SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Resume process ID={process.ProcessID}");
                 process.ProcessState = SrProcessStatus.Running;
                 OnProcessResume(process);
             }
@@ -266,13 +242,11 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             catch (Exception exception)
             {
                 // プロセスをパニック状態にして動作計測を停止する
-                SrLogger.Fatal(SharedString.LogTag.SR_VM_PROCESSOR, exception.Message, exception);
                 process.ProcessState = SrProcessStatus.Panic;
                 process.RunningStopwatch.Stop();
 
 
                 // 例外発生イベントを起こしてから再スロー
-                SrLogger.Error(SharedString.LogTag.SR_VM_PROCESSOR, $"ExceptionOccurrenced process ID={process.ProcessID}");
                 OnExceptionOccurrenced(process, exception);
                 throw;
             }
@@ -287,7 +261,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         private unsafe void ExecuteCore(SrProcess process)
         {
             // プロセスに紐付いている情報をローカル変数に持ってくる
-            SrLogger.Trace(SharedString.LogTag.SR_VM_PROCESSOR, $"Execute Core process ID={process.ProcessID}");
             var context = process.ProcessorContext;
             var memory = process.VirtualMemory;
 

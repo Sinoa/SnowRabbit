@@ -14,7 +14,6 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System.IO;
-using SnowRabbit.Diagnostics.Logging;
 
 namespace SnowRabbit.Compiler.IO
 {
@@ -31,7 +30,6 @@ namespace SnowRabbit.Compiler.IO
         public TextReader OpenRead(string path)
         {
             // 対象のファイルパスが存在する場合はテキストリーダとして開いて返す
-            SrLogger.Trace(nameof(SrFileSystemScriptStorage), $"OpenRead:{path}");
             return File.Exists(path) ? new StreamReader(path) : null;
         }
     }

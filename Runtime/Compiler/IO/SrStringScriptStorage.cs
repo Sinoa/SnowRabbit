@@ -15,7 +15,6 @@
 
 using System.Collections.Generic;
 using System.IO;
-using SnowRabbit.Diagnostics.Logging;
 
 namespace SnowRabbit.Compiler.IO
 {
@@ -37,7 +36,6 @@ namespace SnowRabbit.Compiler.IO
         public void SetScript(string name, string scriptCode)
         {
             // そのまま設定する
-            SrLogger.Trace(nameof(SrStringScriptStorage), $"SetScript:{name} Length={scriptCode.Length}");
             scriptTable[name] = scriptCode;
         }
 
@@ -49,7 +47,6 @@ namespace SnowRabbit.Compiler.IO
         public void RemoveScript(string name)
         {
             // そのまま削除をする
-            SrLogger.Trace(nameof(SrStringScriptStorage), $"RemoveScript:{name}");
             scriptTable.Remove(name);
         }
 
@@ -62,7 +59,6 @@ namespace SnowRabbit.Compiler.IO
         public TextReader OpenRead(string name)
         {
             // 対象のスクリプト名があればそのままインスタンスを生成して返す
-            SrLogger.Trace(nameof(SrStringScriptStorage), $"OpenRead:{name}");
             return scriptTable.TryGetValue(name, out var scriptCode) ? new StringReader(scriptCode) : null;
         }
     }

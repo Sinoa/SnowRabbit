@@ -895,7 +895,7 @@ namespace SnowRabbit.Compiler.Parser
             {
                 return ifStatement;
             }
-            
+
             throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, "end");
         }
 

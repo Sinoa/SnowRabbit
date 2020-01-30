@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
-using SnowRabbit.Diagnostics.Logging;
 
 namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 {
@@ -133,13 +132,11 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             // ひとまず参照を受け取る
             targetInstance = target;
             methodInfo = info ?? throw new ArgumentNullException(nameof(info));
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"Begin create peripheral function for '{info.DeclaringType}.{info.Name}'.");
 
 
             // 引数と戻り値のセットアップをする
             SetupArgumentInfo(info);
             SetupReturnInfo(info);
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"End create peripheral function for '{info.DeclaringType}.{info.Name}'.");
         }
 
 
@@ -151,7 +148,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private void SetupArgumentInfo(MethodInfo info)
         {
             // 引数の数を知る
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Setup argument info.");
             var parameters = info.GetParameters();
 
 
@@ -159,7 +155,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
             if (parameters.Length == 0)
             {
                 // 引数関連は空で初期化
-                SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Argument empty.");
                 arguments = Array.Empty<object>();
                 argumentSetters = Array.Empty<Func<SrValue, object>>();
                 return;
@@ -167,7 +162,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // 引数と引数設定関数を初期化子て引数の数分ループ
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"Argument count = {parameters.Length}.");
             arguments = new object[parameters.Length];
             argumentSetters = new Func<SrValue, object>[parameters.Length];
             for (int i = 0; i < parameters.Length; ++i)
@@ -196,7 +190,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
                 if (!fromValueConvertTable.TryGetValue(parameter.ParameterType, out argumentSetters[i]))
                 {
                     // 対応関数が無いなら警告を出してobject型そのまま出力する変換関数を利用する
-                    SrLogger.Warning(SharedString.LogTag.PERIPHERAL, $"'{parameter.ParameterType.FullName}' convert function not found.");
                     argumentSetters[i] = fromValueConvertTable[typeof(object)];
                 }
             }
@@ -211,23 +204,19 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private void SetupReturnInfo(MethodInfo info)
         {
             // 関数の戻り値型を取得してタスクかどうかを知る
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"Setup return info. from '{info.DeclaringType.FullName}.{info.Name}'");
             var returnType = info.ReturnType;
             isTask = typeof(Task).IsAssignableFrom(returnType);
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, isTask ? "Function is Task." : "Function is not Task.");
 
 
             // 変換テーブルから変換関数を取り出せるのなら
             if (toValueConvertTable.TryGetValue(returnType, out resultSetter))
             {
                 // これ以上解析はしない
-                SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Use built-in ResultResolver.");
                 return;
             }
 
 
             // Task<TResult> かどうかによってデフォルトの解決関数を選択する
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, "Use default ResultResolver.");
             resultSetter = isTask ? taskToValueConvert : toValueConvertTable[typeof(object)];
         }
 
@@ -242,7 +231,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         public Task Call(SrVirtualMemory memory, int address, int processID)
         {
             // 配列外参照例外を承知でいきなりループでアクセス（呼び出しコードは極力実行速度優先で実装）
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"CallPeripheralFunction '{methodInfo.Name}'.");
             int indexGap = 0;
             for (int i = 0; i < arguments.Length; ++i)
             {
@@ -278,7 +266,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         public SrValue GetResult()
         {
             // 変換関数を通して返す
-            SrLogger.Trace(SharedString.LogTag.PERIPHERAL, $"PeripheralFunction GetResult '{methodInfo.Name}'");
             return resultSetter(result);
         }
     }
