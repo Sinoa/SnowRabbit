@@ -153,7 +153,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         /// </summary>
         /// <param name="process">処理するプロセス</param>
         /// <param name="instruction">実行しようとしている命令コード</param>
-        [Conditional(SharedString.Conditional.DEBUG)]
+        [Conditional("DEBUG")]
         protected virtual void OnPreProcessInstruction_Debug(SrProcess process, SrInstruction instruction)
         {
         }
@@ -164,7 +164,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         /// </summary>
         /// <param name="process">処理するプロセス</param>
         /// <param name="instruction">実行した命令コード</param>
-        [Conditional(SharedString.Conditional.DEBUG)]
+        [Conditional("DEBUG")]
         protected virtual void OnPostProcessInstruction_Debug(SrProcess process, SrInstruction instruction)
         {
         }
@@ -175,7 +175,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         /// </summary>
         /// <param name="process">不明な命令を実行したプロセス</param>
         /// <param name="instruction">不明な命令とされた命令</param>
-        [Conditional(SharedString.Conditional.DEBUG)]
+        [Conditional("DEBUG")]
         protected virtual void OnUnknownInstructionExecution_Debug(SrProcess process, SrInstruction instruction)
         {
         }
