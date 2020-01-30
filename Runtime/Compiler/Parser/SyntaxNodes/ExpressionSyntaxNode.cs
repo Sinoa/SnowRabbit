@@ -428,7 +428,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                         // 文字列 オブジェクト void に対する処理は不可
                         throw new System.Exception();
                     }
-                    instruction.Set(OpCode.Neg, targetRegisterIndex, targetRegisterIndex);
+                    instruction.Set(returnType == SrRuntimeType.Integer ? OpCode.Neg : OpCode.Fneg, targetRegisterIndex, targetRegisterIndex);
                     context.AddBodyCode(instruction, false);
                     break;
 
