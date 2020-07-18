@@ -24,6 +24,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxErrors
     [Serializable]
     public class SrSyntaxErrorException : SnowRabbitException
     {
+        private readonly string message;
+
+
+
+        public override string Message => message;
+
+
+
         /// <summary>
         /// SrSyntaxErrorException クラスのインスタンスを初期化します
         /// </summary>

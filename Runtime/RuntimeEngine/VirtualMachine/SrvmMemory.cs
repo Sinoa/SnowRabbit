@@ -35,7 +35,14 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         {
             if (!executableDataTable.TryGetValue(path, out var executableData))
             {
-                using (var reader = new SrExecutableDataReader(Machine.Storage.Open(path)))
+                var dataStream = Machine.Storage.Open(path);
+                if (dataStream == null)
+                {
+                    throw new ExecutableDataNotFoundException(null, path);
+                }
+
+
+                using (var reader = new SrExecutableDataReader(dataStream))
                 {
                     executableData = reader.Read();
                     executableDataTable[path] = executableData;
