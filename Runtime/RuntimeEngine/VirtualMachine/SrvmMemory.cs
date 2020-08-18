@@ -14,7 +14,6 @@
 // 3. This notice may not be removed or altered from any source distribution.
 
 using System;
-using System.Collections.Generic;
 using SnowRabbit.IO;
 using SnowRabbit.RuntimeEngine.Data;
 
@@ -26,28 +25,16 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
     public class SrvmMemory : SrvmMachineParts
     {
         // 以下メンバ変数定義
-        private readonly Dictionary<string, SrExecutableData> executableDataTable = new Dictionary<string, SrExecutableData>();
         private int nextProcessID = 1;
 
 
 
         internal SrProcess CreateProcess(string path)
         {
-            if (!executableDataTable.TryGetValue(path, out var executableData))
-            {
-                var dataStream = Machine.Storage.Open(path);
-                if (dataStream == null)
-                {
-                    throw new ExecutableDataNotFoundException(null, path);
-                }
-
-
-                using (var reader = new SrExecutableDataReader(dataStream))
-                {
-                    executableData = reader.Read();
-                    executableDataTable[path] = executableData;
-                }
-            }
+            var dataStream = Machine.Storage.Open(path) ?? throw new ExecutableDataNotFoundException(null, path);
+            var reader = new SrExecutableDataReader(dataStream);
+            var executableData = reader.Read();
+            reader.Dispose();
 
 
             var codeMemory = CreateCodeMemory(executableData);
