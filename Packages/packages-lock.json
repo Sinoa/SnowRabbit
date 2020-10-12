@@ -1,3 +1,10 @@
 {
-  "dependencies": {}
+  "dependencies": {
+    "jp.sinoa.snowrabbit": {
+      "version": "file:SnowRabbit",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    }
+  }
 }
