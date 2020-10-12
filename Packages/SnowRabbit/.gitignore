@@ -1,0 +1,5 @@
+# General Directories and Files
+/.vs/
+/Runtime/.*/
+/.NativeTest/.*/
+/.SampleApplication/.*/

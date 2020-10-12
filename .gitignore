@@ -1,6 +1,18 @@
 # General Directories and Files
+/.gradle/
 /.vs/
-/Runtime/.*/
-/.NativeTest/.*/
-/.SampleApplication/.*/
-/*.tgz
+/AssetBundles/
+/MemoryCaptures/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ibrary/
+/[Oo]bj/
+/[Bb]in/
+/[Tt]emp/
+/[Ll]ogs/
+.DS_Store
+
+# VisualStudio Directories and Files
+/*.csproj
+/*.sln
+/*.user
