@@ -15,6 +15,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 using SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral;
 
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
@@ -206,6 +207,21 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                 if (process.Task != null && !process.Task.IsCompleted)
                 {
                     // まだプロセスは再開できない
+                    return;
+                }
+
+
+                if (process.Task.IsFaulted)
+                {
+                    var error = process.Task.Exception;
+                    process.ProcessorContext[process.ResultReceiveRegisterNumber] = default;
+                    process.PeripheralFunction = null;
+                    process.Task = null;
+                    process.ProcessState = SrProcessStatus.Panic;
+                    process.RunningStopwatch.Stop();
+
+                    OnExceptionOccurrenced(process, error);
+                    ExceptionDispatchInfo.Capture(error).Throw();
                     return;
                 }
 
