@@ -106,7 +106,7 @@ namespace SnowRabbit.Compiler.Lexer
         /// </summary>
         /// <param name="obj">比較対象</param>
         /// <returns>等価の場合は true を、非等価の場合は false を返します</returns>
-        public override bool Equals(object obj) => obj is Token ? Equals((Token)obj) : false;
+        public override bool Equals(object obj) => obj is Token token && Equals(token);
 
 
         /// <summary>
@@ -132,6 +132,12 @@ namespace SnowRabbit.Compiler.Lexer
         /// <param name="right">右の値</param>
         /// <returns>非等価の結果を返します</returns>
         public static bool operator !=(Token left, Token right) => !left.Equals(right);
+
+
+        public override string ToString()
+        {
+            return $"[{ReaderName ?? ""} at ({LineNumber}, {ColumnNumber})] Kind={Kind} Integer={Integer} Number={Number} Text={Text}";
+        }
     }
     #endregion
 
@@ -141,7 +147,7 @@ namespace SnowRabbit.Compiler.Lexer
     /// <summary>
     /// ストリームからトークンを読み込むリーダークラスです
     /// </summary>
-    public abstract class TokenReader : IDisposable
+    public class TokenReader : IDisposable
     {
         // 定数定義
         public const int EndOfStream = -1;
@@ -196,7 +202,7 @@ namespace SnowRabbit.Compiler.Lexer
         /// </summary>
         /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
         /// <exception cref="ArgumentNullException">textReader が null です</exception>
-        protected TokenReader(string name, TextReader textReader) : this(name, textReader, false)
+        public TokenReader(string name, TextReader textReader) : this(name, textReader, false)
         {
         }
 
@@ -207,7 +213,7 @@ namespace SnowRabbit.Compiler.Lexer
         /// <param name="textReader">トークンを読み出す為のテキストリーダー</param>
         /// <param name="leaveOpen">このインスタンスが破棄される時に textReader を開いたままにする場合は true を、閉じる場合は false</param>
         /// <exception cref="ArgumentNullException">textReader が null です</exception>
-        protected TokenReader(string name, TextReader textReader, bool leaveOpen)
+        public TokenReader(string name, TextReader textReader, bool leaveOpen)
         {
             // リーダーインスタンスを生成して書くメンバ変数の初期化
             reader = textReader ?? throw new ArgumentNullException(nameof(textReader));
@@ -542,7 +548,7 @@ namespace SnowRabbit.Compiler.Lexer
                 if (!(char.IsDigit((char)readChara) || ('A' <= readChara && readChara <= 'F') || ('a' <= readChara && readChara <= 'f')))
                 {
                     // 何をしたいのか整数トークンとして解釈出来ない事を初期化する
-                    token = new Token(TokenKind.Unknown, $"16進数は最低でも1桁以上の入力が必要です '{tokenReadBuffer.ToString()}'", 0, 0.0, name, startLineNumber, startColumnNumber);
+                    token = new Token(TokenKind.Unknown, $"16進数は最低でも1桁以上の入力が必要です '{tokenReadBuffer}'", 0, 0.0, name, startLineNumber, startColumnNumber);
                     return;
                 }
 
@@ -609,7 +615,7 @@ namespace SnowRabbit.Compiler.Lexer
             if (!char.IsDigit((char)readChara))
             {
                 // どういうトークンなのかが不明になった
-                token = new Token(TokenKind.Unknown, $"実数はピリオドのみで終了することは出来ません '{tokenReadBuffer.ToString()}'", 0, 0.0, name, startLineNumber, startColumnNumber);
+                token = new Token(TokenKind.Unknown, $"実数はピリオドのみで終了することは出来ません '{tokenReadBuffer}'", 0, 0.0, name, startLineNumber, startColumnNumber);
                 return;
             }
 
