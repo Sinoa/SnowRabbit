@@ -33,7 +33,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
             instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, 0);
             context.AddBodyCode(instruction, false);
-            var updateTargetAddress = context.BodyCodeList.Count;
+            var updateTargetAddress = context.BodyCodeList.Count - 1;
 
 
             for (int i = 1; i < Children.Count; ++i)
@@ -42,12 +42,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
-            var whileHeadOffsetAddress = context.BodyCodeList.Count + 1 - whileHeadAddress;
+            var whileHeadOffsetAddress = context.BodyCodeList.Count - whileHeadAddress;
             instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, -whileHeadOffsetAddress);
             context.AddBodyCode(instruction, false);
 
 
-            var whileTailAddress = context.BodyCodeList.Count + 1;
+            var whileTailAddress = context.BodyCodeList.Count;
             instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, whileTailAddress - updateTargetAddress);
             context.UpdateBodyCode(updateTargetAddress, instruction, false);
 
