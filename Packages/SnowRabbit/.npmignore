@@ -1,0 +1,5 @@
+/.NativeTest/
+/.SampleApplication/
+/.editorconfig
+/SnowRabbit.sln*
+/Directory.build.props*
