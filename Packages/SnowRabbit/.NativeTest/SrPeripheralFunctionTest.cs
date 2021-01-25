@@ -166,6 +166,8 @@ namespace SnowRabbitTest
             Assert.IsNotNull(function);
             memory[0] = 123;
             memory[1] = 456;
+            memory[2] = 0;
+            memory[3] = 0;
             function.Call(memory, 0, 579);
 
 
