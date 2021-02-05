@@ -715,7 +715,17 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         var task = function.Call(memory, context[RegisterSPIndex].Primitive.Int, process.ProcessID);
                         if (task.IsCompleted)
                         {
-                            context[r1] = function.GetResult();
+                            if (!task.IsFaulted)
+                            {
+                                context[r1] = function.GetResult();
+                            }
+                            else
+                            {
+                                var error = task.Exception;
+                                OnExceptionOccurrenced(process, error);
+                                ExceptionDispatchInfo.Capture(error).Throw();
+                                return;
+                            }
                         }
                         else
                         {
