@@ -44,9 +44,12 @@ namespace SampleApplication
             }
             catch (Exception error)
             {
-                outStream.Dispose();
                 Console.WriteLine(error);
                 return;
+            }
+            finally
+            {
+                outStream.Dispose();
             }
 
 
