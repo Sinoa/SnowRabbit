@@ -13,10 +13,12 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using SnowRabbit.Compiler;
 using SnowRabbit.Compiler.Assembler;
+using SnowRabbit.Compiler.Parser.SyntaxTreePrinters;
 using SnowRabbit.RuntimeEngine;
 using SnowRabbit.RuntimeEngine.VirtualMachine;
 using SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral;
@@ -29,9 +31,23 @@ namespace SampleApplication
         {
             var outStream = new FileStream("sample.bin", FileMode.Create);
             var compiler = new SrCompiler();
+            var printer = new ConsoleSyntaxTreePrinter();
             compiler.IsContainSymbolInfo = true;
-            compiler.Compile("Sample.srs", outStream);
-            outStream.Dispose();
+            compiler.Parse("Sample.srs", out var node);
+            printer.Print(node);
+            Console.WriteLine("");
+
+
+            try
+            {
+                compiler.Compile("Sample.srs", outStream);
+            }
+            catch (Exception error)
+            {
+                outStream.Dispose();
+                Console.WriteLine(error);
+                return;
+            }
 
 
             var disassembleDumpText = new SrDisassembler().Disassemble(new FileStream("sample.bin", FileMode.Open));
