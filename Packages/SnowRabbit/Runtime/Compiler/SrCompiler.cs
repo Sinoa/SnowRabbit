@@ -85,7 +85,7 @@ namespace SnowRabbit.Compiler
         /// </summary>
         /// <param name="path">構文解析する対象となるスクリプトのパス</param>
         /// <param name="node">生成された構文木を出力する先の参照</param>
-        private void Parse(string path, out SyntaxNode node)
+        public void Parse(string path, out SyntaxNode node)
         {
             // パーサを生成して構文解析をする
             node = new SrParser(scriptStorage, reportPrinter).Parse(path);
@@ -97,7 +97,7 @@ namespace SnowRabbit.Compiler
         /// </summary>
         /// <param name="node">生成された構文木のルートノード</param>
         /// <param name="assemblyData">コンパイルされた結果のアセンブリデータを出力する先の参照</param>
-        private void Compile(SyntaxNode node, out SrAssemblyData assemblyData)
+        public void Compile(SyntaxNode node, out SrAssemblyData assemblyData)
         {
             // コンパイルしてアセンブリデータを渡す
             var compileContext = new SrCompileContext(reportPrinter);
@@ -111,7 +111,7 @@ namespace SnowRabbit.Compiler
         /// </summary>
         /// <param name="assemblyData">コンパイルされたアセンブリデータ</param>
         /// <param name="outStream">実行コードを出力するストリーム</param>
-        private void Assemble(SrAssemblyData assemblyData, Stream outStream)
+        public void Assemble(SrAssemblyData assemblyData, Stream outStream)
         {
             // アセンブラを生成してアセンブル
             new SrAssembler() { IsContainSymbolInfo = IsContainSymbolInfo }.Assemble(assemblyData, outStream);
