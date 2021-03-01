@@ -565,32 +565,32 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
 
                     case OpCode.Teq:
-                        context[r1].Primitive.Long = context[r2].Primitive.Ulong == context[r3].Primitive.Ulong ? 1L : 0L;
+                        context[r1].Primitive.Long = context[r2].Primitive.Long == context[r3].Primitive.Long ? 1L : 0L;
                         break;
 
 
                     case OpCode.Tne:
-                        context[r1].Primitive.Long = context[r2].Primitive.Ulong != context[r3].Primitive.Ulong ? 1L : 0L;
+                        context[r1].Primitive.Long = context[r2].Primitive.Long != context[r3].Primitive.Long ? 1L : 0L;
                         break;
 
 
                     case OpCode.Tg:
-                        context[r1].Primitive.Long = context[r2].Primitive.Ulong > context[r3].Primitive.Ulong ? 1L : 0L;
+                        context[r1].Primitive.Long = context[r2].Primitive.Long > context[r3].Primitive.Long ? 1L : 0L;
                         break;
 
 
                     case OpCode.Tge:
-                        context[r1].Primitive.Long = context[r2].Primitive.Ulong >= context[r3].Primitive.Ulong ? 1L : 0L;
+                        context[r1].Primitive.Long = context[r2].Primitive.Long >= context[r3].Primitive.Long ? 1L : 0L;
                         break;
 
 
                     case OpCode.Tl:
-                        context[r1].Primitive.Long = context[r2].Primitive.Ulong < context[r3].Primitive.Ulong ? 1L : 0L;
+                        context[r1].Primitive.Long = context[r2].Primitive.Long < context[r3].Primitive.Long ? 1L : 0L;
                         break;
 
 
                     case OpCode.Tle:
-                        context[r1].Primitive.Long = context[r2].Primitive.Ulong <= context[r3].Primitive.Ulong ? 1L : 0L;
+                        context[r1].Primitive.Long = context[r2].Primitive.Long <= context[r3].Primitive.Long ? 1L : 0L;
                         break;
 
 
