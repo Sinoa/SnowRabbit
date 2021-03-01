@@ -180,16 +180,15 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
-            if (!(node is ExpressionSyntaxNode))
+            if (node is ExpressionSyntaxNode expressionNode)
             {
-                // 式ですら無いなら値の読み取りのしようがない
-                throw new System.Exception();
+                expressionNode.Compile(context);
+                returnType = expressionNode.ResultType;
+                return expressionNode.ResultRegisterIndex;
             }
 
 
-            node.Compile(context);
-            returnType = ((ExpressionSyntaxNode)node).ResultType;
-            return ((ExpressionSyntaxNode)node).ResultRegisterIndex;
+            throw new System.Exception();
         }
 
 
@@ -419,6 +418,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             switch (operation.Kind)
             {
                 case TokenKind.Plus:
+                    ResultType = returnType;
                     break;
 
 
@@ -430,6 +430,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     }
                     instruction.Set(returnType == SrRuntimeType.Integer ? OpCode.Neg : OpCode.Fneg, targetRegisterIndex, targetRegisterIndex);
                     context.AddBodyCode(instruction, false);
+                    ResultType = returnType;
                     break;
 
 
@@ -453,6 +454,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     instruction.Set(OpCode.Addl, targetRegisterIndex, targetRegisterIndex, 0, 1);
                     context.AddBodyCode(instruction, false);
                     StoreResult(expression, targetRegisterIndex, context);
+                    ResultType = returnType;
                     break;
 
 
@@ -465,6 +467,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     instruction.Set(OpCode.Subl, targetRegisterIndex, targetRegisterIndex, 0, 1);
                     context.AddBodyCode(instruction, false);
                     StoreResult(expression, targetRegisterIndex, context);
+                    ResultType = returnType;
                     break;
             }
         }
