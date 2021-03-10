@@ -1,4 +1,5 @@
 {
   "dependencies": {
+    "com.unity.toolchain.win-x86_64-linux-x86_64": "0.1.19-preview"
   }
 }
