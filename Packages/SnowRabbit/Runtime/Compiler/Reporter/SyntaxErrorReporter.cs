@@ -57,6 +57,12 @@ namespace SnowRabbit.Compiler.Reporter
         }
 
 
+        public SrSyntaxErrorException UnknownSymbol(in Token token)
+        {
+            return CreateAndReportErrorMessage(token, $"不明なシンボル '{token.Text}' です。");
+        }
+
+
         public SrSyntaxErrorException MainFunctionNotFound(in Token token)
         {
             return CreateAndReportErrorMessage(token, "main関数が見つかりませんでした。");

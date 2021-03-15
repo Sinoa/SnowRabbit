@@ -51,6 +51,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 instruction.Set(OpCode.Cpf, SrvmProcessor.RegisterR29Index, SrvmProcessor.RegisterR29Index);
                 context.AddBodyCode(instruction, false);
             }
+            else
+            {
+                context.ErrorReporter.UnknownSymbol(Children[0].Token);
+                return;
+            }
 
 
             if (argumentList != null)
