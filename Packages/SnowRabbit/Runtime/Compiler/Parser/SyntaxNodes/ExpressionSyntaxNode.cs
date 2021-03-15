@@ -418,7 +418,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             switch (operation.Kind)
             {
                 case TokenKind.Plus:
-                    ResultType = returnType;
                     break;
 
 
@@ -430,7 +429,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     }
                     instruction.Set(returnType == SrRuntimeType.Integer ? OpCode.Neg : OpCode.Fneg, targetRegisterIndex, targetRegisterIndex);
                     context.AddBodyCode(instruction, false);
-                    ResultType = returnType;
                     break;
 
 
@@ -454,7 +452,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     instruction.Set(OpCode.Addl, targetRegisterIndex, targetRegisterIndex, 0, 1);
                     context.AddBodyCode(instruction, false);
                     StoreResult(expression, targetRegisterIndex, context);
-                    ResultType = returnType;
                     break;
 
 
@@ -467,9 +464,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     instruction.Set(OpCode.Subl, targetRegisterIndex, targetRegisterIndex, 0, 1);
                     context.AddBodyCode(instruction, false);
                     StoreResult(expression, targetRegisterIndex, context);
-                    ResultType = returnType;
                     break;
             }
+
+
+            ResultType = returnType;
+            ResultRegisterIndex = targetRegisterIndex;
         }
 
 
