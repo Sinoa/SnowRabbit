@@ -40,6 +40,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             var condition = Children[0];
             condition.Compile(context);
+            if (condition is FunctionCallSyntaxNode)
+            {
+                instruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR29Index);
+                context.AddBodyCode(instruction, false);
+            }
+
             instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, 0, 0, 2);
             context.AddBodyCode(instruction, false);
             var updateTargetAddress = context.BodyCodeList.Count;
