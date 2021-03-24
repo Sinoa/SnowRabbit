@@ -95,7 +95,7 @@ namespace SnowRabbit.Compiler.Reporter
 
         public SrSyntaxErrorException NotSupportedType(in Token token, SrRuntimeType type)
         {
-            return CreateAndReportErrorMessage(token, $"型 '{type.ToString()}' は、サポートされていません。");
+            return CreateAndReportErrorMessage(token, $"型 '{type}' は、サポートされていません。");
         }
     }
 }
