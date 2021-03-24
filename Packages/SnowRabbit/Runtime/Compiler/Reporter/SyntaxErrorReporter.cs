@@ -103,5 +103,11 @@ namespace SnowRabbit.Compiler.Reporter
         {
             return CreateAndReportErrorMessage(token, $"関数 '{functionName}' のパラメータは '{parameterCount}' 個ですが、引数の数が '{argumentCount}' 個です。");
         }
+
+
+        public SrSyntaxErrorException InvalidParameterStoreType(in Token token, SrRuntimeType fromType, SrRuntimeType toType)
+        {
+            return CreateAndReportErrorMessage(token, $"パラメータの値渡しの型が '{fromType}' から '{toType}' へ一致しません。事前にキャストするか変換を行ってください。");
+        }
     }
 }

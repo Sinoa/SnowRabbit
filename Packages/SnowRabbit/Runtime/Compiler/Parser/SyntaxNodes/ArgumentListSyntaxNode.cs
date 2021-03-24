@@ -13,9 +13,8 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Assembler.Symbols;
 using SnowRabbit.Compiler.Lexer;
-using SnowRabbit.RuntimeEngine;
-using SnowRabbit.RuntimeEngine.VirtualMachine;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
@@ -44,18 +43,21 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             for (int i = argumentCount - 1; i >= 0; --i)
             {
-                var expression = Children[i].Children[0];
-                expression.Compile(context);
+                var argumentNode = (ArgumentSyntaxNode)Children[i];
+                argumentNode.Compile(context);
 
-
-                SrInstruction instruction = default;
-                if (expression is FunctionCallSyntaxNode)
+                var argumentType = argumentNode.Type;
+                var parameterType = functionSymbol.GetParameter(i + 1).Type;
+                if (argumentType != parameterType)
                 {
-                    instruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR29Index);
-                    context.AddBodyCode(instruction, false);
+                    var isObjectOrString =
+                        argumentType == SrRuntimeType.Object && parameterType == SrRuntimeType.String ||
+                        argumentType == SrRuntimeType.String && parameterType == SrRuntimeType.Object;
+                    if (!isObjectOrString)
+                    {
+                        throw context.ErrorReporter.InvalidParameterStoreType(Token, argumentType, parameterType);
+                    }
                 }
-                instruction.Set(OpCode.Push, SrvmProcessor.RegisterAIndex);
-                context.AddBodyCode(instruction, false);
             }
         }
     }

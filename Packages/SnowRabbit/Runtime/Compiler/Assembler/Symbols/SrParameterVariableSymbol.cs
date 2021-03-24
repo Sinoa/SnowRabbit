@@ -20,13 +20,17 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
     /// </summary>
     public class SrParameterVariableSymbol : SrVariableSymbol
     {
+        public int Position { get; }
+
+
         /// <summary>
         /// SrArgumentVariableSymbol クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="name">シンボル名</param>
         /// <param name="initialAddress">初期アドレス</param>
-        public SrParameterVariableSymbol(string name, int initialAddress) : base(name, initialAddress, SrScopeType.Parameter, SrSymbolKind.ParameterVariable)
+        public SrParameterVariableSymbol(string name, int initialAddress, int position) : base(name, initialAddress, SrScopeType.Parameter, SrSymbolKind.ParameterVariable)
         {
+            Position = position;
         }
     }
 }

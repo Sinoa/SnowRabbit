@@ -13,6 +13,7 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using System;
 using System.Collections.Generic;
 
 namespace SnowRabbit.Compiler.Assembler.Symbols
@@ -67,9 +68,37 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         public SrParameterVariableSymbol AddOrGetParameter(string name, SrRuntimeType type)
         {
             if (ParameterTable.TryGetValue(name, out var value)) return value;
-            value = new SrParameterVariableSymbol(name, ParameterTable.Count + 1);
+            int position = ParameterTable.Count + 1;
+            value = new SrParameterVariableSymbol(name, position, position);
             value.Type = type;
             return ParameterTable[name] = value;
+        }
+
+
+        /// <summary>
+        /// 指定された位置のパラメータを取得します
+        /// </summary>
+        /// <param name="position">取得したい引数の位置（左から1, 2, 3,...）</param>
+        /// <returns>指定された位置のパラメータを返します</returns>
+        /// <exception cref="ArgumentOutOfRangeException">position の値が 0 以下または、引数の数超過です</exception>
+        public SrParameterVariableSymbol GetParameter(int position)
+        {
+            if (position <= 0 || position > ParameterTable.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(position));
+            }
+
+
+            foreach (var parameter in ParameterTable.Values)
+            {
+                if (parameter.Position == position)
+                {
+                    return parameter;
+                }
+            }
+
+
+            throw new InvalidOperationException($"関数 '{Name}' の引数取得位置 '{position}' にパラメータが見つかりませんでした。");
         }
 
 

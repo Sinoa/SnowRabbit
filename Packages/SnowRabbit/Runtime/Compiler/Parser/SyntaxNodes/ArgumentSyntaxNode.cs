@@ -13,6 +13,11 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Assembler.Symbols;
+using SnowRabbit.Compiler.Lexer;
+using SnowRabbit.RuntimeEngine;
+using SnowRabbit.RuntimeEngine.VirtualMachine;
+
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
@@ -20,5 +25,36 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class ArgumentSyntaxNode : SyntaxNode
     {
+        public SrRuntimeType Type { get; private set; }
+
+
+
+        public ArgumentSyntaxNode(in Token token) : base(token)
+        {
+        }
+
+
+        public override void Compile(SrCompileContext context)
+        {
+            var expression = Children[0];
+            expression.Compile(context);
+
+
+            SrInstruction instruction = default;
+            if (expression is FunctionCallSyntaxNode functionCallSyntaxNode)
+            {
+                Type = context.AssemblyData.GetFunctionSymbol(functionCallSyntaxNode.FunctionName).ReturnType;
+                instruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR29Index);
+                context.AddBodyCode(instruction, false);
+            }
+            else
+            {
+                Type = ((ExpressionSyntaxNode)expression).ResultType;
+            }
+
+
+            instruction.Set(OpCode.Push, SrvmProcessor.RegisterAIndex);
+            context.AddBodyCode(instruction, false);
+        }
     }
 }

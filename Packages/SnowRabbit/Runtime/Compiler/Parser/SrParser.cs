@@ -449,11 +449,11 @@ namespace SnowRabbit.Compiler.Parser
 
         private SyntaxNode ParseArgument()
         {
+            var argument = new ArgumentSyntaxNode(currentLexer.LastReadToken);
+
             var expression = ParseExpression();
             if (expression == null) return null;
 
-
-            var argument = new ArgumentSyntaxNode();
             argument.Add(expression);
             return argument;
         }
