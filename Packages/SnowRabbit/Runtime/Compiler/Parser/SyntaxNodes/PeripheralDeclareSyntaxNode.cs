@@ -31,7 +31,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             if (context.AssemblyData.GetGlobalSymbol(functionName) != null)
             {
                 // 既に使用されている名前
-                throw new System.Exception();
+                throw context.ErrorReporter.PredefinedSymbol(Children[0].Token, functionName);
             }
 
 
@@ -53,7 +53,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 if (!IsSupportType(runtimeType))
                 {
                     // 未サポートの型
-                    throw new System.Exception();
+                    throw context.ErrorReporter.NotSupportedType(type.Token, runtimeType);
                 }
 
 
