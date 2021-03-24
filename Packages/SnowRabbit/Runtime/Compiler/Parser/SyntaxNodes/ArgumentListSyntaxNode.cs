@@ -13,6 +13,7 @@
 // 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
+using SnowRabbit.Compiler.Lexer;
 using SnowRabbit.RuntimeEngine;
 using SnowRabbit.RuntimeEngine.VirtualMachine;
 
@@ -23,10 +24,25 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class ArgumentListSyntaxNode : SyntaxNode
     {
+        public ArgumentListSyntaxNode(in Token token) : base(token)
+        {
+        }
+
+
         public override void Compile(SrCompileContext context)
         {
-            var childCount = Children.Count;
-            for (int i = childCount - 1; i >= 0; --i)
+            var functionCallNode = (FunctionCallSyntaxNode)Parent;
+            var functionName = functionCallNode.FunctionName;
+            var functionSymbol = context.AssemblyData.GetFunctionSymbol(functionName);
+            var parameterCount = functionSymbol.ParameterTable.Count;
+            var argumentCount = Children.Count;
+            if (argumentCount != parameterCount)
+            {
+                throw context.ErrorReporter.InvalidArgumentCount(Token, functionName, parameterCount, argumentCount);
+            }
+
+
+            for (int i = argumentCount - 1; i >= 0; --i)
             {
                 var expression = Children[i].Children[0];
                 expression.Compile(context);

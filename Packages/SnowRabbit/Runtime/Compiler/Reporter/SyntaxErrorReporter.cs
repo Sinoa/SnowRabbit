@@ -97,5 +97,11 @@ namespace SnowRabbit.Compiler.Reporter
         {
             return CreateAndReportErrorMessage(token, $"型 '{type}' は、サポートされていません。");
         }
+
+
+        public SrSyntaxErrorException InvalidArgumentCount(in Token token, string functionName, int parameterCount, int argumentCount)
+        {
+            return CreateAndReportErrorMessage(token, $"関数 '{functionName}' のパラメータは '{parameterCount}' 個ですが、引数の数が '{argumentCount}' 個です。");
+        }
     }
 }

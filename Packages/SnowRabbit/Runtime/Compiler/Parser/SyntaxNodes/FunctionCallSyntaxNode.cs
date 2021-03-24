@@ -24,9 +24,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// </summary>
     public class FunctionCallSyntaxNode : SyntaxNode
     {
+        public string FunctionName { get; private set; }
+
+
+
         public override void Compile(SrCompileContext context)
         {
-            var functionName = Children[0].Token.Text;
+            FunctionName = Children[0].Token.Text;
             var argumentList = Children[1];
 
 
@@ -36,7 +40,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
-            var functionSymbol = context.AssemblyData.GetFunctionSymbol(functionName);
+            var functionSymbol = context.AssemblyData.GetFunctionSymbol(FunctionName);
             var instruction = default(SrInstruction);
             if (functionSymbol is SrScriptFunctionSymbol)
             {

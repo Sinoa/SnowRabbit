@@ -501,11 +501,11 @@ namespace SnowRabbit.Compiler.Parser
 
         private SyntaxNode ParseArgumentList()
         {
+            var argumentList = new ArgumentListSyntaxNode(currentLexer.LastReadToken);
             var argument = ParseArgument();
-            if (argument == null) return null;
+            if (argument == null) return argumentList;
 
 
-            var argumentList = new ArgumentListSyntaxNode();
             argumentList.Add(argument);
             while (CheckTokenAndReadNext(TokenKind.Comma))
             {
