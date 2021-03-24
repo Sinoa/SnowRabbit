@@ -250,7 +250,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             if (variableSymbol == null)
             {
                 // 不明な識別子
-                throw new System.Exception();
+                throw context.ErrorReporter.UnknownSymbol(identifierToken);
             }
 
 
@@ -318,18 +318,19 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
         private byte LoadFromFunctionCall(FunctionCallSyntaxNode functionCall, SrCompileContext context, out SrRuntimeType returnType)
         {
-            var functionSymbol = context.AssemblyData.GetFunctionSymbol(functionCall.Children[0].Token.Text);
+            var functionName = functionCall.Children[0].Token.Text;
+            var functionSymbol = context.AssemblyData.GetFunctionSymbol(functionName);
             if (functionSymbol == null)
             {
                 // 未定義の関数
-                throw new System.Exception();
+                throw context.ErrorReporter.UnknownSymbol(functionCall.Children[0].Token);
             }
 
 
             if (functionSymbol.ReturnType == SrRuntimeType.Void)
             {
                 // void の関数は値として取り出せない
-                throw new System.Exception();
+                throw context.ErrorReporter.NotSupporteReturnVoid(functionCall.Children[0].Token, functionName);
             }
 
 

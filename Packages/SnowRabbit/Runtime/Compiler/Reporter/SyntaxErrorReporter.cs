@@ -99,6 +99,12 @@ namespace SnowRabbit.Compiler.Reporter
         }
 
 
+        public SrSyntaxErrorException NotSupporteReturnVoid(in Token token, string functionName)
+        {
+            return CreateAndReportErrorMessage(token, $"関数 '{functionName}' は void を返すため有効な戻り値として使用できません。");
+        }
+
+
         public SrSyntaxErrorException InvalidArgumentCount(in Token token, string functionName, int parameterCount, int argumentCount)
         {
             return CreateAndReportErrorMessage(token, $"関数 '{functionName}' のパラメータは '{parameterCount}' 個ですが、引数の数が '{argumentCount}' 個です。");
