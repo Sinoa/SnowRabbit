@@ -443,8 +443,9 @@ namespace SnowRabbit.Compiler.Lexer
         /// また、この関数はコメント行を認識した場合は、読み捨てを行い代わりにラインフィールドを返します。
         /// さらに、この関数は文字を読み進めるたびに状況に応じて、行番号及び列番号の更新も行います。
         /// </summary>
+        /// <param name="readStringTokenMode">true を渡されるとコメントキーワードとなるスラッシュを無視します</param>
         /// <returns>読み取られた文字を返します。読み取れなくなった場合は EndOfStream を返します。</returns>
-        private int ReadNextChara()
+        private int ReadNextChara(bool readStringTokenMode = false)
         {
             // 最後に読み込んだ文字が最終ストリームか既にストリームが最終位置なら
             if (lastReadChara == EndOfStream)
@@ -478,8 +479,8 @@ namespace SnowRabbit.Compiler.Lexer
             }
 
 
-            // もしスラッシュなら
-            if (readChara == '/')
+            // もし非文字列トークン読み取りモードかつスラッシュなら
+            if (!readStringTokenMode && readChara == '/')
             {
                 // 次の文字もスラッシュなら
                 if (reader.Peek() == '/')
@@ -689,14 +690,14 @@ namespace SnowRabbit.Compiler.Lexer
 
 
             // 次の文字を読み込んでダブルクォートまたはシングルクォート（最初に読み込んだ文字）がくるまでループ
-            var readChara = ReadNextChara();
+            var readChara = ReadNextChara(true);
             while (readChara != firstChara)
             {
                 // もしバックスラッシュが読み込まれていたら
                 if (readChara == '\\')
                 {
                     // 次の文字を読み込んで文字によって判定する
-                    readChara = ReadNextChara();
+                    readChara = ReadNextChara(true);
                     switch ((char)readChara)
                     {
                         // 各文字に相当する文字をバッファに入れる
@@ -731,7 +732,7 @@ namespace SnowRabbit.Compiler.Lexer
 
                 // 文字をそのままバッファに詰めて次の文字を読み込む
                 tokenReadBuffer.Append((char)readChara);
-                readChara = ReadNextChara();
+                readChara = ReadNextChara(true);
             }
 
 
