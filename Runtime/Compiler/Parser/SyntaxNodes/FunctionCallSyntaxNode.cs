@@ -33,14 +33,17 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             FunctionName = Children[0].Token.Text;
             var argumentList = Children[1];
 
+            var functionSymbol = context.AssemblyData.GetFunctionSymbol(FunctionName);
+            if (functionSymbol == null)
+            {
+                throw context.ErrorReporter.UnknownSymbol(Children[0].Token);
+            }
 
             if (argumentList != null)
             {
                 argumentList.Compile(context);
             }
 
-
-            var functionSymbol = context.AssemblyData.GetFunctionSymbol(FunctionName);
             var instruction = default(SrInstruction);
             if (functionSymbol is SrScriptFunctionSymbol)
             {
@@ -57,8 +60,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
             else
             {
-                context.ErrorReporter.UnknownSymbol(Children[0].Token);
-                return;
+                throw context.ErrorReporter.UnknownSymbol(Children[0].Token);
             }
 
 
