@@ -12,6 +12,8 @@ Unityプロジェクトにパッケージとして .NET Core プロジェクト�
 <Project>
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <OutputPath>.bin\$(Configuration)\</OutputPath>
     <BaseIntermediateOutputPath>.obj\$(Configuration)\</BaseIntermediateOutputPath>
   </PropertyGroup>
