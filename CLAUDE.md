@@ -1,6 +1,6 @@
 # Copilot Instructions for SnowRabbit
 
-SnowRabbitは純粋なC#で実装されたスクリプトエンジンです。独自のスクリプト言語、コンパイラ、レジスタ仮想マシンを持ち、.NET Core単体およびUnityパッケージとして動作します。
+SnowRabbitは純粋なC#で実装されたスクリプトエンジンです。独自のスクリプト言語、コンパイラ、レジスタマシン設計の仮想マシンを持ち、.NET Core単体およびUnityパッケージとして動作します。
 
 ## ビルド・テストコマンド
 
@@ -25,18 +25,21 @@ dotnet run --project .SampleApplication\SampleApplication.csproj
 
 ### コンパイラパイプライン (`Runtime\Compiler\`)
 コンパイラは`.srs`スクリプトを3段階で変換する:
-1. **Lexer** → ソースコードをトークン化
+1. **Lexer** (`SrLexer`) → ソースコードをトークン化
 2. **Parser** (`SrParser`) → 構文木を構築 (`SyntaxNodes\`)
 3. **Assembler** (`SrAssembler`) → バイナリ実行コードを生成
 
 エントリーポイント: `SrCompiler.Compile(path, outStream)` がパイプライン全体を統括する。
+デバッグ用に `SrDisassembler` でバイナリを逆アセンブルできる。
 
 ### 仮想マシン (`Runtime\RuntimeEngine\`)
-レジスタマシン設計のVM:
+32本のレジスタを持つレジスタマシン設計:
+- レジスタ: `rax`, `rbx`, `rcx`, `rdx`, `rsi`, `rdi`, `rbp`, `rsp`, `r8`-`r29`, `ip`(命令ポインタ), `zero`(常にゼロ)
 - **SrvmMachine** - VMのメインオーケストレータ。プラガブルなパーツ(Processor, Memory, Firmware, Storage)で構成
 - **SrvmProcessor** - `OpCode.cs`で定義された命令を実行
-- **SrProcess** - 実行中のスクリプトプロセスを表現 (`SrProcessStatus`でライフサイクル管理)
-- **SrVirtualMemory** - `MemoryBlock`セグメントによるメモリ管理
+- **SrProcess** - 実行中のスクリプトプロセスを表現
+  - ライフサイクル: `Ready` → `Running` → `Suspended`/`Stopped`/`Panic`
+- **SrVirtualMemory** - `MemoryBlock`セグメントによるメモリ管理(プログラム領域、グローバル、ヒープ、スタック)
 
 ### ホスト連携 (Peripheralシステム)
 C#ホスト関数は属性を通じてスクリプトに公開される:
@@ -44,12 +47,15 @@ C#ホスト関数は属性を通じてスクリプトに公開される:
 [SrPeripheral("PeripheralName")]
 public class MyPeripheral {
     [SrHostFunction("FunctionName")]
-    public ReturnType Method(params) { }
+    public ReturnType Method(int a, int b, [SrProcessID] int processId) { }
 }
 ```
-`SrvmFirmware.AttachPeripheral()`でペリフェラルを登録する。
+- `SrvmFirmware.AttachPeripheral()`でペリフェラルを登録
+- `[SrProcessID]`属性を付けたパラメータには呼び出し元プロセスIDが自動注入される
 
 ## スクリプト言語 (.srs)
+
+**型**: `void`, `int`, `number`(浮動小数点), `string`, `object`, `bool`
 
 ```
 // ホスト関数のインポート
@@ -65,6 +71,9 @@ function ReturnType FunctionName(Type param)
     return expression;
 end
 ```
+
+**制御構文**: `if`/`else`, `for`, `while`, `break`, `return`
+**リテラル**: `true`, `false`, `null`
 
 ## コーディング規約
 
