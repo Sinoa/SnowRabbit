@@ -22,7 +22,7 @@ namespace SnowRabbit.RuntimeEngine
     /// </summary>
     /// <typeparam name="T">固定長配列の宣言をしている型</typeparam>
     /// <remarks>
-    /// UnityGameEngineにSystem.Memory.dllのSpan<T>が入った場合は、差し替わる予定になっています。
+    /// UnityGameEngineにSystem.Memory.dllのSpan&lt;T&gt;が入った場合は、差し替わる予定になっています。
     /// </remarks>
     public readonly struct MemoryBlock<T> : IEquatable<MemoryBlock<T>>
     {

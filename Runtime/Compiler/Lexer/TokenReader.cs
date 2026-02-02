@@ -898,13 +898,13 @@ namespace SnowRabbit.Compiler.Lexer
 
         /// <summary>
         /// オープンアングル
-        /// <
+        /// &lt;
         /// </summary>
         public const int OpenAngle = -502;
 
         /// <summary>
         /// クローズアングル
-        /// >
+        /// &gt;
         /// </summary>
         public const int CloseAngle = -503;
 
@@ -1018,7 +1018,7 @@ namespace SnowRabbit.Compiler.Lexer
 
         /// <summary>
         /// アンド
-        /// &
+        /// &amp;
         /// </summary>
         public const int And = -522;
 
@@ -1062,13 +1062,13 @@ namespace SnowRabbit.Compiler.Lexer
 
         /// <summary>
         /// レッサーイコール
-        /// <=
+        /// &lt;=
         /// </summary>
         public const int LesserEqual = -602;
 
         /// <summary>
         /// グレイターイコール
-        /// >=
+        /// &gt;=
         /// </summary>
         public const int GreaterEqual = -603;
 
@@ -1098,7 +1098,7 @@ namespace SnowRabbit.Compiler.Lexer
 
         /// <summary>
         /// アンドイコール
-        /// &=
+        /// &amp;=
         /// </summary>
         public const int AndEqual = -608;
 
@@ -1122,13 +1122,13 @@ namespace SnowRabbit.Compiler.Lexer
 
         /// <summary>
         /// 左矢印
-        /// <-
+        /// &lt;-
         /// </summary>
         public const int LeftArrow = -613;
 
         /// <summary>
         /// ダブルアンド
-        /// &&
+        /// &amp;&amp;
         /// </summary>
         public const int DoubleAnd = -614;
 
@@ -1140,13 +1140,13 @@ namespace SnowRabbit.Compiler.Lexer
 
         /// <summary>
         /// ダブルオープンアングル
-        /// <<
+        /// &lt;&lt;
         /// </summary>
         public const int DoubleOpenAngle = -616;
 
         /// <summary>
         /// ダブルクローズアングル
-        /// >>
+        /// &gt;&gt;
         /// </summary>
         public const int DoubleCloseAngle = -617;
 

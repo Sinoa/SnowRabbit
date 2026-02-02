@@ -200,7 +200,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         /// 返却情報をセットアップします
         /// </summary>
         /// <param name="info">周辺機器関数として使用する関数情報</param>
-        /// <exception cref="ArgumentException">関数 '{info.DeclaringType.FullName}.{info.Name}' は Task または Task\<TResult\> または void を返しません</exception>
+        /// <exception cref="ArgumentException">関数 '{info.DeclaringType.FullName}.{info.Name}' は Task または Task&lt;TResult&gt; または void を返しません</exception>
         private void SetupReturnInfo(MethodInfo info)
         {
             // 関数の戻り値型を取得してタスクかどうかを知る
