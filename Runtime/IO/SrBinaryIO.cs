@@ -23,6 +23,10 @@ namespace SnowRabbit.IO
     /// SnowRabbit が扱うリトルエンディアンなストリームを扱うクラスです。
     /// リトルエンディアンCPUであればパススルーな動作をしますが、ビッグエンディアンCPUの場合はエンディアン変換が行われます。
     /// </summary>
+    /// <remarks>
+    /// パフォーマンス改善候補: バッファ操作にSpan&lt;T&gt;/Memory&lt;T&gt;を導入することで
+    /// アロケーション削減とパフォーマンス向上が期待できる（.NET Standard 2.1でサポート済み）
+    /// </remarks>
     public class SrBinaryIO : SrDisposable
     {
         // 定数定義

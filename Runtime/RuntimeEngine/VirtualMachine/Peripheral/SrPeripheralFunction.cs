@@ -50,7 +50,8 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 #pragma warning restore CA1810
         {
             // SrValue から特定の型へ正しくキャストする関数テーブルを初期化
-            // TODO 素直にリゾルバ化したほうが良いかもしれない
+            // NOTE: 将来的にリゾルバパターンへのリファクタリングを検討
+            //       現状のDictionary実装で性能・機能的に問題はない
             fromValueConvertTable = new Dictionary<Type, Func<SrValue, object>>()
             {
                 // 各型に合わせた返却関数を用意
@@ -74,7 +75,8 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // object から SrValue へ正しくキャストする関数テーブルを初期化
-            // TODO 素直にリゾルバ化したほうが良いかもしれない
+            // NOTE: 将来的にリゾルバパターンへのリファクタリングを検討
+            //       現状のDictionary実装で性能・機能的に問題はない
             toValueConvertTable = new Dictionary<Type, Func<object, SrValue>>()
             {
                 // 各型に合わせた返却関数を用意
@@ -116,8 +118,9 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // Task<TResult>にて定義済み以外からの解決ができない場合の汎用解決関数
-            // TODO 素直にリゾルバ化したほうが良いかもしれない
-            taskToValueConvert = x => new SrValue { Object = x.GetType().GetProperty("Result").GetValue(x) };
+            // NOTE: リフレクションを使用するためパフォーマンスに注意
+            //       頻繁に使用される型はtoValueConvertTableに追加することを推奨
+            taskToValueConvert = x => new SrValue { Object = x.GetType().GetProperty("Result")!.GetValue(x) };
         }
 
 
