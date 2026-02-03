@@ -29,15 +29,14 @@ dotnet add package SnowRabbit
 
 #### Unityパッケージ
 
-1. `Runtime`フォルダをUnityプロジェクトの`Assets`配下にコピー
-2. `SnowRabbit.asmdef`が自動的に認識されます
+Unity Package Manager経由でnpmパッケージとしてインストールできます（今後公開予定）。
 
 #### ソースからビルド
 
 ```bash
 git clone https://github.com/Sinoa/SnowRabbit.git
 cd SnowRabbit
-dotnet build SnowRabbit.sln
+dotnet build SnowRabbit.slnx
 ```
 
 ### クイックスタート
@@ -183,26 +182,27 @@ using Print = void Console.Write(string);
 
 ```bash
 # ビルド
-dotnet build SnowRabbit.sln
+dotnet build SnowRabbit.slnx
 
 # テスト実行
-dotnet test .NativeTest\SnowRabbitTest.csproj
+dotnet test test/SnowRabbit.Tests/SnowRabbit.Tests.csproj
 
 # サンプル実行
-dotnet run --project .SampleApplication\SampleApplication.csproj
+dotnet run --project src/SampleApplication/SampleApplication.csproj
 ```
 
 ## ディレクトリ構成
 
 ```
 SnowRabbit/
-├── Runtime/                    # メインライブラリ
-│   ├── Compiler/              # コンパイラ（Lexer, Parser, Assembler）
-│   ├── RuntimeEngine/         # 仮想マシン
-│   └── SnowRabbit.csproj
-├── .NativeTest/               # テストプロジェクト
-├── .SampleApplication/        # サンプルアプリケーション
-└── SnowRabbit.sln
+├── src/
+│   ├── SnowRabbit/            # メインライブラリ
+│   │   ├── Compiler/          # コンパイラ（Lexer, Parser, Assembler）
+│   │   └── RuntimeEngine/     # 仮想マシン
+│   └── SampleApplication/     # サンプルアプリケーション
+├── test/
+│   └── SnowRabbit.Tests/      # テストプロジェクト（NUnit 4）
+└── SnowRabbit.slnx
 ```
 
 ## SnowRabbitについて
@@ -213,7 +213,7 @@ SnowRabbit/
 
 ### ライセンス
 
-* zlib/libpng ライセンス - [詳細](https://opensource.org/licenses/Zlib)
+* zlib ライセンス - [詳細](LICENSE.md)
 
 ### コントリビューション
 
