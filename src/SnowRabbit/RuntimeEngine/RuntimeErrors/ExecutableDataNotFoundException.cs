@@ -32,56 +32,45 @@ namespace SnowRabbit.RuntimeEngine
     [Serializable]
     public class ExecutableDataNotFoundException : SnowRabbitException
     {
-        private string message;
+        private readonly string _message;
 
 
 
-        public override string Message => message;
+        public override string Message => _message;
 
 
         public string Path { get; }
 
 
 
-        public ExecutableDataNotFoundException(string message, string path) : base(message)
+        public ExecutableDataNotFoundException(string? message, string? path) : base(message ?? string.Empty)
         {
             Path = path ?? string.Empty;
-            InitializeMessage(message);
+            _message = message ?? $"SnowRabbit実行データ '{Path}' にデータが見つかりませんでした。";
         }
 
 
-        public ExecutableDataNotFoundException(string message, string path, Exception innerException) : base(message, innerException)
+        public ExecutableDataNotFoundException(string? message, string? path, Exception? innerException) : base(message ?? string.Empty, innerException)
         {
             Path = path ?? string.Empty;
-            InitializeMessage(message);
+            _message = message ?? $"SnowRabbit実行データ '{Path}' にデータが見つかりませんでした。";
         }
 
 
-        public ExecutableDataNotFoundException(string message) : this(message, (string)null)
+        public ExecutableDataNotFoundException(string? message) : this(message, (string?)null)
         {
         }
 
 
-        public ExecutableDataNotFoundException(string message, Exception innerException) : this(message, null, innerException)
+        public ExecutableDataNotFoundException(string? message, Exception? innerException) : this(message, null, innerException)
         {
-        }
-
-
-        private void InitializeMessage(string message)
-        {
-            if (message != null)
-            {
-                this.message = message;
-                return;
-            }
-
-
-            this.message = $"SnowRabbit実行データ '{Path}' にデータが見つかりませんでした。";
         }
 
 
         protected ExecutableDataNotFoundException(SerializationInfo serializationInfo, StreamingContext streamingContext) : base(serializationInfo, streamingContext)
         {
+            Path = string.Empty;
+            _message = base.Message;
         }
     }
 }

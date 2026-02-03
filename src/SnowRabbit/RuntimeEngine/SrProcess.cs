@@ -43,8 +43,8 @@ namespace SnowRabbit.RuntimeEngine
         internal readonly MemoryBlock<SrValue> ProcessorContext;
         internal readonly SrVirtualMemory VirtualMemory;
         internal readonly Stopwatch RunningStopwatch;
-        internal SrPeripheralFunction PeripheralFunction;
-        internal Task Task;
+        internal SrPeripheralFunction? PeripheralFunction;
+        internal Task? Task;
         internal int ResultReceiveRegisterNumber;
 
 

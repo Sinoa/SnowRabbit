@@ -39,7 +39,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         /// <summary>
         /// この構文ノードの親ノード
         /// </summary>
-        public SyntaxNode Parent { get; private set; }
+        public SyntaxNode? Parent { get; private set; }
 
 
         /// <summary>

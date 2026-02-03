@@ -25,7 +25,7 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     public class SrLabelSymbol : SrSymbol
     {
-        public string FunctionName { get; set; }
+        public string FunctionName { get; set; } = string.Empty;
 
 
 

@@ -50,6 +50,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxErrors
         /// </summary>
         public ScriptNotFoundException()
         {
+            TargetPath = string.Empty;
         }
 
 
@@ -57,10 +58,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxErrors
         /// ScriptNotFoundException クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="path">見つけられなかったスクリプトのパス</param>
-        public ScriptNotFoundException(string path) : base(path)
+        public ScriptNotFoundException(string? path) : base(path)
         {
             // 対象パスを覚えておく
-            TargetPath = path;
+            TargetPath = path ?? string.Empty;
         }
 
 
@@ -69,10 +70,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxErrors
         /// </summary>
         /// <param name="path">見つけられなかったスクリプトのパス</param>
         /// <param name="inner">この例外を発生させる原因となった例外</param>
-        public ScriptNotFoundException(string path, Exception inner) : base(path, inner)
+        public ScriptNotFoundException(string? path, Exception? inner) : base(path, inner)
         {
             // 対象パスを覚えておく
-            TargetPath = path;
+            TargetPath = path ?? string.Empty;
         }
 
 
@@ -83,6 +84,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxErrors
         /// <param name="context">転送元または転送先についてのコンテキスト情報を含む StreamingContext</param>
         protected ScriptNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
+            TargetPath = string.Empty;
         }
     }
 }

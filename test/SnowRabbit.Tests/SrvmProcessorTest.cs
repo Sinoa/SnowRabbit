@@ -21,6 +21,8 @@
 // 3. This notice may not be removed or altered from any source
 // distribution.
 
+#nullable disable
+
 using SnowRabbit.RuntimeEngine;
 using SnowRabbit.RuntimeEngine.VirtualMachine;
 

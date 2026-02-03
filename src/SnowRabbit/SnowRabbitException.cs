@@ -44,7 +44,7 @@ namespace SnowRabbit
         /// SnowRabbitException クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="message">例外に設定するメッセージ</param>
-        protected SnowRabbitException(string message) : base(message)
+        protected SnowRabbitException(string? message) : base(message)
         {
         }
 
@@ -54,7 +54,7 @@ namespace SnowRabbit
         /// </summary>
         /// <param name="message">例外に設定するメッセージ</param>
         /// <param name="inner">この例外を発生させる原因となった例外</param>
-        protected SnowRabbitException(string message, Exception inner) : base(message, inner)
+        protected SnowRabbitException(string? message, Exception? inner) : base(message, inner)
         {
         }
 

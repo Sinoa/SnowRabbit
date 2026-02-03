@@ -31,13 +31,13 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         /// <summary>
         /// この周辺機器関数が所属する周辺機器名
         /// </summary>
-        public string PeripheralName { get; set; }
+        public string PeripheralName { get; set; } = string.Empty;
 
 
         /// <summary>
         /// この周辺機器関数が提供する関数名
         /// </summary>
-        public string PeripheralFunctionName { get; set; }
+        public string PeripheralFunctionName { get; set; } = string.Empty;
 
 
         /// <summary>
