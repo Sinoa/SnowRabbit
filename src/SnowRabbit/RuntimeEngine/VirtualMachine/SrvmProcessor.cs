@@ -71,7 +71,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         public const byte TotalRegisterCount = RegisterZeroIndex + 1;
 
 
-
         #region Initialize
         /// <summary>
         /// 対象プロセスのプロセッサコンテキストを初期化します
@@ -83,14 +82,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             // null を渡されたらむり
             if (process == null) throw new ArgumentNullException(nameof(process));
 
-
             // 末尾のレジスタインデックスまでループ
             for (var i = 0; i < TotalRegisterCount; ++i)
             {
                 // プロセッサコンテキストの値を初期化する
                 process.ProcessorContext[i] = default;
             }
-
 
             // スタックポインタとベースポインタの位置をプロセスメモリの末尾へ
             // （プッシュ時はデクリメントされたから値がセットされるので、配列の長さそのままで初期化）
@@ -99,7 +96,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             process.ProcessorContext[RegisterBPIndex].Primitive.Long = SrVirtualMemory.StackOffset + memoryLength;
         }
         #endregion
-
 
         #region Event handler
         /// <summary>
@@ -110,7 +106,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         {
         }
 
-
         /// <summary>
         /// プロセスが動作を再開をした時の処理をします
         /// </summary>
@@ -118,7 +113,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         protected virtual void OnProcessResume(SrProcess process)
         {
         }
-
 
         /// <summary>
         /// プロセスが動作を一時停止した時の処理をします
@@ -128,7 +122,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         {
         }
 
-
         /// <summary>
         /// プロセスが動作を停止した時の処理をします
         /// </summary>
@@ -136,7 +129,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         protected virtual void OnProcessStopped(SrProcess process)
         {
         }
-
 
         /// <summary>
         /// プロセスが無限ループしていると思われる時の処理をします
@@ -148,7 +140,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             isForceStop = false;
         }
 
-
         /// <summary>
         /// プロセスの実行中に発生した例外を処理します
         /// </summary>
@@ -157,7 +148,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         protected virtual void OnExceptionOccurrenced(SrProcess process, Exception exception)
         {
         }
-
 
         /// <summary>
         /// デバッグ時のみ動作するCPUが命令を実行する直前に処理をします
@@ -169,7 +159,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         {
         }
 
-
         /// <summary>
         /// デバッグ時のみ動作するCPUが命令を実行した直後に処理をします
         /// </summary>
@@ -179,7 +168,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         protected virtual void OnPostProcessInstruction_Debug(SrProcess process, SrInstruction instruction)
         {
         }
-
 
         /// <summary>
         /// デバッグ時のみ動作するCPUが不明な命令を実行した直後に処理をします
@@ -192,7 +180,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         }
         #endregion
 
-
         #region Execution main code
         /// <summary>
         /// 指定されたプロセスを実行します
@@ -203,7 +190,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         {
             // null を渡されたらむり
             if (process == null) throw new ArgumentNullException(nameof(process));
-
 
             // もしプロセスが 停止 または パニックなら
             if ((process.ProcessState & (SrProcessStatus.Stopped | SrProcessStatus.Panic)) != 0)
@@ -220,7 +206,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                     return;
                 }
 
-
                 if (process.Task.IsFaulted)
                 {
                     var error = process.Task.Exception;
@@ -235,13 +220,11 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                     return;
                 }
 
-
                 // タスクが完了しているのなら結果を受け取ってタスクや関連情報をクリアしつつ開始状態にする
                 process.ProcessorContext[process.ResultReceiveRegisterNumber] = process.PeripheralFunction.GetResult();
                 process.PeripheralFunction = null;
                 process.Task = null;
                 process.ProcessState = SrProcessStatus.Running;
-
 
                 // 再開イベントを呼ぶ
                 OnProcessResume(process);
@@ -259,7 +242,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                 OnProcessResume(process);
             }
 
-
             try
             {
                 // プロセスを実行する
@@ -271,13 +253,11 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                 process.ProcessState = SrProcessStatus.Panic;
                 process.RunningStopwatch.Stop();
 
-
                 // 例外発生イベントを起こしてから再スロー
                 OnExceptionOccurrenced(process, exception);
                 throw;
             }
         }
-
 
         /// <summary>
         /// プロセスを実際に処理する実行関数です
@@ -290,27 +270,23 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             var context = process.ProcessorContext;
             var memory = process.VirtualMemory;
 
-
             // プロセスの動作計測ストップウォッチを開始
             var startElapsedTime = process.RunningStopwatch.ElapsedMilliseconds;
             process.RunningStopwatch.Start();
 
-
             // 実行フラグを立てて、降りるまでループ
+            // 注: ゼロレジスタ（RegisterZeroIndex）はプロセス初期化時に0に設定され、
+            //     コンパイラはゼロレジスタへの書き込み命令を生成しないため、
+            //     毎サイクルのリセットは不要
             var running = true;
             while (running)
             {
-                // ゼロレジスタは常にゼロ（null）
-                context[RegisterZeroIndex] = default;
-
-
                 // 現在の命令ポインタが指している命令を取り出して、実行の準備をしてデバッグイベントを呼ぶ
                 var instructionPointer = context[RegisterIPIndex].Primitive.Int;
                 var nextInstructionPointer = instructionPointer + 1;
                 var instruction = memory[instructionPointer].Primitive.Instruction;
                 instruction.GetRegisterNumber(out var r1, out var r2, out var r3);
                 OnPreProcessInstruction_Debug(process, instruction);
-
 
                 // 実行する命令ごとに切り替える
                 switch (instruction.OpCode)
@@ -323,39 +299,32 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         break;
                     #endregion
 
-
                     #region Data Transfer
                     case OpCode.Mov:
                         context[r1] = context[r2];
                         break;
 
-
                     case OpCode.Movl:
                         context[r1] = instruction.Uint;
                         break;
-
 
                     case OpCode.Ldr:
                         var offsetAddress = context[r2].Primitive.Int;
                         context[r1] = memory[offsetAddress + instruction.Int];
                         break;
 
-
                     case OpCode.Ldrl:
                         context[r1] = memory[instruction.Int];
                         break;
-
 
                     case OpCode.Str:
                         offsetAddress = context[r2].Primitive.Int;
                         memory[offsetAddress + instruction.Int] = context[r1];
                         break;
 
-
                     case OpCode.Strl:
                         memory[instruction.Int] = context[r1];
                         break;
-
 
                     case OpCode.Push:
                         var sp = context[RegisterSPIndex] - 1;
@@ -363,13 +332,11 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         context[RegisterSPIndex] = sp;
                         break;
 
-
                     case OpCode.Pushl:
                         sp = context[RegisterSPIndex] - 1;
                         memory[sp] = instruction.Uint;
                         context[RegisterSPIndex] = sp;
                         break;
-
 
                     case OpCode.Pop:
                         sp = context[RegisterSPIndex];
@@ -377,11 +344,9 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         context[RegisterSPIndex] = sp + 1;
                         break;
 
-
                     case OpCode.Fmovl:
                         context[r1] = instruction.Float;
                         break;
-
 
                     case OpCode.Fpushl:
                         sp = context[RegisterSPIndex] - 1;
@@ -389,282 +354,227 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         context[RegisterSPIndex] = sp;
                         break;
 
-
                     case OpCode.Movfti:
                         context[r1].Primitive.Long = (long)context[r2].Primitive.Float;
                         break;
-
 
                     case OpCode.Movitf:
                         context[r1].Primitive.Float = (float)context[r1].Primitive.Long;
                         break;
                     #endregion
 
-
                     #region Arithmetic
                     case OpCode.Add:
                         context[r1].Primitive.Long = context[r2].Primitive.Long + context[r3].Primitive.Long;
                         break;
 
-
                     case OpCode.Addl:
                         context[r1].Primitive.Long = context[r2].Primitive.Long + instruction.Int;
                         break;
-
 
                     case OpCode.Sub:
                         context[r1].Primitive.Long = context[r2].Primitive.Long - context[r3].Primitive.Long;
                         break;
 
-
                     case OpCode.Subl:
                         context[r1].Primitive.Long = context[r2].Primitive.Long - instruction.Int;
                         break;
-
 
                     case OpCode.Mul:
                         context[r1].Primitive.Long = context[r2].Primitive.Long * context[r3].Primitive.Long;
                         break;
 
-
                     case OpCode.Mull:
                         context[r1].Primitive.Long = context[r2].Primitive.Long * instruction.Int;
                         break;
-
 
                     case OpCode.Div:
                         context[r1].Primitive.Long = context[r2].Primitive.Long / context[r3].Primitive.Long;
                         break;
 
-
                     case OpCode.Divl:
                         context[r1].Primitive.Long = context[r2].Primitive.Long / instruction.Int;
                         break;
-
 
                     case OpCode.Mod:
                         context[r1].Primitive.Long = context[r2].Primitive.Long % context[r3].Primitive.Long;
                         break;
 
-
                     case OpCode.Modl:
                         context[r1].Primitive.Long = context[r2].Primitive.Long % instruction.Int;
                         break;
-
 
                     case OpCode.Pow:
                         context[r1].Primitive.Long = (long)Math.Pow(context[r2].Primitive.Long, context[r3].Primitive.Long);
                         break;
 
-
                     case OpCode.Powl:
                         context[r1].Primitive.Long = (long)Math.Pow(context[r2].Primitive.Long, instruction.Int);
                         break;
-
 
                     case OpCode.Neg:
                         context[r1].Primitive.Long = -context[r2].Primitive.Long;
                         break;
 
-
                     case OpCode.Negl:
                         context[r1].Primitive.Long = -instruction.Int;
                         break;
-
 
                     case OpCode.Fadd:
                         context[r1].Primitive.Float = context[r2].Primitive.Float + context[r3].Primitive.Float;
                         break;
 
-
                     case OpCode.Faddl:
                         context[r1].Primitive.Float = context[r2].Primitive.Float + instruction.Float;
                         break;
-
 
                     case OpCode.Fsub:
                         context[r1].Primitive.Float = context[r2].Primitive.Float - context[r3].Primitive.Float;
                         break;
 
-
                     case OpCode.Fsubl:
                         context[r1].Primitive.Float = context[r2].Primitive.Float - instruction.Float;
                         break;
-
 
                     case OpCode.Fmul:
                         context[r1].Primitive.Float = context[r2].Primitive.Float * context[r3].Primitive.Float;
                         break;
 
-
                     case OpCode.Fmull:
                         context[r1].Primitive.Float = context[r2].Primitive.Float * instruction.Float;
                         break;
-
 
                     case OpCode.Fdiv:
                         context[r1].Primitive.Float = context[r2].Primitive.Float / context[r3].Primitive.Float;
                         break;
 
-
                     case OpCode.Fdivl:
                         context[r1].Primitive.Float = context[r2].Primitive.Float / instruction.Float;
                         break;
-
 
                     case OpCode.Fmod:
                         context[r1].Primitive.Float = context[r2].Primitive.Float % context[r3].Primitive.Float;
                         break;
 
-
                     case OpCode.Fmodl:
                         context[r1].Primitive.Float = context[r2].Primitive.Float % instruction.Float;
                         break;
-
 
                     case OpCode.Fpow:
                         context[r1].Primitive.Float = (float)Math.Pow(context[r2].Primitive.Float, context[r3].Primitive.Float);
                         break;
 
-
                     case OpCode.Fpowl:
                         context[r1].Primitive.Float = (float)Math.Pow(context[r2].Primitive.Float, instruction.Float);
                         break;
 
-
                     case OpCode.Fneg:
                         context[r1].Primitive.Float = -context[r2].Primitive.Float;
                         break;
-
 
                     case OpCode.Fnegl:
                         context[r1].Primitive.Float = -instruction.Float;
                         break;
                     #endregion
 
-
                     #region Logic
                     case OpCode.Or:
                         context[r1].Primitive.Ulong = context[r2].Primitive.Ulong | context[r3].Primitive.Ulong;
                         break;
 
-
                     case OpCode.Xor:
                         context[r1].Primitive.Ulong = context[r2].Primitive.Ulong ^ context[r3].Primitive.Ulong;
                         break;
-
 
                     case OpCode.And:
                         context[r1].Primitive.Ulong = context[r2].Primitive.Ulong & context[r3].Primitive.Ulong;
                         break;
 
-
                     case OpCode.Not:
                         context[r1].Primitive.Ulong = ~context[r1].Primitive.Ulong;
                         break;
-
 
                     case OpCode.Shl:
                         context[r1].Primitive.Long = context[r2].Primitive.Long << (int)(context[r3]);
                         break;
 
-
                     case OpCode.Shr:
                         context[r1].Primitive.Long = context[r2].Primitive.Long >> (int)(context[r3]);
                         break;
-
 
                     case OpCode.Teq:
                         context[r1].Primitive.Long = context[r2].Primitive.Long == context[r3].Primitive.Long ? 1L : 0L;
                         break;
 
-
                     case OpCode.Tne:
                         context[r1].Primitive.Long = context[r2].Primitive.Long != context[r3].Primitive.Long ? 1L : 0L;
                         break;
-
 
                     case OpCode.Tg:
                         context[r1].Primitive.Long = context[r2].Primitive.Long > context[r3].Primitive.Long ? 1L : 0L;
                         break;
 
-
                     case OpCode.Tge:
                         context[r1].Primitive.Long = context[r2].Primitive.Long >= context[r3].Primitive.Long ? 1L : 0L;
                         break;
-
 
                     case OpCode.Tl:
                         context[r1].Primitive.Long = context[r2].Primitive.Long < context[r3].Primitive.Long ? 1L : 0L;
                         break;
 
-
                     case OpCode.Tle:
                         context[r1].Primitive.Long = context[r2].Primitive.Long <= context[r3].Primitive.Long ? 1L : 0L;
                         break;
-
 
                     case OpCode.Ftg:
                         context[r1].Primitive.Long = context[r2].Primitive.Float > context[r3].Primitive.Float ? 1L : 0L;
                         break;
 
-
                     case OpCode.Ftge:
                         context[r1].Primitive.Long = context[r2].Primitive.Float >= context[r3].Primitive.Float ? 1L : 0L;
                         break;
-
 
                     case OpCode.Ftl:
                         context[r1].Primitive.Long = context[r2].Primitive.Float < context[r3].Primitive.Float ? 1L : 0L;
                         break;
 
-
                     case OpCode.Ftle:
                         context[r1].Primitive.Long = context[r2].Primitive.Float <= context[r3].Primitive.Float ? 1L : 0L;
                         break;
-
 
                     case OpCode.Toeq:
                         context[r1].Primitive.Long = context[r2].Object == context[r3].Object ? 1L : 0L;
                         break;
 
-
                     case OpCode.Tone:
                         context[r1].Primitive.Long = context[r2].Object != context[r3].Object ? 1L : 0L;
                         break;
 
-
                     case OpCode.Tonull:
                         context[r1].Primitive.Long = context[r2].Object == null ? 1L : 0L;
                         break;
-
 
                     case OpCode.Tonnull:
                         context[r1].Primitive.Long = context[r2].Object != null ? 1L : 0L;
                         break;
                     #endregion
 
-
                     #region Flow Control
                     case OpCode.Br:
                         nextInstructionPointer = context[r1].Primitive.Int + instruction.Int;
                         break;
 
-
                     case OpCode.Brl:
                         nextInstructionPointer = instruction.Int;
                         break;
-
 
                     case OpCode.Bnz:
                         nextInstructionPointer = context[r2].Primitive.Long != 0 ? context[r1].Primitive.Int + instruction.Int : nextInstructionPointer;
                         break;
 
-
                     case OpCode.Bnzl:
                         nextInstructionPointer = context[r2].Primitive.Long != 0 ? instruction.Int : nextInstructionPointer;
                         break;
-
 
                     case OpCode.Call:
                         sp = context[RegisterSPIndex] - 1;
@@ -673,14 +583,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         nextInstructionPointer = context[r1].Primitive.Int + instruction.Int;
                         break;
 
-
                     case OpCode.Calll:
                         sp = context[RegisterSPIndex] - 1;
                         memory[sp] = nextInstructionPointer;
                         context[RegisterSPIndex] = sp;
                         nextInstructionPointer = instruction.Int;
                         break;
-
 
                     case OpCode.Callnz:
                         if (context[r2].Primitive.Long != 0)
@@ -692,7 +600,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         }
                         break;
 
-
                     case OpCode.Callnzl:
                         if (context[r2].Primitive.Long != 0)
                         {
@@ -703,7 +610,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         }
                         break;
 
-
                     case OpCode.Ret:
                         sp = context[RegisterSPIndex];
                         nextInstructionPointer = memory[sp];
@@ -711,14 +617,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         break;
                     #endregion
 
-
                     #region CSharp Host Control
                     case OpCode.Gpf:
                         var peripheral = Machine.Firmware.GetPeripheral(context[r2].Object as string);
                         context[r1].Object = peripheral.GetPeripheralFunction(context[r3].Object as string);
                         context[r1].Primitive.Ulong = 0;
                         break;
-
 
                     case OpCode.Cpf:
                         var function = context[r2].Object as SrPeripheralFunction;
@@ -749,18 +653,15 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         break;
                     #endregion
 
-
                     // オペコードが一致しない命令が来た場合は例外を投げる
                     default:
                         OnUnknownInstructionExecution_Debug(process, instruction);
                         throw new SrUnknownInstructionException($"不明な命令 '0x{instruction.Raw.ToString("X16")}' を実行しようとしました");
                 }
 
-
                 // 最終的な次に実行する命令位置をもどして実行後イベントも呼ぶ
                 context[RegisterIPIndex].Primitive.Int = nextInstructionPointer;
                 OnPostProcessInstruction_Debug(process, instruction);
-
 
                 // 現在の単位実行時間を確認して、もし無限ループ経過時間の閾値を超過していたら
                 var unitRunningTime = process.RunningStopwatch.ElapsedMilliseconds - startElapsedTime;
@@ -776,7 +677,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                     }
                 }
             }
-
 
             // プロセスの動作計測ストップウォッチを停止
             process.RunningStopwatch.Stop();

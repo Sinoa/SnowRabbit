@@ -35,7 +35,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         private readonly List<SyntaxNode> children;
 
 
-
         /// <summary>
         /// この構文ノードの親ノード
         /// </summary>
@@ -54,7 +53,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         public IReadOnlyList<SyntaxNode> Children { get; }
 
 
-
         /// <summary>
         /// SyntaxNode クラスのインスタンスを初期化します
         /// </summary>
@@ -62,7 +60,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
             // トークンは既定値を使用（既定値のトークンは不明トークン[Kind == 0]として扱われる）
             Token = default;
-            children = new List<SyntaxNode>();
+            // 多くの構文ノードは2〜4個の子を持つため、初期容量4を指定してリサイズを削減
+            children = new List<SyntaxNode>(4);
             Children = children.AsReadOnly();
         }
 
@@ -75,7 +74,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
             // トークンを受け取る
             Token = token;
-            children = new List<SyntaxNode>();
+            // 多くの構文ノードは2〜4個の子を持つため、初期容量4を指定してリサイズを削減
+            children = new List<SyntaxNode>(4);
             Children = children.AsReadOnly();
         }
 

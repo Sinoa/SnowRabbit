@@ -37,15 +37,25 @@ namespace SnowRabbit.Compiler.Assembler
     {
         // メンバ変数定義
         private readonly Dictionary<string, SrSymbol> globalSymbolTable = new Dictionary<string, SrSymbol>();
+        private readonly Dictionary<string, SrStringSymbol> stringSymbolTable = new Dictionary<string, SrStringSymbol>();
         public readonly Dictionary<string, SrAssemblyCode[]> functionCodeTable = new Dictionary<string, SrAssemblyCode[]>();
-
 
 
         /// <summary>
         /// 関数コードすべて合計したサイズ
         /// </summary>
-        public int CodeSize => functionCodeTable.Values.Select(x => x.Length).Sum();
-
+        public int CodeSize
+        {
+            get
+            {
+                var total = 0;
+                foreach (var codes in functionCodeTable.Values)
+                {
+                    total += codes.Length;
+                }
+                return total;
+            }
+        }
 
 
         /// <summary>
@@ -56,12 +66,19 @@ namespace SnowRabbit.Compiler.Assembler
         /// <exception cref="ArgumentNullException">symbol が null です</exception>
         public bool AddSymbol(SrSymbol symbol)
         {
-            // シンボル名を取得してテーブルに存在していれば false を返す
+            // シンボル名を取得
             var name = (symbol ?? throw new ArgumentNullException(nameof(symbol))).Name;
+
+            // 文字列シンボルは専用テーブルに追加（文字列をキーとして直接検索可能にする）
+            if (symbol is SrStringSymbol stringSymbol)
+            {
+                if (stringSymbolTable.ContainsKey(stringSymbol.String)) return false;
+                stringSymbolTable[stringSymbol.String] = stringSymbol;
+                return true;
+            }
+
+            // その他のシンボルはグローバルテーブルに追加
             if (globalSymbolTable.ContainsKey(name)) return false;
-
-
-            // シンボルを追加して成功を返す
             globalSymbolTable[name] = symbol;
             return true;
         }
@@ -122,8 +139,8 @@ namespace SnowRabbit.Compiler.Assembler
         /// <returns>指定された文字列シンボルがある場合は文字列シンボルを返しますが、見つけられなかった場合は null を返します</returns>
         public SrStringSymbol GetStringSymbol(string text)
         {
-            // グローバルシンボルテーブルにまず指定された名前のシンボルがあるかを取得して、定数シンボルなら返す
-            return (globalSymbolTable.TryGetValue(text.GetHashCode().ToString(), out var symbol) && symbol is SrStringSymbol) ? (SrStringSymbol)symbol : null;
+            // 文字列シンボル専用テーブルから直接検索（ハッシュコード→文字列変換のアロケーションを回避）
+            return stringSymbolTable.TryGetValue(text, out var symbol) ? symbol : null;
         }
 
 
@@ -148,24 +165,41 @@ namespace SnowRabbit.Compiler.Assembler
                         functionSymbol.ParameterTable.TryGetValue(name, out var paramSymbol) ? (SrVariableSymbol)paramSymbol :
                         null;
 
-
                     // 存在すれば結果を返す
                     if (result != null) return result;
                 }
             }
-
 
             // なければグローバルシンボルテーブルから調べる
             return (globalSymbolTable.TryGetValue(name, out var symbol) && symbol is SrVariableSymbol) ? (SrVariableSymbol)symbol : null;
         }
 
 
+        /// <summary>
+        /// 指定された型のシンボルをすべて取得します
+        /// </summary>
+        /// <typeparam name="T">取得するシンボルの型</typeparam>
+        /// <returns>指定された型のシンボルを列挙します</returns>
         public IEnumerable<T> GetSymbolAll<T>() where T : SrSymbol
         {
-            return globalSymbolTable
-                .Values
-                .Where(x => x is T)
-                .Select(x => (T)x);
+            // 文字列シンボルの場合は専用テーブルから取得
+            if (typeof(T) == typeof(SrStringSymbol))
+            {
+                foreach (var symbol in stringSymbolTable.Values)
+                {
+                    yield return (T)(SrSymbol)symbol;
+                }
+                yield break;
+            }
+
+            // その他のシンボルはグローバルテーブルから取得
+            foreach (var symbol in globalSymbolTable.Values)
+            {
+                if (symbol is T typedSymbol)
+                {
+                    yield return typedSymbol;
+                }
+            }
         }
 
 

@@ -44,18 +44,15 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         private Stack<byte> freeRegisterStack;
 
 
-
         /// <summary>
         /// この式構文による結果を出力する先のレジスタインデックス
         /// </summary>
         public byte ResultRegisterIndex { get; private set; }
 
-
         /// <summary>
         /// この式構文による結果を出力したときの型
         /// </summary>
         public SrRuntimeType ResultType { get; private set; }
-
 
 
         static ExpressionSyntaxNode()
@@ -90,7 +87,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             };
         }
 
-
         /// <summary>
         /// ExpressionSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
@@ -99,42 +95,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
         }
 
-
         #region Register control utility
-        private static Stack<byte> CreateFreeRegisterStack()
-        {
-            return new Stack<byte>(new byte[]
-            {
-                SrvmProcessor.RegisterR28Index,
-                SrvmProcessor.RegisterR27Index,
-                SrvmProcessor.RegisterR26Index,
-                SrvmProcessor.RegisterR25Index,
-                SrvmProcessor.RegisterR24Index,
-                SrvmProcessor.RegisterR23Index,
-                SrvmProcessor.RegisterR22Index,
-                SrvmProcessor.RegisterR21Index,
-                SrvmProcessor.RegisterR20Index,
-                SrvmProcessor.RegisterR19Index,
-                SrvmProcessor.RegisterR18Index,
-                SrvmProcessor.RegisterR17Index,
-                SrvmProcessor.RegisterR16Index,
-                SrvmProcessor.RegisterR15Index,
-                SrvmProcessor.RegisterR14Index,
-                SrvmProcessor.RegisterR13Index,
-                SrvmProcessor.RegisterR12Index,
-                SrvmProcessor.RegisterR11Index,
-                SrvmProcessor.RegisterR10Index,
-                SrvmProcessor.RegisterR9Index,
-                SrvmProcessor.RegisterR8Index,
-                SrvmProcessor.RegisterDIndex,
-                SrvmProcessor.RegisterCIndex,
-                SrvmProcessor.RegisterBIndex,
-                SrvmProcessor.RegisterAIndex,
-            });
-        }
-
-
-        private void InitializeRegisterInformation()
+        /// <summary>
+        /// レジスタ追跡情報を初期化します。
+        /// ルート式の場合はコンテキストのプールからリセットして取得し、
+        /// ネスト式の場合は親から継承します。
+        /// </summary>
+        /// <param name="context">コンパイルコンテキスト</param>
+        private void InitializeRegisterInformation(SrCompileContext context)
         {
             if (Parent is ExpressionSyntaxNode parentExpression)
             {
@@ -143,11 +111,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 return;
             }
 
-
-            usedRegisterIndexs = new HashSet<byte>();
-            freeRegisterStack = CreateFreeRegisterStack();
+            // ルート式: プールをリセットして再利用
+            context.ResetRegisterPool();
+            usedRegisterIndexs = context.GetPooledUsedRegisterSet();
+            freeRegisterStack = context.GetPooledFreeRegisterStack();
         }
-
 
         private void FinalizeRegisterInformation(SrCompileContext context)
         {
@@ -155,7 +123,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var functionSymbol = context.AssemblyData.GetFunctionSymbol(context.CurrentCompileFunctionName);
             functionSymbol.UsedRegisterSet.UnionWith(usedRegisterIndexs);
         }
-
 
         private byte TakeFreeRegisterIndex()
         {
@@ -165,19 +132,16 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new System.Exception();
             }
 
-
             var freeRegisterIndex = freeRegisterStack.Pop();
             usedRegisterIndexs.Add(freeRegisterIndex);
             return freeRegisterIndex;
         }
-
 
         private void ReleaseRegister(byte registerIndex)
         {
             freeRegisterStack.Push(registerIndex);
         }
         #endregion
-
 
         #region Load Store control
         private byte LoadFromExpression(SyntaxNode node, SrCompileContext context, out SrRuntimeType returnType)
@@ -189,7 +153,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 case FunctionCallSyntaxNode x: return LoadFromFunctionCall(x, context, out returnType);
             }
 
-
             if (node is ExpressionSyntaxNode expressionNode)
             {
                 expressionNode.Compile(context);
@@ -197,10 +160,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 return expressionNode.ResultRegisterIndex;
             }
 
-
             throw new System.Exception();
         }
-
 
         private byte LoadFromLiteral(LiteralSyntaxNode literal, SrCompileContext context, out SrRuntimeType returnType)
         {
@@ -215,13 +176,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     context.AddBodyCode(instruction, false);
                     return targetRegisterIndex;
 
-
                 case SrRuntimeType.Number:
                     returnType = SrRuntimeType.Number;
                     instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, (float)literalToken.Number);
                     context.AddBodyCode(instruction, false);
                     return targetRegisterIndex;
-
 
                 case SrRuntimeType.Boolean:
                     returnType = SrRuntimeType.Boolean;
@@ -230,14 +189,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     context.AddBodyCode(instruction, false);
                     return targetRegisterIndex;
 
-
                 case SrRuntimeType.String:
                     returnType = SrRuntimeType.String;
                     var symbol = context.CreateOrGetStringSymbol(literalToken.Text);
                     instruction.Set(OpCode.Ldrl, targetRegisterIndex, 0, 0, symbol.InitialAddress);
                     context.AddBodyCode(instruction, true);
                     return targetRegisterIndex;
-
 
                 case SrRuntimeType.Object:
                     returnType = SrRuntimeType.Object;
@@ -246,11 +203,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     return targetRegisterIndex;
             }
 
-
             // 何を処理すれば良いのか
             throw new System.Exception();
         }
-
 
         private byte LoadFromIdentifier(IdentifierSyntaxNode identifier, SrCompileContext context, out SrRuntimeType returnType)
         {
@@ -263,7 +218,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw context.ErrorReporter.UnknownSymbol(identifierToken);
             }
 
-
             returnType = variableSymbol.Type;
             var instruction = new SrInstruction();
             switch (variableSymbol)
@@ -273,18 +227,15 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     context.AddBodyCode(instruction, true);
                     break;
 
-
                 case SrLocalVariableSymbol localVariableSymbol:
                     instruction.Set(OpCode.Ldr, targetRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, -localVariableSymbol.Address);
                     context.AddBodyCode(instruction, false);
                     break;
 
-
                 case SrParameterVariableSymbol parameterVariableSymbol:
                     instruction.Set(OpCode.Ldr, targetRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, parameterVariableSymbol.Address + 1);
                     context.AddBodyCode(instruction, false);
                     break;
-
 
                 case SrConstantSymbol constantSymbol:
                     switch (constantSymbol.Type)
@@ -294,12 +245,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                             context.AddBodyCode(instruction, false);
                             break;
 
-
                         case SrRuntimeType.Number:
                             instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, (float)constantSymbol.ConstantValue.Number);
                             context.AddBodyCode(instruction, false);
                             break;
-
 
                         case SrRuntimeType.Boolean:
                             var boolValue = constantSymbol.ConstantValue.Text == "true" ? 1 : 0;
@@ -307,13 +256,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                             context.AddBodyCode(instruction, false);
                             break;
 
-
                         case SrRuntimeType.String:
                             var stringSymbol = context.CreateOrGetStringSymbol(constantSymbol.ConstantValue.Text);
                             instruction.Set(OpCode.Ldrl, targetRegisterIndex, 0, 0, stringSymbol.InitialAddress);
                             context.AddBodyCode(instruction, true);
                             break;
-
 
                         default:
                             throw context.ErrorReporter.NotSupportedType(identifierToken, constantSymbol.Type);
@@ -321,10 +268,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     break;
             }
 
-
             return targetRegisterIndex;
         }
-
 
         private byte LoadFromFunctionCall(FunctionCallSyntaxNode functionCall, SrCompileContext context, out SrRuntimeType returnType)
         {
@@ -336,13 +281,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw context.ErrorReporter.UnknownSymbol(functionCall.Children[0].Token);
             }
 
-
             if (functionSymbol.ReturnType == SrRuntimeType.Void)
             {
                 // void の関数は値として取り出せない
                 throw context.ErrorReporter.NotSupporteReturnVoid(functionCall.Children[0].Token, functionName);
             }
-
 
             functionCall.Compile(context);
             var targetRegisterIndex = TakeFreeRegisterIndex();
@@ -353,7 +296,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             return targetRegisterIndex;
         }
 
-
         private static void StoreResult(SyntaxNode identifierNode, byte srcRegisterIndex, SrCompileContext context)
         {
             if (!(identifierNode is IdentifierSyntaxNode))
@@ -361,14 +303,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw context.ErrorReporter.InvalidIdentifier(identifierNode.Token);
             }
 
-
             var name = identifierNode.Token.Text;
             var variableSymbol = context.AssemblyData.GetVariableSymbol(name, context.CurrentCompileFunctionName);
             if (variableSymbol == null)
             {
                 throw context.ErrorReporter.NotVariable(identifierNode.Token, name);
             }
-
 
             SrInstruction instruction = default;
             switch (variableSymbol)
@@ -378,12 +318,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     context.AddBodyCode(instruction, true);
                     return;
 
-
                 case SrLocalVariableSymbol localSymbol:
                     instruction.Set(OpCode.Str, srcRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, -localSymbol.Address);
                     context.AddBodyCode(instruction, false);
                     return;
-
 
                 case SrParameterVariableSymbol parameterSymbol:
                     instruction.Set(OpCode.Str, srcRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, parameterSymbol.Address + 1);
@@ -391,16 +329,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     return;
             }
 
-
             throw context.ErrorReporter.NotVariable(identifierNode.Token, name);
         }
         #endregion
 
-
         #region Main compile code
         public override void Compile(SrCompileContext context)
         {
-            InitializeRegisterInformation();
+            InitializeRegisterInformation(context);
 
             if (Children.Count == 0)
             {
@@ -415,22 +351,18 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 CompileExpression(Children[0], Children[1], Token, context);
             }
 
-
             FinalizeRegisterInformation(context);
         }
-
 
         private void CompileUnaryExpression(SyntaxNode expression, in Token operation, SrCompileContext context)
         {
             var targetRegisterIndex = LoadFromExpression(expression, context, out var returnType);
-
 
             var instruction = new SrInstruction();
             switch (operation.Kind)
             {
                 case TokenKind.Plus:
                     break;
-
 
                 case TokenKind.Minus:
                     if (returnType == SrRuntimeType.String || returnType == SrRuntimeType.Object || returnType == SrRuntimeType.Void)
@@ -442,7 +374,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     context.AddBodyCode(instruction, false);
                     break;
 
-
                 case TokenKind.Exclamation:
                     if (returnType != SrRuntimeType.Boolean)
                     {
@@ -452,7 +383,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     instruction.Set(OpCode.Neg, targetRegisterIndex, targetRegisterIndex);
                     context.AddBodyCode(instruction, false);
                     break;
-
 
                 case TokenKind.DoublePlus:
                     if (returnType != SrRuntimeType.Integer)
@@ -464,7 +394,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     context.AddBodyCode(instruction, false);
                     StoreResult(expression, targetRegisterIndex, context);
                     break;
-
 
                 case TokenKind.DoubleMinus:
                     if (returnType != SrRuntimeType.Integer)
@@ -478,11 +407,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     break;
             }
 
-
             ResultType = returnType;
             ResultRegisterIndex = targetRegisterIndex;
         }
-
 
         private void CompileExpression(SyntaxNode leftExpression, SyntaxNode rightExpression, in Token operation, SrCompileContext context)
         {
@@ -490,16 +417,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var rightRegisterIndex = LoadFromExpression(rightExpression, context, out var rightResultType);
             ResultType = CompileCastExpression(ResultRegisterIndex, leftResultType, rightRegisterIndex, rightResultType, context);
 
-
             operationTable[operation.Kind](leftExpression, ResultRegisterIndex, rightExpression, rightRegisterIndex, ResultType, context);
             ReleaseRegister(rightRegisterIndex);
         }
 
-
         private SrRuntimeType CompileCastExpression(byte leftRegister, SrRuntimeType leftType, byte rightRegister, SrRuntimeType rightType, SrCompileContext context)
         {
             var instruction = new SrInstruction();
-
 
             if (leftType != rightType)
             {
@@ -511,12 +435,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                         throw new System.Exception();
                     }
 
-
                     instruction.Set(OpCode.Movitf, rightRegister, rightRegister);
                     context.AddBodyCode(instruction, false);
                     return SrRuntimeType.Number;
                 }
-
 
                 if (rightType == SrRuntimeType.Number)
                 {
@@ -526,18 +448,15 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                         throw new System.Exception();
                     }
 
-
                     instruction.Set(OpCode.Movitf, leftRegister, leftRegister);
                     context.AddBodyCode(instruction, false);
                     return SrRuntimeType.Number;
                 }
             }
 
-
             return leftType;
         }
         #endregion
-
 
         #region Operation functions
         private static void OpAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
@@ -548,7 +467,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             StoreResult(leftSyntaxNode, leftRegister, context);
         }
 
-
         private static void OpPlusAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
@@ -557,15 +475,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Add : OpCode.Fadd, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
 
-
             StoreResult(leftSyntaxNode, leftRegister, context);
         }
-
 
         private static void OpMinusAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -575,15 +490,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Sub : OpCode.Fsub, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
 
-
             StoreResult(leftSyntaxNode, leftRegister, context);
         }
-
 
         private static void OpMullAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -593,15 +505,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Mul : OpCode.Fmul, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
 
-
             StoreResult(leftSyntaxNode, leftRegister, context);
         }
-
 
         private static void OpDivAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -611,15 +520,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Div : OpCode.Fdiv, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
 
-
             StoreResult(leftSyntaxNode, leftRegister, context);
         }
-
 
         private static void OpAndAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -629,15 +535,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(OpCode.And, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
 
-
             StoreResult(leftSyntaxNode, leftRegister, context);
         }
-
 
         private static void OpOrAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -647,15 +550,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(OpCode.Or, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
 
-
             StoreResult(leftSyntaxNode, leftRegister, context);
         }
-
 
         private static void OpExOrAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -665,15 +565,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(OpCode.Xor, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
 
-
             StoreResult(leftSyntaxNode, leftRegister, context);
         }
-
 
         private static void OpConditionOr(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -693,11 +590,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 context.AddBodyCode(instruction, false);
             }
 
-
             instruction.Set(OpCode.Or, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpConditionAnd(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -717,11 +612,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 context.AddBodyCode(instruction, false);
             }
 
-
             instruction.Set(OpCode.And, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpLogicalOr(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -731,12 +624,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(OpCode.Or, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpLogicalExOr(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -746,12 +637,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(OpCode.Xor, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpLogicalAnd(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -761,12 +650,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(OpCode.And, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpEqual(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -783,7 +670,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
         }
 
-
         private static void OpNotEqual(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             var instruction = new SrInstruction();
@@ -799,7 +685,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
         }
 
-
         private static void OpRelationLesser(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
@@ -808,12 +693,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Tl : OpCode.Ftl, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpRelationGrater(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -823,12 +706,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Tg : OpCode.Ftg, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpRelationLesserEqual(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -838,12 +719,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Tle : OpCode.Ftle, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpRelationGraterEqual(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -853,12 +732,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Tge : OpCode.Ftge, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpLeftBitShift(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -868,12 +745,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(OpCode.Shl, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpRightBitShift(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -883,12 +758,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(OpCode.Shr, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpAdd(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -898,12 +771,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Add : OpCode.Fadd, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpSub(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -913,12 +784,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Sub : OpCode.Fsub, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpMull(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -928,12 +797,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw new Exception();
             }
 
-
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Mul : OpCode.Fmul, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
-
 
         private static void OpDiv(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
@@ -942,7 +809,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 // 現在は整数または実数のみ対応
                 throw new Exception();
             }
-
 
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Div : OpCode.Fdiv, leftRegister, leftRegister, rightRegister);

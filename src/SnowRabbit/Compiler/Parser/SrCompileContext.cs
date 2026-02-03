@@ -45,6 +45,9 @@ namespace SnowRabbit.Compiler.Parser
         private readonly Stack<SrLabelSymbol> breakTargetAddressStack = new Stack<SrLabelSymbol>();
         private readonly List<SrLabelSymbol> patchTargetLabelList = new List<SrLabelSymbol>();
 
+        // レジスタ追跡プール（式ごとに再利用してアロケーションを削減）
+        private readonly HashSet<byte> pooledUsedRegisterSet = new HashSet<byte>();
+        private readonly Stack<byte> pooledFreeRegisterStack = new Stack<byte>(25);
 
 
         /// <summary>
@@ -78,7 +81,6 @@ namespace SnowRabbit.Compiler.Parser
 
 
         public IReadOnlyList<SrAssemblyCode> TailCodeList { get; }
-
 
 
         public SrCompileContext() : this(new SrCompileReportConsolePrinter())
@@ -165,7 +167,6 @@ namespace SnowRabbit.Compiler.Parser
             var symbol = AssemblyData.GetStringSymbol(text);
             if (symbol != null) return symbol;
 
-
             symbol = new SrStringSymbol(text, GetNextVirtualAddress());
             AssemblyData.AddSymbol(symbol);
             return symbol;
@@ -180,13 +181,11 @@ namespace SnowRabbit.Compiler.Parser
                 throw new System.InvalidOperationException();
             }
 
-
             if (string.IsNullOrWhiteSpace(blockName))
             {
                 // 有効なブロック名であるべき
                 throw new System.Exception();
             }
-
 
             var labelSymbol = CreateLabelSymbol($"___NB_{CurrentCompileFunctionName}_{blockName}_{GetNextVirtualAddress()}___");
             labelSymbol.FunctionName = CurrentCompileFunctionName;
@@ -224,20 +223,16 @@ namespace SnowRabbit.Compiler.Parser
             bodyCodeList.CopyTo(codeArray, headCodeList.Count);
             tailCodeList.CopyTo(codeArray, headCodeList.Count + bodyCodeList.Count);
 
-
             foreach (var labelSymbol in patchTargetLabelList)
             {
                 labelSymbol.Address += headCodeList.Count;
             }
 
-
             AssemblyData.SetFunctionCode(CurrentCompileFunctionName, codeArray);
             CurrentFunctionLeaveLabelSymbol.Address = HeadCodeList.Count + bodyCodeList.Count;
 
-
             CurrentCompileFunctionName = null;
             CurrentFunctionLeaveLabelSymbol = null;
-
 
             headCodeList.Clear();
             bodyCodeList.Clear();
@@ -280,5 +275,61 @@ namespace SnowRabbit.Compiler.Parser
         {
             tailCodeList[index] = new SrAssemblyCode(instruction, unresolved);
         }
+
+
+        #region レジスタプール管理
+        /// <summary>
+        /// 式コンパイル用のレジスタ追跡セットを取得します。
+        /// 式のルートノードでリセット後に呼び出してください。
+        /// </summary>
+        /// <returns>使用中レジスタを追跡するHashSet</returns>
+        public HashSet<byte> GetPooledUsedRegisterSet() => pooledUsedRegisterSet;
+
+
+        /// <summary>
+        /// 式コンパイル用の空きレジスタスタックを取得します。
+        /// 式のルートノードでリセット後に呼び出してください。
+        /// </summary>
+        /// <returns>空きレジスタを管理するStack</returns>
+        public Stack<byte> GetPooledFreeRegisterStack() => pooledFreeRegisterStack;
+
+
+        /// <summary>
+        /// レジスタ追跡プールをリセットして再利用可能な状態にします。
+        /// 式のルートノードのコンパイル開始時に呼び出してください。
+        /// </summary>
+        public void ResetRegisterPool()
+        {
+            pooledUsedRegisterSet.Clear();
+            pooledFreeRegisterStack.Clear();
+
+            // 使用可能なレジスタをスタックにプッシュ（逆順でプッシュして期待順序でポップ）
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR28Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR27Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR26Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR25Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR24Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR23Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR22Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR21Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR20Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR19Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR18Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR17Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR16Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR15Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR14Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR13Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR12Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR11Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR10Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR9Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterR8Index);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterDIndex);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterCIndex);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterBIndex);
+            pooledFreeRegisterStack.Push(RuntimeEngine.VirtualMachine.SrvmProcessor.RegisterAIndex);
+        }
+        #endregion
     }
 }
