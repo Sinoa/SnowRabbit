@@ -60,8 +60,6 @@
 ### argument_list
     : argument { ',' argument }
 
-
-
 ## Compile unit syntax
 
 ### compile_unit
@@ -69,8 +67,6 @@
     | { peripheral_declare }
     | { global_variable_declare }
     | { function_declare }
-
-
 
 ## Pre-Processor directive syntax
 
@@ -88,8 +84,6 @@
 ### constant_define_directive
     : 'const' <identifier> literal
 
-
-
 ## Define and Declare syntax
 
 ### peripheral_declare
@@ -103,8 +97,6 @@
 
 ### function_declare
     : 'function' type <identifier> '(' [parameter_list] ')' { block } 'end'
-
-
 
 ## Block syntax
 
@@ -120,8 +112,6 @@
     | break_statement
     | return_statement
     | expression ';'
-
-
 
 ## Statement syntax
 
@@ -147,8 +137,6 @@
 
 ### return_statement
     : 'return' [ expression ] ';'
-
-
 
 ## Expression syntax
 
@@ -256,8 +244,6 @@ namespace SnowRabbit.Compiler.Parser
         private readonly Stack<SrLexer> lexerStack;
         private SrLexer currentLexer;
 
-
-
         #region コンストラクタとAPIインターフェイス
         /// <summary>
         /// SrParser クラスのインスタンスを初期化します
@@ -265,7 +251,6 @@ namespace SnowRabbit.Compiler.Parser
         public SrParser() : this(new SrFileSystemScriptStorage())
         {
         }
-
 
         /// <summary>
         /// SrParser クラスのインスタンスを初期化します
@@ -276,7 +261,6 @@ namespace SnowRabbit.Compiler.Parser
         {
         }
 
-
         public SrParser(ISrScriptStorage storage, ISrCompileReportPrinter printer)
         {
             // 諸々初期化する
@@ -284,7 +268,6 @@ namespace SnowRabbit.Compiler.Parser
             errorReporter = new SyntaxErrorReporter(printer);
             lexerStack = new Stack<SrLexer>();
         }
-
 
         /// <summary>
         /// 指定されたパスにあるスクリプトの構文解析をします。
@@ -302,11 +285,9 @@ namespace SnowRabbit.Compiler.Parser
                 if (currentLexer != null) lexerStack.Push(currentLexer);
                 currentLexer = lexer;
 
-
                 // レキサに一番最初のトークンを読み込ませて、コンパイル単位の翻訳を始める
                 lexer.ReadNextToken();
                 var rootNode = ParseCompileUnit();
-
 
                 // スタックにレキサが積まれていればポップして処理するべきレキサを戻して、ルートノードを返す
                 currentLexer = lexerStack.Count > 0 ? lexerStack.Pop() : null;
@@ -314,7 +295,6 @@ namespace SnowRabbit.Compiler.Parser
             }
         }
         #endregion
-
 
         #region Utilities
         /// <summary>
@@ -327,7 +307,6 @@ namespace SnowRabbit.Compiler.Parser
             return currentLexer.EndOfToken;
         }
 
-
         /// <summary>
         /// 次のトークンを読み込みます
         /// </summary>
@@ -336,7 +315,6 @@ namespace SnowRabbit.Compiler.Parser
             // 次のトークンを読み込むだけ
             currentLexer.ReadNextToken();
         }
-
 
         /// <summary>
         /// 指定されたトークンかどうかを調べます
@@ -348,7 +326,6 @@ namespace SnowRabbit.Compiler.Parser
             // そのまま比較結果を返す
             return currentLexer.LastReadToken.Kind == tokenKind;
         }
-
 
         /// <summary>
         /// 指定されたトークンかどうかを調べて、指定されたトークンの場合は次のトークンを読み込みます
@@ -363,7 +340,6 @@ namespace SnowRabbit.Compiler.Parser
             return true;
         }
 
-
         /// <summary>
         /// 指定されたトークンのいずれかに一致するかどうかを調べます
         /// </summary>
@@ -377,7 +353,6 @@ namespace SnowRabbit.Compiler.Parser
             }
             return false;
         }
-
 
         /// <summary>
         /// 代入記号トークンかどうかを調べます
@@ -396,7 +371,6 @@ namespace SnowRabbit.Compiler.Parser
                 TokenKind.VerticalbarEqual,
                 TokenKind.CircumflexEqual);
         }
-
 
         /// <summary>
         /// 二項演算式をパースする共通メソッドです
@@ -419,7 +393,6 @@ namespace SnowRabbit.Compiler.Parser
             return expression;
         }
 
-
         /// <summary>
         /// 現在の位置にいるトークンを取り出して、次のトークンを読み込みます
         /// </summary>
@@ -431,7 +404,6 @@ namespace SnowRabbit.Compiler.Parser
             currentLexer.ReadNextToken();
         }
 
-
         /// <summary>
         /// パース結果が null でないことを要求します。null の場合は例外をスローします。
         /// </summary>
@@ -441,7 +413,6 @@ namespace SnowRabbit.Compiler.Parser
         {
             return node ?? throw errorReporter.UnknownToken(currentLexer.LastReadToken);
         }
-
 
         /// <summary>
         /// 指定されたトークンが存在することを要求し、読み進めます。存在しない場合は例外をスローします。
@@ -453,7 +424,6 @@ namespace SnowRabbit.Compiler.Parser
             if (!CheckTokenAndReadNext(tokenKind))
                 throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, expectedSymbol);
         }
-
 
         /// <summary>
         /// 対になるトークンが存在することを要求し、読み進めます。存在しない場合は例外をスローします。
@@ -468,7 +438,6 @@ namespace SnowRabbit.Compiler.Parser
         }
         #endregion
 
-
         #region 全パース関数
         #region Simple syntax
         private SyntaxNode ParseIdentifier()
@@ -477,7 +446,6 @@ namespace SnowRabbit.Compiler.Parser
             GetCurrentTokenAndReadNext(out var token);
             return new IdentifierSyntaxNode(token);
         }
-
 
         private SyntaxNode ParseLiteral()
         {
@@ -488,10 +456,8 @@ namespace SnowRabbit.Compiler.Parser
                 return new LiteralSyntaxNode(token);
             }
 
-
             return null;
         }
-
 
         private SyntaxNode ParseType()
         {
@@ -502,10 +468,8 @@ namespace SnowRabbit.Compiler.Parser
                 return new TypeSyntaxNode(token);
             }
 
-
             return null;
         }
-
 
         private SyntaxNode ParseParameter()
         {
@@ -514,13 +478,11 @@ namespace SnowRabbit.Compiler.Parser
             var name = ParseIdentifier();
             if (name == null) return null;
 
-
             var node = new ParameterSyntaxNode();
             node.Add(type);
             node.Add(name);
             return node;
         }
-
 
         private SyntaxNode ParseArgument()
         {
@@ -533,12 +495,10 @@ namespace SnowRabbit.Compiler.Parser
             return argument;
         }
 
-
         private SyntaxNode ParseTypeList()
         {
             var type = ParseType();
             if (type == null) return null;
-
 
             var typeList = new TypeListSyntaxNode();
             typeList.Add(type);
@@ -549,16 +509,13 @@ namespace SnowRabbit.Compiler.Parser
                 typeList.Add(type);
             }
 
-
             return typeList;
         }
-
 
         private SyntaxNode ParseParameterList()
         {
             var parameter = ParseParameter();
             if (parameter == null) return null;
-
 
             var parameterList = new ParameterListSyntaxNode();
             parameterList.Add(parameter);
@@ -569,17 +526,14 @@ namespace SnowRabbit.Compiler.Parser
                 parameterList.Add(parameter);
             }
 
-
             return parameterList;
         }
-
 
         private SyntaxNode ParseArgumentList()
         {
             var argumentList = new ArgumentListSyntaxNode(currentLexer.LastReadToken);
             var argument = ParseArgument();
             if (argument == null) return argumentList;
-
 
             argumentList.Add(argument);
             while (CheckTokenAndReadNext(TokenKind.Comma))
@@ -589,11 +543,9 @@ namespace SnowRabbit.Compiler.Parser
                 argumentList.Add(argument);
             }
 
-
             return argumentList;
         }
         #endregion
-
 
         #region Compile unit syntax
         private SyntaxNode ParseCompileUnit()
@@ -608,22 +560,18 @@ namespace SnowRabbit.Compiler.Parser
                     ParseFunctionDeclare() ??
                     null;
 
-
                 if (node == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
                 compileUnit.Add(node);
             }
-
 
             return compileUnit.Children.Count > 0 ? compileUnit : null;
         }
         #endregion
 
-
         #region Pre-Processor directive syntax
         private SyntaxNode ParseDirectives()
         {
             if (!CheckTokenAndReadNext(TokenKind.Sharp)) return null;
-
 
             return
                 ParseScriptCompileDirective() ??
@@ -631,7 +579,6 @@ namespace SnowRabbit.Compiler.Parser
                 ParseConstantDefineDirective() ??
                 null;
         }
-
 
         private SyntaxNode ParseScriptCompileDirective()
         {
@@ -641,7 +588,6 @@ namespace SnowRabbit.Compiler.Parser
             return Parse(token.Text);
         }
 
-
         private SyntaxNode ParseLinkObjectDirective()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Link)) return null;
@@ -649,7 +595,6 @@ namespace SnowRabbit.Compiler.Parser
             GetCurrentTokenAndReadNext(out var token);
             return new LinkObjectDirectiveSyntaxNode(token);
         }
-
 
         private SyntaxNode ParseConstantDefineDirective()
         {
@@ -659,7 +604,6 @@ namespace SnowRabbit.Compiler.Parser
             var literal = ParseLiteral();
             if (literal == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
-
             var constant = new ConstantDefineDirectiveSyntaxNode();
             constant.Add(name);
             constant.Add(literal);
@@ -667,36 +611,29 @@ namespace SnowRabbit.Compiler.Parser
         }
         #endregion
 
-
         #region Define and Declare syntax
         private SyntaxNode ParsePeripheralDeclare()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Using)) return null;
 
-
             var name = ParseIdentifier();
             if (name == null) return null;
             if (!CheckTokenAndReadNext(TokenKind.Equal)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
-
             var type = ParseType();
             if (type == null) return null;
-
 
             var peripheralName = ParseIdentifier();
             if (peripheralName == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             if (!CheckTokenAndReadNext(TokenKind.Period)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
-
             var functionName = ParseIdentifier();
             if (functionName == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             if (!CheckTokenAndReadNext(TokenKind.OpenParen)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
-
             var typeList = ParseTypeList();
             if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
             if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
-
 
             var peripheralDeclare = new PeripheralDeclareSyntaxNode();
             peripheralDeclare.Add(name);
@@ -707,24 +644,19 @@ namespace SnowRabbit.Compiler.Parser
             return peripheralDeclare;
         }
 
-
         private SyntaxNode ParseGlobalVariableDeclare()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Global)) return null;
 
-
             var type = ParseType();
             if (type == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-
 
             var name = ParseIdentifier();
             if (name == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
-
             var globalVariableDeclare = new GlobalVariableDeclareSyntaxNode();
             globalVariableDeclare.Add(type);
             globalVariableDeclare.Add(name);
-
 
             if (CheckTokenAndReadNext(TokenKind.Equal))
             {
@@ -733,29 +665,23 @@ namespace SnowRabbit.Compiler.Parser
                 globalVariableDeclare.Add(literal);
             }
 
-
             if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
             return globalVariableDeclare;
         }
-
 
         private SyntaxNode ParseLocalVariableDeclare()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Local)) return null;
 
-
             var type = ParseType();
             if (type == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-
 
             var name = ParseIdentifier();
             if (name == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
-
             var localVariableDeclare = new LocalVariableDeclareSyntaxNode();
             localVariableDeclare.Add(type);
             localVariableDeclare.Add(name);
-
 
             if (CheckTokenAndReadNext(TokenKind.Equal))
             {
@@ -764,33 +690,27 @@ namespace SnowRabbit.Compiler.Parser
                 localVariableDeclare.Add(literal);
             }
 
-
             if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
             return localVariableDeclare;
         }
-
 
         private SyntaxNode ParseFunctionDeclare()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Function)) return null;
             var functionDeclare = new FunctionDeclareSyntaxNode();
 
-
             var type = ParseType();
             if (type == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             functionDeclare.Add(type);
-
 
             var name = ParseIdentifier();
             if (name == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             functionDeclare.Add(name);
 
-
             if (!CheckTokenAndReadNext(TokenKind.OpenParen)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             var parameterList = ParseParameterList();
             functionDeclare.Add(parameterList);
             if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
-
 
             while (!CheckToken(SrTokenKind.End))
             {
@@ -799,19 +719,16 @@ namespace SnowRabbit.Compiler.Parser
                 functionDeclare.Add(block);
             }
 
-
             ReadNextToken();
             return functionDeclare;
         }
         #endregion
-
 
         #region Block syntax
         private SyntaxNode ParseBlock()
         {
             return ParseStatement();
         }
-
 
         private SyntaxNode ParseStatement()
         {
@@ -826,14 +743,12 @@ namespace SnowRabbit.Compiler.Parser
                 null;
             if (result != null) return result;
 
-
             result = ParseExpression();
             if (result == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
             return result;
         }
         #endregion
-
 
         #region Statement syntax
         private SyntaxNode ParseEmptyStatement()
@@ -842,7 +757,6 @@ namespace SnowRabbit.Compiler.Parser
             GetCurrentTokenAndReadNext(out var token);
             return new EmptyStatementSyntaxNode(token);
         }
-
 
         private SyntaxNode ParseForStatement()
         {
@@ -869,7 +783,6 @@ namespace SnowRabbit.Compiler.Parser
             return forStatement;
         }
 
-
         /// <summary>
         /// for文の各節（初期化、条件、ループ）をパースします。省略可能です。
         /// </summary>
@@ -894,7 +807,6 @@ namespace SnowRabbit.Compiler.Parser
             return expression;
         }
 
-
         private SyntaxNode ParseWhileStatement()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.While)) return null;
@@ -912,7 +824,6 @@ namespace SnowRabbit.Compiler.Parser
             ReadNextToken();
             return whileStatement;
         }
-
 
         private SyntaxNode ParseIfStatement()
         {
@@ -942,7 +853,6 @@ namespace SnowRabbit.Compiler.Parser
             throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, "end");
         }
 
-
         private SyntaxNode ParseElseStatement()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Else)) return null;
@@ -964,7 +874,6 @@ namespace SnowRabbit.Compiler.Parser
             return elseStatement;
         }
 
-
         private SyntaxNode ParseBreakStatement()
         {
             if (CheckTokenAndReadNext(SrTokenKind.Break) &&
@@ -973,10 +882,8 @@ namespace SnowRabbit.Compiler.Parser
                 return new BreakStatementSyntaxNode();
             }
 
-
             return null;
         }
-
 
         private SyntaxNode ParseReturnStatement()
         {
@@ -985,7 +892,6 @@ namespace SnowRabbit.Compiler.Parser
             {
                 return new ReturnStatementSyntaxNode();
             }
-
 
             var expression = ParseExpression();
             if (expression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
@@ -996,13 +902,11 @@ namespace SnowRabbit.Compiler.Parser
         }
         #endregion
 
-
         #region Expression syntax
         private SyntaxNode ParseExpression()
         {
             return ParseAssignmentExpression();
         }
-
 
         private SyntaxNode ParseAssignmentExpression()
         {
@@ -1017,50 +921,38 @@ namespace SnowRabbit.Compiler.Parser
                 expression = thisExpression;
             }
 
-
             return expression;
         }
-
 
         private SyntaxNode ParseConditionOrExpression()
             => ParseBinaryExpression(ParseConditionAndExpression, TokenKind.DoubleVerticalbar);
 
-
         private SyntaxNode ParseConditionAndExpression()
             => ParseBinaryExpression(ParseLogicalOrExpression, TokenKind.DoubleAnd);
-
 
         private SyntaxNode ParseLogicalOrExpression()
             => ParseBinaryExpression(ParseLogicalExclusiveOrExpression, TokenKind.Verticalbar);
 
-
         private SyntaxNode ParseLogicalExclusiveOrExpression()
             => ParseBinaryExpression(ParseLogicalAndExpression, TokenKind.Circumflex);
-
 
         private SyntaxNode ParseLogicalAndExpression()
             => ParseBinaryExpression(ParseEqualityExpression, TokenKind.And);
 
-
         private SyntaxNode ParseEqualityExpression()
             => ParseBinaryExpression(ParseRelationalExpression, TokenKind.DoubleEqual, TokenKind.NotEqual);
-
 
         private SyntaxNode ParseRelationalExpression()
             => ParseBinaryExpression(ParseShiftExpression, TokenKind.OpenAngle, TokenKind.CloseAngle, TokenKind.LesserEqual, TokenKind.GreaterEqual);
 
-
         private SyntaxNode ParseShiftExpression()
             => ParseBinaryExpression(ParseAddSubExpression, TokenKind.DoubleOpenAngle, TokenKind.DoubleCloseAngle);
-
 
         private SyntaxNode ParseAddSubExpression()
             => ParseBinaryExpression(ParseMulDivExpression, TokenKind.Plus, TokenKind.Minus);
 
-
         private SyntaxNode ParseMulDivExpression()
             => ParseBinaryExpression(ParseUnaryExpression, TokenKind.Asterisk, TokenKind.Slash);
-
 
         private SyntaxNode ParseUnaryExpression()
         {
@@ -1074,10 +966,8 @@ namespace SnowRabbit.Compiler.Parser
                 return thisExpression;
             }
 
-
             return ParsePostUnaryExpression();
         }
-
 
         private SyntaxNode ParsePostUnaryExpression()
         {
@@ -1090,7 +980,6 @@ namespace SnowRabbit.Compiler.Parser
             return functionCall;
         }
 
-
         private SyntaxNode ParsePrimaryExpression()
         {
             return
@@ -1099,7 +988,6 @@ namespace SnowRabbit.Compiler.Parser
                 ParseParenExpression() ??
                 null;
         }
-
 
         private SyntaxNode ParseParenExpression()
         {
