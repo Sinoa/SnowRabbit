@@ -538,9 +538,7 @@ namespace SnowRabbit.Compiler.Parser
             argumentList.Add(argument);
             while (CheckTokenAndReadNext(TokenKind.Comma))
             {
-                argument = ParseArgument();
-                if (argument == null) return null;
-                argumentList.Add(argument);
+                argumentList.Add(Require(ParseArgument()));
             }
 
             return argumentList;
@@ -599,14 +597,10 @@ namespace SnowRabbit.Compiler.Parser
         private SyntaxNode ParseConstantDefineDirective()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Const)) return null;
-            var name = ParseIdentifier();
-            if (name == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-            var literal = ParseLiteral();
-            if (literal == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
 
             var constant = new ConstantDefineDirectiveSyntaxNode();
-            constant.Add(name);
-            constant.Add(literal);
+            constant.Add(Require(ParseIdentifier()));
+            constant.Add(Require(ParseLiteral()));
             return constant;
         }
         #endregion
@@ -616,24 +610,20 @@ namespace SnowRabbit.Compiler.Parser
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Using)) return null;
 
-            var name = ParseIdentifier();
-            if (name == null) return null;
-            if (!CheckTokenAndReadNext(TokenKind.Equal)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
+            var name = Require(ParseIdentifier());
+            RequireToken(TokenKind.Equal, "=");
 
-            var type = ParseType();
-            if (type == null) return null;
+            var type = Require(ParseType());
 
-            var peripheralName = ParseIdentifier();
-            if (peripheralName == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-            if (!CheckTokenAndReadNext(TokenKind.Period)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
+            var peripheralName = Require(ParseIdentifier());
+            RequireToken(TokenKind.Period, ".");
 
-            var functionName = ParseIdentifier();
-            if (functionName == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
+            var functionName = Require(ParseIdentifier());
+            RequireTokenPair(TokenKind.OpenParen, "(", ")");
 
             var typeList = ParseTypeList();
-            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
-            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
+            RequireTokenPair(TokenKind.CloseParen, "(", ")");
+            RequireToken(TokenKind.Semicolon, ";");
 
             var peripheralDeclare = new PeripheralDeclareSyntaxNode();
             peripheralDeclare.Add(name);
@@ -648,11 +638,8 @@ namespace SnowRabbit.Compiler.Parser
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Global)) return null;
 
-            var type = ParseType();
-            if (type == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-
-            var name = ParseIdentifier();
-            if (name == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
+            var type = Require(ParseType());
+            var name = Require(ParseIdentifier());
 
             var globalVariableDeclare = new GlobalVariableDeclareSyntaxNode();
             globalVariableDeclare.Add(type);
@@ -660,12 +647,10 @@ namespace SnowRabbit.Compiler.Parser
 
             if (CheckTokenAndReadNext(TokenKind.Equal))
             {
-                var literal = ParseLiteral();
-                if (literal == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-                globalVariableDeclare.Add(literal);
+                globalVariableDeclare.Add(Require(ParseLiteral()));
             }
 
-            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
+            RequireToken(TokenKind.Semicolon, ";");
             return globalVariableDeclare;
         }
 
@@ -673,11 +658,8 @@ namespace SnowRabbit.Compiler.Parser
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Local)) return null;
 
-            var type = ParseType();
-            if (type == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-
-            var name = ParseIdentifier();
-            if (name == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
+            var type = Require(ParseType());
+            var name = Require(ParseIdentifier());
 
             var localVariableDeclare = new LocalVariableDeclareSyntaxNode();
             localVariableDeclare.Add(type);
@@ -685,12 +667,10 @@ namespace SnowRabbit.Compiler.Parser
 
             if (CheckTokenAndReadNext(TokenKind.Equal))
             {
-                var literal = ParseExpression();
-                if (literal == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-                localVariableDeclare.Add(literal);
+                localVariableDeclare.Add(Require(ParseExpression()));
             }
 
-            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
+            RequireToken(TokenKind.Semicolon, ";");
             return localVariableDeclare;
         }
 
@@ -699,24 +679,16 @@ namespace SnowRabbit.Compiler.Parser
             if (!CheckTokenAndReadNext(SrTokenKind.Function)) return null;
             var functionDeclare = new FunctionDeclareSyntaxNode();
 
-            var type = ParseType();
-            if (type == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-            functionDeclare.Add(type);
+            functionDeclare.Add(Require(ParseType()));
+            functionDeclare.Add(Require(ParseIdentifier()));
 
-            var name = ParseIdentifier();
-            if (name == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-            functionDeclare.Add(name);
-
-            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-            var parameterList = ParseParameterList();
-            functionDeclare.Add(parameterList);
-            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
+            RequireTokenPair(TokenKind.OpenParen, "(", ")");
+            functionDeclare.Add(ParseParameterList());
+            RequireTokenPair(TokenKind.CloseParen, "(", ")");
 
             while (!CheckToken(SrTokenKind.End))
             {
-                var block = ParseBlock();
-                if (block == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-                functionDeclare.Add(block);
+                functionDeclare.Add(Require(ParseBlock()));
             }
 
             ReadNextToken();
@@ -893,11 +865,9 @@ namespace SnowRabbit.Compiler.Parser
                 return new ReturnStatementSyntaxNode();
             }
 
-            var expression = ParseExpression();
-            if (expression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
             var returnStatement = new ReturnStatementSyntaxNode();
-            returnStatement.Add(expression);
+            returnStatement.Add(Require(ParseExpression()));
+            RequireToken(TokenKind.Semicolon, ";");
             return returnStatement;
         }
         #endregion
@@ -993,7 +963,7 @@ namespace SnowRabbit.Compiler.Parser
         {
             if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
             var expression = ParseExpression();
-            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) return null;
+            RequireTokenPair(TokenKind.CloseParen, "(", ")");
             return expression;
         }
         #endregion
