@@ -365,21 +365,58 @@ namespace SnowRabbit.Compiler.Parser
 
 
         /// <summary>
+        /// 指定されたトークンのいずれかに一致するかどうかを調べます
+        /// </summary>
+        /// <param name="tokenKinds">調べるトークン種別の配列</param>
+        /// <returns>いずれかのトークンに一致する場合は true を、異なる場合は false を返します</returns>
+        private bool CheckAnyToken(params int[] tokenKinds)
+        {
+            foreach (int kind in tokenKinds)
+            {
+                if (CheckToken(kind)) return true;
+            }
+            return false;
+        }
+
+
+        /// <summary>
         /// 代入記号トークンかどうかを調べます
         /// </summary>
         /// <returns>代入記号トークンであれば true を、違う場合は false を返します</returns>
         private bool CheckAssignmentSimbolToken()
         {
             // 代入記号関連のトークンがいずれかに一致すれば true を返す
-            return
-                CheckToken(TokenKind.Equal) ||
-                CheckToken(TokenKind.PlusEqual) ||
-                CheckToken(TokenKind.MinusEqual) ||
-                CheckToken(TokenKind.AsteriskEqual) ||
-                CheckToken(TokenKind.SlashEqual) ||
-                CheckToken(TokenKind.AndEqual) ||
-                CheckToken(TokenKind.VerticalbarEqual) ||
-                CheckToken(TokenKind.CircumflexEqual);
+            return CheckAnyToken(
+                TokenKind.Equal,
+                TokenKind.PlusEqual,
+                TokenKind.MinusEqual,
+                TokenKind.AsteriskEqual,
+                TokenKind.SlashEqual,
+                TokenKind.AndEqual,
+                TokenKind.VerticalbarEqual,
+                TokenKind.CircumflexEqual);
+        }
+
+
+        /// <summary>
+        /// 二項演算式をパースする共通メソッドです
+        /// </summary>
+        /// <param name="parseNext">次の優先度のパース関数</param>
+        /// <param name="tokenKinds">この優先度で処理する演算子トークン</param>
+        /// <returns>パースされた構文ノード</returns>
+        private SyntaxNode ParseBinaryExpression(Func<SyntaxNode> parseNext, params int[] tokenKinds)
+        {
+            SyntaxNode expression = parseNext();
+            while (CheckAnyToken(tokenKinds))
+            {
+                GetCurrentTokenAndReadNext(out Token operation);
+                ExpressionSyntaxNode thisExpression = new ExpressionSyntaxNode(operation);
+                SyntaxNode rightExpression = parseNext();
+                thisExpression.Add(expression);
+                thisExpression.Add(rightExpression);
+                expression = thisExpression;
+            }
+            return expression;
         }
 
 
@@ -392,6 +429,42 @@ namespace SnowRabbit.Compiler.Parser
             // 最後に読み取ったトークンを設定して次のトークンを読み込む
             token = currentLexer.LastReadToken;
             currentLexer.ReadNextToken();
+        }
+
+
+        /// <summary>
+        /// パース結果が null でないことを要求します。null の場合は例外をスローします。
+        /// </summary>
+        /// <param name="node">パース結果のノード</param>
+        /// <returns>null でない場合はそのノードを返します</returns>
+        private SyntaxNode Require(SyntaxNode node)
+        {
+            return node ?? throw errorReporter.UnknownToken(currentLexer.LastReadToken);
+        }
+
+
+        /// <summary>
+        /// 指定されたトークンが存在することを要求し、読み進めます。存在しない場合は例外をスローします。
+        /// </summary>
+        /// <param name="tokenKind">要求するトークン種別</param>
+        /// <param name="expectedSymbol">エラーメッセージに表示する期待される記号</param>
+        private void RequireToken(int tokenKind, string expectedSymbol)
+        {
+            if (!CheckTokenAndReadNext(tokenKind))
+                throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, expectedSymbol);
+        }
+
+
+        /// <summary>
+        /// 対になるトークンが存在することを要求し、読み進めます。存在しない場合は例外をスローします。
+        /// </summary>
+        /// <param name="tokenKind">要求するトークン種別</param>
+        /// <param name="openSymbol">開き記号</param>
+        /// <param name="closeSymbol">閉じ記号</param>
+        private void RequireTokenPair(int tokenKind, string openSymbol, string closeSymbol)
+        {
+            if (!CheckTokenAndReadNext(tokenKind))
+                throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, openSymbol, closeSymbol);
         }
         #endregion
 
@@ -408,12 +481,8 @@ namespace SnowRabbit.Compiler.Parser
 
         private SyntaxNode ParseLiteral()
         {
-            if (CheckToken(TokenKind.Integer) ||
-                CheckToken(TokenKind.Number) ||
-                CheckToken(TokenKind.String) ||
-                CheckToken(SrTokenKind.True) ||
-                CheckToken(SrTokenKind.False) ||
-                CheckToken(SrTokenKind.Null))
+            if (CheckAnyToken(TokenKind.Integer, TokenKind.Number, TokenKind.String,
+                              SrTokenKind.True, SrTokenKind.False, SrTokenKind.Null))
             {
                 GetCurrentTokenAndReadNext(out var token);
                 return new LiteralSyntaxNode(token);
@@ -426,12 +495,8 @@ namespace SnowRabbit.Compiler.Parser
 
         private SyntaxNode ParseType()
         {
-            if (CheckToken(SrTokenKind.TypeVoid) ||
-                CheckToken(SrTokenKind.TypeInt) ||
-                CheckToken(SrTokenKind.TypeNumber) ||
-                CheckToken(SrTokenKind.TypeString) ||
-                CheckToken(SrTokenKind.TypeObject) ||
-                CheckToken(SrTokenKind.TypeBool))
+            if (CheckAnyToken(SrTokenKind.TypeVoid, SrTokenKind.TypeInt, SrTokenKind.TypeNumber,
+                              SrTokenKind.TypeString, SrTokenKind.TypeObject, SrTokenKind.TypeBool))
             {
                 GetCurrentTokenAndReadNext(out var token);
                 return new TypeSyntaxNode(token);
@@ -785,62 +850,48 @@ namespace SnowRabbit.Compiler.Parser
             if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
             var forStatement = new ForStatementSyntaxNode();
 
+            // 初期化式（省略可能）
+            forStatement.Add(ParseOptionalForClause(TokenKind.Semicolon));
 
-            if (CheckTokenAndReadNext(TokenKind.Semicolon))
-            {
-                forStatement.Add(null);
-            }
-            else
-            {
-                var initializeExpression = ParseExpression();
-                if (initializeExpression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-                forStatement.Add(initializeExpression);
+            // 条件式（省略可能）
+            forStatement.Add(ParseOptionalForClause(TokenKind.Semicolon));
 
+            // ループ式（省略可能、終端は閉じ括弧）
+            forStatement.Add(ParseOptionalForClause(TokenKind.CloseParen));
 
-                if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
-            }
-
-
-            if (CheckTokenAndReadNext(TokenKind.Semicolon))
-            {
-                forStatement.Add(null);
-            }
-            else
-            {
-                var conditionExpression = ParseExpression();
-                if (conditionExpression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-                forStatement.Add(conditionExpression);
-
-
-                if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
-            }
-
-
-            if (CheckTokenAndReadNext(TokenKind.CloseParen))
-            {
-                forStatement.Add(null);
-            }
-            else
-            {
-                var loopExpression = ParseExpression();
-                if (loopExpression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-                forStatement.Add(loopExpression);
-
-
-                if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
-            }
-
-
+            // ブロック本体
             while (!CheckToken(SrTokenKind.End))
             {
-                var block = ParseBlock();
-                if (block == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-                forStatement.Add(block);
+                forStatement.Add(Require(ParseBlock()));
             }
-
 
             ReadNextToken();
             return forStatement;
+        }
+
+
+        /// <summary>
+        /// for文の各節（初期化、条件、ループ）をパースします。省略可能です。
+        /// </summary>
+        /// <param name="terminatorToken">この節を終了するトークン</param>
+        /// <returns>パースされた式、または省略時は null</returns>
+        private SyntaxNode ParseOptionalForClause(int terminatorToken)
+        {
+            if (CheckTokenAndReadNext(terminatorToken))
+            {
+                return null;
+            }
+
+            SyntaxNode expression = Require(ParseExpression());
+            if (terminatorToken == TokenKind.CloseParen)
+            {
+                RequireTokenPair(terminatorToken, "(", ")");
+            }
+            else
+            {
+                RequireToken(terminatorToken, ";");
+            }
+            return expression;
         }
 
 
@@ -850,22 +901,13 @@ namespace SnowRabbit.Compiler.Parser
             if (!CheckTokenAndReadNext(TokenKind.OpenParen)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             var whileStatement = new WhileStatementSyntaxNode();
 
-
-            var conditionExpression = ParseExpression();
-            if (conditionExpression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-            whileStatement.Add(conditionExpression);
-
-
-            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
-
+            whileStatement.Add(Require(ParseExpression()));
+            RequireTokenPair(TokenKind.CloseParen, "(", ")");
 
             while (!CheckToken(SrTokenKind.End))
             {
-                var block = ParseBlock();
-                if (block == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-                whileStatement.Add(block);
+                whileStatement.Add(Require(ParseBlock()));
             }
-
 
             ReadNextToken();
             return whileStatement;
@@ -878,23 +920,14 @@ namespace SnowRabbit.Compiler.Parser
             if (!CheckTokenAndReadNext(TokenKind.OpenParen)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             var ifStatement = new IfStatementSyntaxNode();
 
-
-            var expression = ParseExpression();
-            if (expression == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-            ifStatement.Add(expression);
-
-
-            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
-
+            ifStatement.Add(Require(ParseExpression()));
+            RequireTokenPair(TokenKind.CloseParen, "(", ")");
 
             SyntaxNode elseStatement = null;
             while (!CheckToken(SrTokenKind.End) && (elseStatement = ParseElseStatement()) == null)
             {
-                var block = ParseBlock();
-                if (block == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-                ifStatement.Add(block);
+                ifStatement.Add(Require(ParseBlock()));
             }
-
 
             if (elseStatement != null)
             {
@@ -915,7 +948,6 @@ namespace SnowRabbit.Compiler.Parser
             if (!CheckTokenAndReadNext(SrTokenKind.Else)) return null;
             var elseStatement = new ElseStatementSyntaxNode();
 
-
             var ifStatement = ParseIfStatement();
             if (ifStatement != null)
             {
@@ -923,14 +955,10 @@ namespace SnowRabbit.Compiler.Parser
                 return elseStatement;
             }
 
-
             while (!CheckToken(SrTokenKind.End))
             {
-                var block = ParseBlock();
-                if (block == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-                elseStatement.Add(block);
+                elseStatement.Add(Require(ParseBlock()));
             }
-
 
             ReadNextToken();
             return elseStatement;
@@ -995,192 +1023,49 @@ namespace SnowRabbit.Compiler.Parser
 
 
         private SyntaxNode ParseConditionOrExpression()
-        {
-            var expression = ParseConditionAndExpression();
-            while (CheckToken(TokenKind.DoubleVerticalbar))
-            {
-                GetCurrentTokenAndReadNext(out var operation);
-                var thisExpression = new ExpressionSyntaxNode(operation);
-                var rightExpression = ParseConditionAndExpression();
-                thisExpression.Add(expression);
-                thisExpression.Add(rightExpression);
-                expression = thisExpression;
-            }
-
-
-            return expression;
-        }
+            => ParseBinaryExpression(ParseConditionAndExpression, TokenKind.DoubleVerticalbar);
 
 
         private SyntaxNode ParseConditionAndExpression()
-        {
-            var expression = ParseLogicalOrExpression();
-            while (CheckToken(TokenKind.DoubleAnd))
-            {
-                GetCurrentTokenAndReadNext(out var operation);
-                var thisExpression = new ExpressionSyntaxNode(operation);
-                var rightExpression = ParseLogicalOrExpression();
-                thisExpression.Add(expression);
-                thisExpression.Add(rightExpression);
-                expression = thisExpression;
-            }
-
-
-            return expression;
-        }
+            => ParseBinaryExpression(ParseLogicalOrExpression, TokenKind.DoubleAnd);
 
 
         private SyntaxNode ParseLogicalOrExpression()
-        {
-            var expression = ParseLogicalExclusiveOrExpression();
-            while (CheckToken(TokenKind.Verticalbar))
-            {
-                GetCurrentTokenAndReadNext(out var operation);
-                var thisExpression = new ExpressionSyntaxNode(operation);
-                var rightExpression = ParseLogicalExclusiveOrExpression();
-                thisExpression.Add(expression);
-                thisExpression.Add(rightExpression);
-                expression = thisExpression;
-            }
-
-
-            return expression;
-        }
+            => ParseBinaryExpression(ParseLogicalExclusiveOrExpression, TokenKind.Verticalbar);
 
 
         private SyntaxNode ParseLogicalExclusiveOrExpression()
-        {
-            var expression = ParseLogicalAndExpression();
-            while (CheckToken(TokenKind.Circumflex))
-            {
-                GetCurrentTokenAndReadNext(out var operation);
-                var thisExpression = new ExpressionSyntaxNode(operation);
-                var rightExpression = ParseLogicalAndExpression();
-                thisExpression.Add(expression);
-                thisExpression.Add(rightExpression);
-                expression = thisExpression;
-            }
-
-
-            return expression;
-        }
+            => ParseBinaryExpression(ParseLogicalAndExpression, TokenKind.Circumflex);
 
 
         private SyntaxNode ParseLogicalAndExpression()
-        {
-            var expression = ParseEqualityExpression();
-            while (CheckToken(TokenKind.And))
-            {
-                GetCurrentTokenAndReadNext(out var operation);
-                var thisExpression = new ExpressionSyntaxNode(operation);
-                var rightExpression = ParseEqualityExpression();
-                thisExpression.Add(expression);
-                thisExpression.Add(rightExpression);
-                expression = thisExpression;
-            }
-
-
-            return expression;
-        }
+            => ParseBinaryExpression(ParseEqualityExpression, TokenKind.And);
 
 
         private SyntaxNode ParseEqualityExpression()
-        {
-            var expression = ParseRelationalExpression();
-            while (CheckToken(TokenKind.DoubleEqual) || CheckToken(TokenKind.NotEqual))
-            {
-                GetCurrentTokenAndReadNext(out var operation);
-                var thisExpression = new ExpressionSyntaxNode(operation);
-                var rightExpression = ParseRelationalExpression();
-                thisExpression.Add(expression);
-                thisExpression.Add(rightExpression);
-                expression = thisExpression;
-            }
-
-
-            return expression;
-        }
+            => ParseBinaryExpression(ParseRelationalExpression, TokenKind.DoubleEqual, TokenKind.NotEqual);
 
 
         private SyntaxNode ParseRelationalExpression()
-        {
-            var expression = ParseShiftExpression();
-            while (CheckToken(TokenKind.OpenAngle) || CheckToken(TokenKind.CloseAngle) || CheckToken(TokenKind.LesserEqual) || CheckToken(TokenKind.GreaterEqual))
-            {
-                GetCurrentTokenAndReadNext(out var operation);
-                var thisExpression = new ExpressionSyntaxNode(operation);
-                var rightExpression = ParseShiftExpression();
-                thisExpression.Add(expression);
-                thisExpression.Add(rightExpression);
-                expression = thisExpression;
-            }
-
-
-            return expression;
-        }
+            => ParseBinaryExpression(ParseShiftExpression, TokenKind.OpenAngle, TokenKind.CloseAngle, TokenKind.LesserEqual, TokenKind.GreaterEqual);
 
 
         private SyntaxNode ParseShiftExpression()
-        {
-            var expression = ParseAddSubExpression();
-            while (CheckToken(TokenKind.DoubleOpenAngle) || CheckToken(TokenKind.DoubleCloseAngle))
-            {
-                GetCurrentTokenAndReadNext(out var operation);
-                var thisExpression = new ExpressionSyntaxNode(operation);
-                var rightExpression = ParseAddSubExpression();
-                thisExpression.Add(expression);
-                thisExpression.Add(rightExpression);
-                expression = thisExpression;
-            }
-
-
-            return expression;
-        }
+            => ParseBinaryExpression(ParseAddSubExpression, TokenKind.DoubleOpenAngle, TokenKind.DoubleCloseAngle);
 
 
         private SyntaxNode ParseAddSubExpression()
-        {
-            var expression = ParseMulDivExpression();
-            while (CheckToken(TokenKind.Plus) || CheckToken(TokenKind.Minus))
-            {
-                GetCurrentTokenAndReadNext(out var operation);
-                var thisExpression = new ExpressionSyntaxNode(operation);
-                var rightExpression = ParseMulDivExpression();
-                thisExpression.Add(expression);
-                thisExpression.Add(rightExpression);
-                expression = thisExpression;
-            }
-
-
-            return expression;
-        }
+            => ParseBinaryExpression(ParseMulDivExpression, TokenKind.Plus, TokenKind.Minus);
 
 
         private SyntaxNode ParseMulDivExpression()
-        {
-            var expression = ParseUnaryExpression();
-            while (CheckToken(TokenKind.Asterisk) || CheckToken(TokenKind.Slash))
-            {
-                GetCurrentTokenAndReadNext(out var operation);
-                var thisExpression = new ExpressionSyntaxNode(operation);
-                var rightExpression = ParseUnaryExpression();
-                thisExpression.Add(expression);
-                thisExpression.Add(rightExpression);
-                expression = thisExpression;
-            }
-
-
-            return expression;
-        }
+            => ParseBinaryExpression(ParseUnaryExpression, TokenKind.Asterisk, TokenKind.Slash);
 
 
         private SyntaxNode ParseUnaryExpression()
         {
-            if (CheckToken(TokenKind.Plus) ||
-                CheckToken(TokenKind.Minus) ||
-                CheckToken(TokenKind.Exclamation) ||
-                CheckToken(TokenKind.DoublePlus) ||
-                CheckToken(TokenKind.DoubleMinus))
+            if (CheckAnyToken(TokenKind.Plus, TokenKind.Minus, TokenKind.Exclamation,
+                              TokenKind.DoublePlus, TokenKind.DoubleMinus))
             {
                 GetCurrentTokenAndReadNext(out var operation);
                 var thisExpression = new ExpressionSyntaxNode(operation);
