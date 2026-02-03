@@ -947,10 +947,11 @@ namespace SnowRabbit.Compiler.Parser
         /// <returns>break文ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseBreakStatement()
         {
-            if (CheckTokenAndReadNext(SrTokenKind.Break) &&
-                CheckTokenAndReadNext(TokenKind.Semicolon))
+            if (!CheckToken(SrTokenKind.Break)) return null;
+            GetCurrentTokenAndReadNext(out var token);
+            if (CheckTokenAndReadNext(TokenKind.Semicolon))
             {
-                return new BreakStatementSyntaxNode();
+                return new BreakStatementSyntaxNode(token);
             }
 
             return null;
@@ -962,13 +963,14 @@ namespace SnowRabbit.Compiler.Parser
         /// <returns>return文ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseReturnStatement()
         {
-            if (!CheckTokenAndReadNext(SrTokenKind.Return)) return null;
+            if (!CheckToken(SrTokenKind.Return)) return null;
+            GetCurrentTokenAndReadNext(out var token);
             if (CheckTokenAndReadNext(TokenKind.Semicolon))
             {
-                return new ReturnStatementSyntaxNode();
+                return new ReturnStatementSyntaxNode(token);
             }
 
-            var returnStatement = new ReturnStatementSyntaxNode();
+            var returnStatement = new ReturnStatementSyntaxNode(token);
             returnStatement.Add(Require(ParseExpression()));
             RequireToken(TokenKind.Semicolon, ";");
             return returnStatement;

@@ -26,6 +26,16 @@ using SnowRabbit.RuntimeEngine.VirtualMachine;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
+    /// <summary>
+    /// ローカル変数宣言構文を表す構文ノードクラスです。
+    /// 例: <c>local int x = 10;</c>
+    /// </summary>
+    /// <remarks>
+    /// 子ノード構造:
+    /// - Children[0]: 型（TypeSyntaxNode）
+    /// - Children[1]: 変数名（IdentifierSyntaxNode）
+    /// - Children[2]: 初期化式（存在する場合）
+    /// </remarks>
     public class LocalVariableDeclareSyntaxNode : SyntaxNode
     {
         public override void Compile(SrCompileContext context)

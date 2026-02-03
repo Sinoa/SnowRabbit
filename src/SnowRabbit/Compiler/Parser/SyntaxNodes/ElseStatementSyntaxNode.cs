@@ -27,8 +27,21 @@ using System.Collections.Generic;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
+    /// <summary>
+    /// else文またはelse if文を表す構文ノードクラスです。
+    /// if文の代替分岐として機能し、IfStatementSyntaxNodeと連携します。
+    /// </summary>
+    /// <remarks>
+    /// 子ノード構造:
+    /// - else if の場合: Children[0] = IfStatementSyntaxNode
+    /// - else の場合: Children[0...n] = else節の文
+    /// </remarks>
     public class ElseStatementSyntaxNode : SyntaxNode
     {
+        /// <summary>
+        /// 分岐終了位置のパッチ対象アドレスリスト。
+        /// 親のIfStatementSyntaxNodeから渡され、else if チェインで共有されます。
+        /// </summary>
         public List<int> patchTargetAddressList;
 
 

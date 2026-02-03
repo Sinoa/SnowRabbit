@@ -26,6 +26,20 @@ using SnowRabbit.RuntimeEngine.VirtualMachine;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
+    /// <summary>
+    /// while文を表す構文ノードクラスです。
+    /// 条件が真の間繰り返すループ構造を表現します。
+    /// </summary>
+    /// <remarks>
+    /// 子ノード構造:
+    /// - Children[0]: 条件式
+    /// - Children[1...n]: ループ本体の文
+    /// 
+    /// 生成されるコード構造:
+    /// 1. 条件式（falseならループ終了へジャンプ）
+    /// 2. ループ本体
+    /// 3. 条件式へジャンプ
+    /// </remarks>
     public class WhileStatementSyntaxNode : SyntaxNode
     {
         public override void Compile(SrCompileContext context)

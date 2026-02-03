@@ -123,5 +123,95 @@ namespace SnowRabbit.Compiler.Reporter
         {
             return CreateAndReportErrorMessage(token, $"パラメータの値渡しの型が '{fromType}' から '{toType}' へ一致しません。事前にキャストするか変換を行ってください。");
         }
+
+
+        /// <summary>
+        /// ループ外でのbreak文使用エラー
+        /// </summary>
+        public SrSyntaxErrorException InvalidBreakStatement(in Token token)
+        {
+            return CreateAndReportErrorMessage(token, "break文はループ（for, while）の内部でのみ使用できます。");
+        }
+
+
+        /// <summary>
+        /// 型不一致エラー
+        /// </summary>
+        public SrSyntaxErrorException TypeMismatch(in Token token, SrRuntimeType expectedType, SrRuntimeType actualType)
+        {
+            return CreateAndReportErrorMessage(token, $"型 '{expectedType}' が期待されていますが、'{actualType}' が指定されています。");
+        }
+
+
+        /// <summary>
+        /// void関数で戻り値を返そうとしたエラー
+        /// </summary>
+        public SrSyntaxErrorException VoidReturnWithValue(in Token token, string functionName)
+        {
+            return CreateAndReportErrorMessage(token, $"関数 '{functionName}' は void 型のため、戻り値を返すことはできません。");
+        }
+
+
+        /// <summary>
+        /// 非void関数で戻り値がないエラー
+        /// </summary>
+        public SrSyntaxErrorException NonVoidReturnWithoutValue(in Token token, string functionName, SrRuntimeType returnType)
+        {
+            return CreateAndReportErrorMessage(token, $"関数 '{functionName}' は '{returnType}' 型の戻り値が必要です。");
+        }
+
+
+        /// <summary>
+        /// 不正な単項演算エラー
+        /// </summary>
+        public SrSyntaxErrorException InvalidUnaryOperation(in Token token, string operatorText, SrRuntimeType operandType)
+        {
+            return CreateAndReportErrorMessage(token, $"演算子 '{operatorText}' は型 '{operandType}' に対して使用できません。");
+        }
+
+
+        /// <summary>
+        /// レジスタ枯渇エラー
+        /// </summary>
+        public SrSyntaxErrorException RegisterExhausted(in Token token)
+        {
+            return CreateAndReportErrorMessage(token, "利用可能なレジスタがありません。式が複雑すぎます。");
+        }
+
+
+        /// <summary>
+        /// 不正なキャストエラー
+        /// </summary>
+        public SrSyntaxErrorException InvalidCast(in Token token, SrRuntimeType fromType, SrRuntimeType toType)
+        {
+            return CreateAndReportErrorMessage(token, $"型 '{fromType}' から '{toType}' への変換はサポートされていません。");
+        }
+
+
+        /// <summary>
+        /// 不正な二項演算エラー
+        /// </summary>
+        public SrSyntaxErrorException InvalidBinaryOperation(in Token token, string operatorText, SrRuntimeType type)
+        {
+            return CreateAndReportErrorMessage(token, $"演算子 '{operatorText}' は型 '{type}' に対して使用できません。");
+        }
+
+
+        /// <summary>
+        /// 不明な式エラー
+        /// </summary>
+        public SrSyntaxErrorException UnknownExpression(in Token token)
+        {
+            return CreateAndReportErrorMessage(token, "不明な式です。");
+        }
+
+
+        /// <summary>
+        /// 不明なリテラル型エラー
+        /// </summary>
+        public SrSyntaxErrorException UnknownLiteralType(in Token token)
+        {
+            return CreateAndReportErrorMessage(token, $"不明なリテラル型 '{token.Text}' です。");
+        }
     }
 }

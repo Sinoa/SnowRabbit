@@ -21,19 +21,32 @@
 // 3. This notice may not be removed or altered from any source
 // distribution.
 
+using SnowRabbit.Compiler.Lexer;
 using SnowRabbit.RuntimeEngine;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
+    /// <summary>
+    /// break文を表す構文ノードクラスです。
+    /// ループ（for, while）から脱出する際に使用されます。
+    /// </summary>
     public class BreakStatementSyntaxNode : SyntaxNode
     {
+        /// <summary>
+        /// BreakStatementSyntaxNode クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="token">対応するトークン</param>
+        public BreakStatementSyntaxNode(in Token token) : base(token)
+        {
+        }
+
         public override void Compile(SrCompileContext context)
         {
             var breakTargetLabel = context.CurrentBreakTargetLabel;
             if (breakTargetLabel == null)
             {
-                // そもそもネストされたブロックの位置に居ない
-                throw new System.Exception();
+                // ループ外でのbreak文使用
+                throw context.ErrorReporter.InvalidBreakStatement(Token);
             }
 
 

@@ -24,18 +24,20 @@
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 定数定義構文を表す構文ノードクラスです
+    /// 定数定義ディレクティブ構文を表す構文ノードクラスです。
+    /// 例: <c>#const PI 3.14159</c>
     /// </summary>
     public class ConstantDefineDirectiveSyntaxNode : SyntaxNode
     {
         public override void Compile(SrCompileContext context)
         {
             var name = Children[0].Token.Text;
+            var nameToken = Children[0].Token;
             var literal = Children[1].Token;
             if (context.AssemblyData.GetGlobalSymbol(name) != null)
             {
                 // 既に定義済みの名前
-                throw new System.Exception();
+                throw context.ErrorReporter.PredefinedSymbol(nameToken, name);
             }
 
 

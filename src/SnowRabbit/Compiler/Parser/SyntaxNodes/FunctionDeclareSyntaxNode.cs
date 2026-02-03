@@ -28,7 +28,8 @@ using SnowRabbit.RuntimeEngine.VirtualMachine;
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// スクリプト関数定義構文を表す構文ノードクラスです
+    /// スクリプト関数定義構文を表す構文ノードクラスです。
+    /// 例: <c>function int Add(int a, int b) ... end</c>
     /// </summary>
     public class FunctionDeclareSyntaxNode : SyntaxNode
     {
@@ -36,11 +37,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
             var returnType = context.ToRuntimeType(Children[0].Token.Kind);
             var functionName = Children[1].Token.Text;
+            var nameToken = Children[1].Token;
             var parameterList = Children[2];
             if (context.AssemblyData.GetGlobalSymbol(functionName) != null)
             {
                 // 既に定義済みの名前
-                throw new System.Exception();
+                throw context.ErrorReporter.PredefinedSymbol(nameToken, functionName);
             }
 
 

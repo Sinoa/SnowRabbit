@@ -30,10 +30,19 @@ using SnowRabbit.RuntimeEngine.VirtualMachine;
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 関数呼び出し構文の構文ノードクラスです
+    /// 関数呼び出し構文を表す構文ノードクラスです。
+    /// スクリプト関数およびペリフェラル関数の呼び出しを処理します。
     /// </summary>
+    /// <remarks>
+    /// 子ノード構造:
+    /// - Children[0]: 関数名（IdentifierSyntaxNode）
+    /// - Children[1]: 引数リスト（ArgumentListSyntaxNode、nullの場合あり）
+    /// </remarks>
     public class FunctionCallSyntaxNode : SyntaxNode
     {
+        /// <summary>
+        /// 呼び出す関数の名前
+        /// </summary>
         public string FunctionName { get; private set; }
 
 

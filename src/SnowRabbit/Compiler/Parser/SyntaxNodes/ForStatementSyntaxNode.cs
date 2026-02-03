@@ -26,6 +26,25 @@ using SnowRabbit.RuntimeEngine.VirtualMachine;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
+    /// <summary>
+    /// for文を表す構文ノードクラスです。
+    /// 初期化式、条件式、更新式を持つループ構造を表現します。
+    /// </summary>
+    /// <remarks>
+    /// 子ノード構造:
+    /// - Children[0]: 初期化式（nullの場合あり）
+    /// - Children[1]: 条件式（nullの場合あり）
+    /// - Children[2]: 更新式（nullの場合あり）
+    /// - Children[3...n]: ループ本体の文
+    /// 
+    /// 生成されるコード構造:
+    /// 1. 初期化式
+    /// 2. 条件式へジャンプ
+    /// 3. 更新式
+    /// 4. 条件式（falseならループ終了へジャンプ）
+    /// 5. ループ本体
+    /// 6. 更新式へジャンプ
+    /// </remarks>
     public class ForStatementSyntaxNode : SyntaxNode
     {
         public override void Compile(SrCompileContext context)

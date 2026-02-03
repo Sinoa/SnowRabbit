@@ -29,9 +29,27 @@ using SnowRabbit.RuntimeEngine.VirtualMachine;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
+    /// <summary>
+    /// if文を表す構文ノードクラスです。
+    /// 条件分岐（if-else if-else）の構造を保持し、分岐命令を生成します。
+    /// </summary>
+    /// <remarks>
+    /// 子ノード構造:
+    /// - Children[0]: 条件式
+    /// - Children[1...n-1]: then節の文
+    /// - Children[n]: else節（ElseStatementSyntaxNode、存在する場合）
+    /// </remarks>
     public class IfStatementSyntaxNode : SyntaxNode
     {
+        /// <summary>
+        /// 分岐終了位置のパッチ対象アドレスリスト。
+        /// if-else if-else チェインで共有され、最終的な分岐先アドレスをバックパッチするために使用されます。
+        /// </summary>
         public List<int> patchTargetAddressList;
+
+        /// <summary>
+        /// このノードがif-elseチェインのルート（最初のif）かどうかを示します
+        /// </summary>
         private bool rootIfNode;
 
 

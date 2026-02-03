@@ -22,21 +22,35 @@
 // distribution.
 
 using SnowRabbit.Compiler.Assembler.Symbols;
+using SnowRabbit.Compiler.Lexer;
 using SnowRabbit.RuntimeEngine;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
+    /// <summary>
+    /// return文を表す構文ノードクラスです。
+    /// 関数から値を返す、または関数を終了する際に使用されます。
+    /// </summary>
     public class ReturnStatementSyntaxNode : SyntaxNode
     {
+        /// <summary>
+        /// ReturnStatementSyntaxNode クラスのインスタンスを初期化します
+        /// </summary>
+        /// <param name="token">対応するトークン</param>
+        public ReturnStatementSyntaxNode(in Token token) : base(token)
+        {
+        }
+
         public override void Compile(SrCompileContext context)
         {
             var functionSymbol = context.AssemblyData.GetFunctionSymbol(context.CurrentCompileFunctionName);
+            var functionName = context.CurrentCompileFunctionName;
             if (Children.Count > 0)
             {
                 if (functionSymbol.ReturnType == SrRuntimeType.Void)
                 {
-                    // 関数は戻り地を返さない
-                    throw new System.Exception();
+                    // void関数で戻り値を返そうとしている
+                    throw context.ErrorReporter.VoidReturnWithValue(Token, functionName);
                 }
 
 
@@ -46,8 +60,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             {
                 if (functionSymbol.ReturnType != SrRuntimeType.Void)
                 {
-                    // 関数に戻り地を必要とする
-                    throw new System.Exception();
+                    // 非void関数で戻り値がない
+                    throw context.ErrorReporter.NonVoidReturnWithoutValue(Token, functionName, functionSymbol.ReturnType);
                 }
             }
 

@@ -25,13 +25,17 @@ using SnowRabbit.Compiler.Lexer;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
+    /// <summary>
+    /// 空文を表す構文ノードクラスです。
+    /// セミコロンのみの文（例: <c>;</c>）に対応します。
+    /// </summary>
     public class EmptyStatementSyntaxNode : SyntaxNode
     {
         /// <summary>
         /// EmptyStatementSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
         /// <param name="token">対応するトークン</param>
-        public EmptyStatementSyntaxNode(in Token token)
+        public EmptyStatementSyntaxNode(in Token token) : base(token)
         {
         }
     }

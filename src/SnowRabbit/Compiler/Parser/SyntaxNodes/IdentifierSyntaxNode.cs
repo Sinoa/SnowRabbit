@@ -26,7 +26,8 @@ using SnowRabbit.Compiler.Lexer;
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 識別子構文を表す構文ノードクラスです
+    /// 識別子を表す構文ノードクラスです。
+    /// 変数名、関数名、定数名などの識別子を保持します。
     /// </summary>
     public class IdentifierSyntaxNode : ExpressionSyntaxNode
     {

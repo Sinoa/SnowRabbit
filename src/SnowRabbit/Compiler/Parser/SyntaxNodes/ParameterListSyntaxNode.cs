@@ -24,9 +24,10 @@
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 引数リスト構文を表す構文ノードクラスです
+    /// パラメータリスト構文を表す構文ノードクラスです。
+    /// 関数定義のパラメータ一覧（例: <c>(int a, int b)</c>）を保持します。
     /// </summary>
-    class ParameterListSyntaxNode : SyntaxNode
+    public class ParameterListSyntaxNode : SyntaxNode
     {
     }
 }

@@ -26,7 +26,8 @@ using SnowRabbit.Compiler.Lexer;
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// グローバル変数宣言構文を表す構文ノードクラスです
+    /// グローバル変数宣言構文を表す構文ノードクラスです。
+    /// 例: <c>global int counter = 0;</c>
     /// </summary>
     public class GlobalVariableDeclareSyntaxNode : SyntaxNode
     {
@@ -34,6 +35,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
             var type = context.ToRuntimeType(Children[0].Token.Kind);
             var name = Children[1].Token.Text;
+            var nameToken = Children[1].Token;
             var literal = default(Token);
 
 
@@ -44,7 +46,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 if (type != literalType)
                 {
                     // 宣言の型とリテラルの型が一致しない
-                    throw new System.Exception();
+                    throw context.ErrorReporter.TypeMismatch(literal, type, literalType);
                 }
             }
 
@@ -52,7 +54,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             if (context.AssemblyData.GetGlobalSymbol(name) != null)
             {
                 // 既に定義済みの名前
-                throw new System.Exception();
+                throw context.ErrorReporter.PredefinedSymbol(nameToken, name);
             }
 
 
