@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/SampleApplication/SampleApplication.csproj" />
+  <Project Path="src/SnowRabbit/SnowRabbit.csproj" />
+</Solution>
