@@ -440,6 +440,10 @@ namespace SnowRabbit.Compiler.Parser
 
         #region 全パース関数
         #region Simple syntax
+        /// <summary>
+        /// 識別子をパースします
+        /// </summary>
+        /// <returns>識別子ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseIdentifier()
         {
             if (!CheckToken(TokenKind.Identifier)) return null;
@@ -447,6 +451,10 @@ namespace SnowRabbit.Compiler.Parser
             return new IdentifierSyntaxNode(token);
         }
 
+        /// <summary>
+        /// リテラル（整数、実数、文字列、true、false、null）をパースします
+        /// </summary>
+        /// <returns>リテラルノード、または該当しない場合は null</returns>
         private SyntaxNode ParseLiteral()
         {
             if (CheckAnyToken(TokenKind.Integer, TokenKind.Number, TokenKind.String,
@@ -459,6 +467,10 @@ namespace SnowRabbit.Compiler.Parser
             return null;
         }
 
+        /// <summary>
+        /// 型（void、int、number、string、object、bool）をパースします
+        /// </summary>
+        /// <returns>型ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseType()
         {
             if (CheckAnyToken(SrTokenKind.TypeVoid, SrTokenKind.TypeInt, SrTokenKind.TypeNumber,
@@ -471,6 +483,10 @@ namespace SnowRabbit.Compiler.Parser
             return null;
         }
 
+        /// <summary>
+        /// 関数パラメータ（型 識別子）をパースします
+        /// </summary>
+        /// <returns>パラメータノード、または該当しない場合は null</returns>
         private SyntaxNode ParseParameter()
         {
             var type = ParseType();
@@ -484,6 +500,10 @@ namespace SnowRabbit.Compiler.Parser
             return node;
         }
 
+        /// <summary>
+        /// 関数呼び出しの引数（式）をパースします
+        /// </summary>
+        /// <returns>引数ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseArgument()
         {
             var argument = new ArgumentSyntaxNode(currentLexer.LastReadToken);
@@ -495,6 +515,10 @@ namespace SnowRabbit.Compiler.Parser
             return argument;
         }
 
+        /// <summary>
+        /// 型リスト（カンマ区切りの型の並び）をパースします
+        /// </summary>
+        /// <returns>型リストノード、または該当しない場合は null</returns>
         private SyntaxNode ParseTypeList()
         {
             var type = ParseType();
@@ -512,6 +536,10 @@ namespace SnowRabbit.Compiler.Parser
             return typeList;
         }
 
+        /// <summary>
+        /// パラメータリスト（カンマ区切りのパラメータの並び）をパースします
+        /// </summary>
+        /// <returns>パラメータリストノード、または該当しない場合は null</returns>
         private SyntaxNode ParseParameterList()
         {
             var parameter = ParseParameter();
@@ -529,6 +557,10 @@ namespace SnowRabbit.Compiler.Parser
             return parameterList;
         }
 
+        /// <summary>
+        /// 引数リスト（カンマ区切りの引数の並び）をパースします。引数がない場合は空のリストを返します。
+        /// </summary>
+        /// <returns>引数リストノード</returns>
         private SyntaxNode ParseArgumentList()
         {
             var argumentList = new ArgumentListSyntaxNode(currentLexer.LastReadToken);
@@ -546,6 +578,10 @@ namespace SnowRabbit.Compiler.Parser
         #endregion
 
         #region Compile unit syntax
+        /// <summary>
+        /// コンパイル単位（スクリプトファイル全体）をパースします
+        /// </summary>
+        /// <returns>コンパイル単位ノード、または空の場合は null</returns>
         private SyntaxNode ParseCompileUnit()
         {
             var compileUnit = new CompileUnitSyntaxNode();
@@ -567,6 +603,10 @@ namespace SnowRabbit.Compiler.Parser
         #endregion
 
         #region Pre-Processor directive syntax
+        /// <summary>
+        /// プリプロセッサディレクティブ（#compile、#link、#const）をパースします
+        /// </summary>
+        /// <returns>ディレクティブノード、または該当しない場合は null</returns>
         private SyntaxNode ParseDirectives()
         {
             if (!CheckTokenAndReadNext(TokenKind.Sharp)) return null;
@@ -578,6 +618,11 @@ namespace SnowRabbit.Compiler.Parser
                 null;
         }
 
+        /// <summary>
+        /// スクリプトコンパイルディレクティブ（#compile "path"）をパースします。
+        /// 指定されたスクリプトを再帰的にパースします。
+        /// </summary>
+        /// <returns>パースされたスクリプトのノード、または該当しない場合は null</returns>
         private SyntaxNode ParseScriptCompileDirective()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Compile)) return null;
@@ -586,6 +631,10 @@ namespace SnowRabbit.Compiler.Parser
             return Parse(token.Text);
         }
 
+        /// <summary>
+        /// リンクオブジェクトディレクティブ（#link "path"）をパースします
+        /// </summary>
+        /// <returns>リンクオブジェクトノード、または該当しない場合は null</returns>
         private SyntaxNode ParseLinkObjectDirective()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Link)) return null;
@@ -594,6 +643,10 @@ namespace SnowRabbit.Compiler.Parser
             return new LinkObjectDirectiveSyntaxNode(token);
         }
 
+        /// <summary>
+        /// 定数定義ディレクティブ（#const name value）をパースします
+        /// </summary>
+        /// <returns>定数定義ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseConstantDefineDirective()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Const)) return null;
@@ -606,6 +659,10 @@ namespace SnowRabbit.Compiler.Parser
         #endregion
 
         #region Define and Declare syntax
+        /// <summary>
+        /// ペリフェラル宣言（using name = type Peripheral.Function(types);）をパースします
+        /// </summary>
+        /// <returns>ペリフェラル宣言ノード、または該当しない場合は null</returns>
         private SyntaxNode ParsePeripheralDeclare()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Using)) return null;
@@ -634,6 +691,10 @@ namespace SnowRabbit.Compiler.Parser
             return peripheralDeclare;
         }
 
+        /// <summary>
+        /// グローバル変数宣言（global type name [= literal];）をパースします
+        /// </summary>
+        /// <returns>グローバル変数宣言ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseGlobalVariableDeclare()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Global)) return null;
@@ -654,6 +715,10 @@ namespace SnowRabbit.Compiler.Parser
             return globalVariableDeclare;
         }
 
+        /// <summary>
+        /// ローカル変数宣言（local type name [= expression];）をパースします
+        /// </summary>
+        /// <returns>ローカル変数宣言ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseLocalVariableDeclare()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Local)) return null;
@@ -674,6 +739,10 @@ namespace SnowRabbit.Compiler.Parser
             return localVariableDeclare;
         }
 
+        /// <summary>
+        /// 関数宣言（function type name(params) ... end）をパースします
+        /// </summary>
+        /// <returns>関数宣言ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseFunctionDeclare()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Function)) return null;
@@ -697,11 +766,19 @@ namespace SnowRabbit.Compiler.Parser
         #endregion
 
         #region Block syntax
+        /// <summary>
+        /// ブロック（文の集まり）をパースします
+        /// </summary>
+        /// <returns>パースされた文ノード</returns>
         private SyntaxNode ParseBlock()
         {
             return ParseStatement();
         }
 
+        /// <summary>
+        /// 文をパースします。制御構文、変数宣言、式文のいずれかを解析します。
+        /// </summary>
+        /// <returns>文ノード</returns>
         private SyntaxNode ParseStatement()
         {
             var result =
@@ -715,14 +792,19 @@ namespace SnowRabbit.Compiler.Parser
                 null;
             if (result != null) return result;
 
+            // 上記に該当しない場合は式文として処理
             result = ParseExpression();
             if (result == null) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
-            if (!CheckTokenAndReadNext(TokenKind.Semicolon)) throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, ";");
+            RequireToken(TokenKind.Semicolon, ";");
             return result;
         }
         #endregion
 
         #region Statement syntax
+        /// <summary>
+        /// 空文（;のみ）をパースします
+        /// </summary>
+        /// <returns>空文ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseEmptyStatement()
         {
             if (!CheckToken(TokenKind.Semicolon)) return null;
@@ -730,20 +812,19 @@ namespace SnowRabbit.Compiler.Parser
             return new EmptyStatementSyntaxNode(token);
         }
 
+        /// <summary>
+        /// for文（for(init; cond; loop) ... end）をパースします
+        /// </summary>
+        /// <returns>for文ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseForStatement()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.For)) return null;
             if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
             var forStatement = new ForStatementSyntaxNode();
 
-            // 初期化式（省略可能）
-            forStatement.Add(ParseOptionalForClause(TokenKind.Semicolon));
-
-            // 条件式（省略可能）
-            forStatement.Add(ParseOptionalForClause(TokenKind.Semicolon));
-
-            // ループ式（省略可能、終端は閉じ括弧）
-            forStatement.Add(ParseOptionalForClause(TokenKind.CloseParen));
+            forStatement.Add(ParseOptionalForClause(TokenKind.Semicolon));  // 初期化式
+            forStatement.Add(ParseOptionalForClause(TokenKind.Semicolon));  // 条件式
+            forStatement.Add(ParseOptionalForClause(TokenKind.CloseParen)); // ループ式
 
             // ブロック本体
             while (!CheckToken(SrTokenKind.End))
@@ -779,6 +860,10 @@ namespace SnowRabbit.Compiler.Parser
             return expression;
         }
 
+        /// <summary>
+        /// while文（while(cond) ... end）をパースします
+        /// </summary>
+        /// <returns>while文ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseWhileStatement()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.While)) return null;
@@ -797,6 +882,10 @@ namespace SnowRabbit.Compiler.Parser
             return whileStatement;
         }
 
+        /// <summary>
+        /// if文（if(cond) ... [else ...] end）をパースします
+        /// </summary>
+        /// <returns>if文ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseIfStatement()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.If)) return null;
@@ -825,11 +914,16 @@ namespace SnowRabbit.Compiler.Parser
             throw errorReporter.NotSymbolEnd(currentLexer.LastReadToken, "end");
         }
 
+        /// <summary>
+        /// else節（else ... または else if ...）をパースします
+        /// </summary>
+        /// <returns>else節ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseElseStatement()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Else)) return null;
             var elseStatement = new ElseStatementSyntaxNode();
 
+            // else if の場合
             var ifStatement = ParseIfStatement();
             if (ifStatement != null)
             {
@@ -837,6 +931,7 @@ namespace SnowRabbit.Compiler.Parser
                 return elseStatement;
             }
 
+            // else のみの場合
             while (!CheckToken(SrTokenKind.End))
             {
                 elseStatement.Add(Require(ParseBlock()));
@@ -846,6 +941,10 @@ namespace SnowRabbit.Compiler.Parser
             return elseStatement;
         }
 
+        /// <summary>
+        /// break文（break;）をパースします
+        /// </summary>
+        /// <returns>break文ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseBreakStatement()
         {
             if (CheckTokenAndReadNext(SrTokenKind.Break) &&
@@ -857,6 +956,10 @@ namespace SnowRabbit.Compiler.Parser
             return null;
         }
 
+        /// <summary>
+        /// return文（return [expression];）をパースします
+        /// </summary>
+        /// <returns>return文ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseReturnStatement()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.Return)) return null;
@@ -873,11 +976,19 @@ namespace SnowRabbit.Compiler.Parser
         #endregion
 
         #region Expression syntax
+        /// <summary>
+        /// 式をパースします。代入式を最上位として解析を開始します。
+        /// </summary>
+        /// <returns>式ノード</returns>
         private SyntaxNode ParseExpression()
         {
             return ParseAssignmentExpression();
         }
 
+        /// <summary>
+        /// 代入式（=, +=, -=, *=, /=, &amp;=, |=, ^=）をパースします
+        /// </summary>
+        /// <returns>式ノード</returns>
         private SyntaxNode ParseAssignmentExpression()
         {
             var expression = ParseConditionOrExpression();
@@ -893,6 +1004,9 @@ namespace SnowRabbit.Compiler.Parser
 
             return expression;
         }
+
+        // 以下、演算子優先順位に従った二項演算式のパース
+        // 優先順位（低→高）: || → && → | → ^ → & → ==,!= → <,>,<=,>= → <<,>> → +,- → *,/
 
         private SyntaxNode ParseConditionOrExpression()
             => ParseBinaryExpression(ParseConditionAndExpression, TokenKind.DoubleVerticalbar);
@@ -924,6 +1038,10 @@ namespace SnowRabbit.Compiler.Parser
         private SyntaxNode ParseMulDivExpression()
             => ParseBinaryExpression(ParseUnaryExpression, TokenKind.Asterisk, TokenKind.Slash);
 
+        /// <summary>
+        /// 単項式（+, -, !, ++, --）をパースします
+        /// </summary>
+        /// <returns>式ノード</returns>
         private SyntaxNode ParseUnaryExpression()
         {
             if (CheckAnyToken(TokenKind.Plus, TokenKind.Minus, TokenKind.Exclamation,
@@ -939,17 +1057,27 @@ namespace SnowRabbit.Compiler.Parser
             return ParsePostUnaryExpression();
         }
 
+        /// <summary>
+        /// 後置単項式（関数呼び出し）をパースします
+        /// </summary>
+        /// <returns>式ノード</returns>
         private SyntaxNode ParsePostUnaryExpression()
         {
             var expression = ParsePrimaryExpression();
             if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return expression;
+
+            // 関数呼び出し
             var functionCall = new FunctionCallSyntaxNode();
             functionCall.Add(expression);
             functionCall.Add(ParseArgumentList());
-            if (!CheckTokenAndReadNext(TokenKind.CloseParen)) throw errorReporter.NotSymbolPair(currentLexer.LastReadToken, "(", ")");
+            RequireTokenPair(TokenKind.CloseParen, "(", ")");
             return functionCall;
         }
 
+        /// <summary>
+        /// 一次式（リテラル、識別子、括弧式）をパースします
+        /// </summary>
+        /// <returns>式ノード、または該当しない場合は null</returns>
         private SyntaxNode ParsePrimaryExpression()
         {
             return
@@ -959,6 +1087,10 @@ namespace SnowRabbit.Compiler.Parser
                 null;
         }
 
+        /// <summary>
+        /// 括弧式（(expression)）をパースします
+        /// </summary>
+        /// <returns>式ノード、または該当しない場合は null</returns>
         private SyntaxNode ParseParenExpression()
         {
             if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
