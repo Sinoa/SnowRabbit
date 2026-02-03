@@ -734,8 +734,8 @@ namespace SnowRabbit.Compiler.Lexer
                 // もしストリームが終了していたら
                 if (readChara == EndOfStream)
                 {
-                    // 無効な文字列設定として終了
-                    token = new Token(TokenKind.Unknown, "文字列が正しく終了していません", 0, 0.0, name, currentLineNumber, currentColumnNumber);
+                    // 無効な文字列設定として終了（文字列の開始位置を報告する）
+                    token = new Token(TokenKind.Unknown, "文字列が正しく終了していません", 0, 0.0, name, startLineNumber, startColumnNumber);
                     return;
                 }
 
