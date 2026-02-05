@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="src/SampleApplication/SampleApplication.csproj" />
   <Project Path="src/SnowRabbit/SnowRabbit.csproj" />
+  <Project Path="src/SnowRabbitCompiler/SnowRabbitCompiler.csproj" />
   <Project Path="test/SnowRabbit.Tests/SnowRabbit.Tests.csproj" />
 </Solution>
