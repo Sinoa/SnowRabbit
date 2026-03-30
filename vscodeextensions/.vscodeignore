@@ -1,0 +1,6 @@
+.vscode/**
+samples/**
+syntax.md
+CLAUDE.md
+.gitignore
+*.vsix

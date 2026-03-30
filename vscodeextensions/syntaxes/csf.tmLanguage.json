@@ -1,0 +1,103 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "CSF",
+  "scopeName": "source.csf",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#string" },
+    { "include": "#preprocessor" },
+    { "include": "#keyword-declaration" },
+    { "include": "#keyword-control" },
+    { "include": "#type" },
+    { "include": "#constant-language" },
+    { "include": "#constant-numeric" },
+    { "include": "#function-call" },
+    { "include": "#operator" }
+  ],
+  "repository": {
+    "comment": {
+      "name": "comment.line.double-slash.csf",
+      "match": "//.*$"
+    },
+    "string": {
+      "name": "string.quoted.double.csf",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.csf",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "preprocessor": {
+      "match": "^\\s*(#)(compile|link|const)\\b",
+      "captures": {
+        "1": { "name": "keyword.control.directive.csf" },
+        "2": { "name": "keyword.control.directive.csf" }
+      }
+    },
+    "keyword-declaration": {
+      "name": "keyword.declaration.csf",
+      "match": "\\b(function|using|global|local)\\b"
+    },
+    "keyword-control": {
+      "name": "keyword.control.csf",
+      "match": "\\b(if|else|for|while|break|return|end)\\b"
+    },
+    "type": {
+      "name": "support.type.csf",
+      "match": "\\b(void|int|number|string|object|bool)\\b"
+    },
+    "constant-language": {
+      "name": "constant.language.csf",
+      "match": "\\b(true|false|null)\\b"
+    },
+    "constant-numeric": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.csf",
+          "match": "\\b\\d+\\.\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.csf",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    },
+    "function-call": {
+      "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+      "captures": {
+        "1": { "name": "entity.name.function.csf" }
+      }
+    },
+    "operator": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.csf",
+          "match": "\\+\\=|\\-\\=|\\*\\=|\\/\\=|&\\=|\\|\\=|\\^\\=|(?<![=!<>])=(?!=)"
+        },
+        {
+          "name": "keyword.operator.comparison.csf",
+          "match": "==|!=|<=|>=|<<?|>>?"
+        },
+        {
+          "name": "keyword.operator.logical.csf",
+          "match": "\\|\\||&&|!"
+        },
+        {
+          "name": "keyword.operator.bitwise.csf",
+          "match": "[&|^]"
+        },
+        {
+          "name": "keyword.operator.increment-decrement.csf",
+          "match": "\\+\\+|\\-\\-"
+        },
+        {
+          "name": "keyword.operator.arithmetic.csf",
+          "match": "[+\\-*/]"
+        }
+      ]
+    }
+  }
+}

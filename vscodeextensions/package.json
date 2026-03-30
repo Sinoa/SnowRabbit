@@ -1,0 +1,39 @@
+{
+  "name": "snowrabbit-script-syntax-highlighting",
+  "displayName": "雪兎スクリプト構文ハイライト",
+  "description": "雪兎の構文を見やすくするために構文のハイライトを行います。",
+  "version": "0.0.1",
+  "publisher": "Osapon",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "csf",
+        "aliases": [
+          "CSF",
+          "csf"
+        ],
+        "extensions": [
+          ".csf"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "csf",
+        "scopeName": "source.csf",
+        "path": "./syntaxes/csf.tmLanguage.json"
+      }
+    ]
+  }
+}
