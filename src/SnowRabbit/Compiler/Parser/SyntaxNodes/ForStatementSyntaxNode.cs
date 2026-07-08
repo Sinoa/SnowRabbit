@@ -79,13 +79,21 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.UpdateBodyCode(updateTargetAddress, instruction, false);
 
 
-            // for conditional code
+            // for conditional code（条件式省略時は常に真としてループ脱出コードを出力しない）
             var breakTargetLabelSymbol = context.CurrentBreakTargetLabel;
-            conditionalExpression?.Compile(context);
-            instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, SrvmProcessor.RegisterAIndex, 0, 2);
-            context.AddBodyCode(instruction, false);
-            instruction.Set(OpCode.Brl, 0, 0, 0, breakTargetLabelSymbol.InitialAddress);
-            context.AddBodyCode(instruction, true);
+            if (conditionalExpression != null)
+            {
+                conditionalExpression.Compile(context);
+                if (conditionalExpression is FunctionCallSyntaxNode)
+                {
+                    instruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR29Index);
+                    context.AddBodyCode(instruction, false);
+                }
+                instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, SrvmProcessor.RegisterAIndex, 0, 2);
+                context.AddBodyCode(instruction, false);
+                instruction.Set(OpCode.Brl, 0, 0, 0, breakTargetLabelSymbol.InitialAddress);
+                context.AddBodyCode(instruction, true);
+            }
 
 
             // for body code

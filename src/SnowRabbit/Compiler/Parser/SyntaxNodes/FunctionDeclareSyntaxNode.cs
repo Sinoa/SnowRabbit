@@ -71,6 +71,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             {
                 var type = context.ToRuntimeType(parameter.Children[0].Token.Kind);
                 var name = parameter.Children[1].Token.Text;
+                if (symbol.ParameterTable.ContainsKey(name))
+                {
+                    // 同名パラメータの二重定義
+                    throw context.ErrorReporter.PredefinedSymbol(parameter.Children[1].Token, name);
+                }
                 symbol.AddOrGetParameter(name, type);
             }
         }

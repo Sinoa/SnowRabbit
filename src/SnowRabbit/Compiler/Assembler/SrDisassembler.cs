@@ -220,6 +220,10 @@ namespace SnowRabbit.Compiler.Assembler
                 case OpCode.Tone: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
                 case OpCode.Tonull: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}\n";
                 case OpCode.Tonnull: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}\n";
+                case OpCode.Ftg: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Ftge: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Ftl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
+                case OpCode.Ftle: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
                 case OpCode.Br: return $"    0x{addressText}  {opCodeText}{operand1}, {immediate}\n";
                 case OpCode.Brl: return $"    0x{addressText}  {opCodeText}{immediate}\n";
                 case OpCode.Bnz: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";

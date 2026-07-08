@@ -200,6 +200,7 @@
     : unary_expression
     | muldiv_expression { '*' unary_expression }
     | muldiv_expression { '/' unary_expression }
+    | muldiv_expression { '%' unary_expression }
 
 ### unary_expression
     : post_unary_expression
@@ -581,7 +582,7 @@ namespace SnowRabbit.Compiler.Parser
         /// <summary>
         /// コンパイル単位（スクリプトファイル全体）をパースします
         /// </summary>
-        /// <returns>コンパイル単位ノード、または空の場合は null</returns>
+        /// <returns>コンパイル単位ノード</returns>
         private SyntaxNode ParseCompileUnit()
         {
             var compileUnit = new CompileUnitSyntaxNode();
@@ -598,7 +599,8 @@ namespace SnowRabbit.Compiler.Parser
                 compileUnit.Add(node);
             }
 
-            return compileUnit.Children.Count > 0 ? compileUnit : null;
+            // 宣言が1つも無い場合でも空のコンパイル単位を返す（コンパイル時に main 関数未定義として報告される）
+            return compileUnit;
         }
         #endregion
 
@@ -819,7 +821,7 @@ namespace SnowRabbit.Compiler.Parser
         private SyntaxNode ParseForStatement()
         {
             if (!CheckTokenAndReadNext(SrTokenKind.For)) return null;
-            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return null;
+            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) throw errorReporter.UnknownToken(currentLexer.LastReadToken);
             var forStatement = new ForStatementSyntaxNode();
 
             forStatement.Add(ParseOptionalForClause(TokenKind.Semicolon));  // 初期化式
@@ -949,12 +951,8 @@ namespace SnowRabbit.Compiler.Parser
         {
             if (!CheckToken(SrTokenKind.Break)) return null;
             GetCurrentTokenAndReadNext(out var token);
-            if (CheckTokenAndReadNext(TokenKind.Semicolon))
-            {
-                return new BreakStatementSyntaxNode(token);
-            }
-
-            return null;
+            RequireToken(TokenKind.Semicolon, ";");
+            return new BreakStatementSyntaxNode(token);
         }
 
         /// <summary>
@@ -1008,7 +1006,7 @@ namespace SnowRabbit.Compiler.Parser
         }
 
         // 以下、演算子優先順位に従った二項演算式のパース
-        // 優先順位（低→高）: || → && → | → ^ → & → ==,!= → <,>,<=,>= → <<,>> → +,- → *,/
+        // 優先順位（低→高）: || → && → | → ^ → & → ==,!= → <,>,<=,>= → <<,>> → +,- → *,/,%
 
         private SyntaxNode ParseConditionOrExpression()
             => ParseBinaryExpression(ParseConditionAndExpression, TokenKind.DoubleVerticalbar);
@@ -1038,7 +1036,7 @@ namespace SnowRabbit.Compiler.Parser
             => ParseBinaryExpression(ParseMulDivExpression, TokenKind.Plus, TokenKind.Minus);
 
         private SyntaxNode ParseMulDivExpression()
-            => ParseBinaryExpression(ParseUnaryExpression, TokenKind.Asterisk, TokenKind.Slash);
+            => ParseBinaryExpression(ParseUnaryExpression, TokenKind.Asterisk, TokenKind.Slash, TokenKind.Percent);
 
         /// <summary>
         /// 単項式（+, -, !, ++, --）をパースします

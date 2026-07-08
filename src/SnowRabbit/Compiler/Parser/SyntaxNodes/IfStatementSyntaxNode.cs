@@ -81,11 +81,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
 
 
+            var hasElse = false;
             for (int i = 1; i < Children.Count; ++i)
             {
                 var child = Children[i];
                 if (child is ElseStatementSyntaxNode elseNode)
                 {
+                    hasElse = true;
                     patchTargetAddressList.Add(context.BodyCodeList.Count);
                     instruction.Set(OpCode.Br);
                     context.AddBodyCode(instruction, false);
@@ -105,20 +107,20 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
+            // else 節を持たない場合は、条件偽時の分岐先をチェイン終端の一括パッチに委ねる
+            // （else if チェイン途中の if でも未パッチの分岐命令が残らないようにするため）
+            if (!hasElse)
+            {
+                patchTargetAddressList.Add(updateTargetAddress);
+            }
+
+
             if (rootIfNode)
             {
-                if (patchTargetAddressList.Count == 0)
+                foreach (var targetAddress in patchTargetAddressList)
                 {
-                    instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, context.BodyCodeList.Count - updateTargetAddress);
-                    context.UpdateBodyCode(updateTargetAddress, instruction, false);
-                }
-                else
-                {
-                    foreach (var targetAddress in patchTargetAddressList)
-                    {
-                        instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, context.BodyCodeList.Count - targetAddress);
-                        context.UpdateBodyCode(targetAddress, instruction, false);
-                    }
+                    instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, context.BodyCodeList.Count - targetAddress);
+                    context.UpdateBodyCode(targetAddress, instruction, false);
                 }
             }
         }

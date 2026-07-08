@@ -84,6 +84,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 { TokenKind.Minus, OpSub },
                 { TokenKind.Asterisk, OpMull },
                 { TokenKind.Slash, OpDiv },
+                { TokenKind.Percent, OpMod },
             };
         }
 
@@ -380,7 +381,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                         // 論理反転は今の所booleanのみ対応
                         throw new System.Exception();
                     }
-                    instruction.Set(OpCode.Neg, targetRegisterIndex, targetRegisterIndex);
+                    // ゼロとの等価判定で論理値を反転する（算術否定では true(1) が -1 になり反転しない）
+                    instruction.Set(OpCode.Teq, targetRegisterIndex, targetRegisterIndex, SrvmProcessor.RegisterZeroIndex);
                     context.AddBodyCode(instruction, false);
                     break;
 
@@ -419,6 +421,21 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             operationTable[operation.Kind](leftExpression, ResultRegisterIndex, rightExpression, rightRegisterIndex, ResultType, context);
             ReleaseRegister(rightRegisterIndex);
+
+            // 比較・等価・条件演算の結果型は、オペランドの型ではなく真偽値になる
+            switch (operation.Kind)
+            {
+                case TokenKind.DoubleEqual:
+                case TokenKind.NotEqual:
+                case TokenKind.OpenAngle:
+                case TokenKind.CloseAngle:
+                case TokenKind.LesserEqual:
+                case TokenKind.GreaterEqual:
+                case TokenKind.DoubleVerticalbar:
+                case TokenKind.DoubleAnd:
+                    ResultType = SrRuntimeType.Boolean;
+                    break;
+            }
         }
 
         private SrRuntimeType CompileCastExpression(byte leftRegister, SrRuntimeType leftType, byte rightRegister, SrRuntimeType rightType, SrCompileContext context)
@@ -812,6 +829,19 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             var instruction = new SrInstruction();
             instruction.Set(type == SrRuntimeType.Integer ? OpCode.Div : OpCode.Fdiv, leftRegister, leftRegister, rightRegister);
+            context.AddBodyCode(instruction, false);
+        }
+
+        private static void OpMod(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        {
+            if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
+            {
+                // 現在は整数または実数のみ対応
+                throw new Exception();
+            }
+
+            var instruction = new SrInstruction();
+            instruction.Set(type == SrRuntimeType.Integer ? OpCode.Mod : OpCode.Fmod, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
         #endregion

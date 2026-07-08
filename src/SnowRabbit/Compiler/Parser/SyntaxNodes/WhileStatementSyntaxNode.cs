@@ -51,6 +51,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var whileHeadAddress = context.BodyCodeList.Count;
             condition.Compile(context);
             var instruction = new SrInstruction();
+            if (condition is FunctionCallSyntaxNode)
+            {
+                // 関数呼び出しの戻り値は r29 に載っているため、条件判定レジスタの rax へ移す
+                instruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR29Index);
+                context.AddBodyCode(instruction, false);
+            }
             instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, 0, 0, 2);
             context.AddBodyCode(instruction, false);
             instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, 0);

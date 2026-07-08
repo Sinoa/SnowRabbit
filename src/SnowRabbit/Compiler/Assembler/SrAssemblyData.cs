@@ -200,6 +200,16 @@ namespace SnowRabbit.Compiler.Assembler
                     yield return typedSymbol;
                 }
             }
+
+            // SrSymbol などの基底型による列挙の場合は、専用テーブルの文字列シンボルも列挙対象に含める
+            // （アセンブラのアドレス解決やシンボル情報出力が文字列シンボルを取りこぼさないようにするため）
+            if (typeof(T).IsAssignableFrom(typeof(SrStringSymbol)))
+            {
+                foreach (var symbol in stringSymbolTable.Values)
+                {
+                    yield return (T)(SrSymbol)symbol;
+                }
+            }
         }
 
 

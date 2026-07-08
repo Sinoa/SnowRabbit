@@ -68,7 +68,7 @@ namespace SnowRabbit.Compiler.Parser
         public SrLabelSymbol CurrentFunctionLeaveLabelSymbol { get; private set; }
 
 
-        public SrLabelSymbol CurrentBreakTargetLabel => breakTargetAddressStack.Peek();
+        public SrLabelSymbol CurrentBreakTargetLabel => breakTargetAddressStack.Count > 0 ? breakTargetAddressStack.Peek() : null;
 
 
         public IReadOnlyList<SrAssemblyCode> HeadCodeList { get; }

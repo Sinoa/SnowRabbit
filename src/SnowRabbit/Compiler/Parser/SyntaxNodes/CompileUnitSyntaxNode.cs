@@ -51,9 +51,59 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
             context.EnterFunctionCompile(SrRuntimeType.Void, "___init");
             CompilePeripheralLoadCode(context);
+            CompileGlobalVariableInitializeCode(context);
             CompileCallMainFunctionCode(context);
             CompileStopCode(context);
             context.ExitFunctionCompile();
+        }
+
+
+        private void CompileGlobalVariableInitializeCode(SrCompileContext context)
+        {
+            foreach (var symbol in context.AssemblyData.GetSymbolAll<SrGlobalVariableSymbol>())
+            {
+                // 初期化リテラルを持たないグローバル変数（ペリフェラル関数用変数を含む）は既定値のままにする
+                var literal = symbol.InitializeLiteral;
+                if (literal.Text == null) continue;
+
+
+                var instruction = default(SrInstruction);
+                switch (symbol.Type)
+                {
+                    case SrRuntimeType.Integer:
+                        instruction.Set(OpCode.Movl, SrvmProcessor.RegisterAIndex, 0, 0, (int)literal.Integer);
+                        context.AddBodyCode(instruction, false);
+                        break;
+
+
+                    case SrRuntimeType.Number:
+                        instruction.Set(OpCode.Movl, SrvmProcessor.RegisterAIndex, 0, 0, (float)literal.Number);
+                        context.AddBodyCode(instruction, false);
+                        break;
+
+
+                    case SrRuntimeType.Boolean:
+                        instruction.Set(OpCode.Movl, SrvmProcessor.RegisterAIndex, 0, 0, literal.Text == "true" ? 1 : 0);
+                        context.AddBodyCode(instruction, false);
+                        break;
+
+
+                    case SrRuntimeType.String:
+                        var stringSymbol = context.CreateOrGetStringSymbol(literal.Text);
+                        instruction.Set(OpCode.Ldrl, SrvmProcessor.RegisterAIndex, 0, 0, stringSymbol.InitialAddress);
+                        context.AddBodyCode(instruction, true);
+                        break;
+
+
+                    default:
+                        // object 型の初期化子は null のみなので、既定値のまま何もしない
+                        continue;
+                }
+
+
+                instruction.Set(OpCode.Strl, SrvmProcessor.RegisterAIndex, 0, 0, symbol.InitialAddress);
+                context.AddBodyCode(instruction, true);
+            }
         }
 
 

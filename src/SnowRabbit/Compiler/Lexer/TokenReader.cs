@@ -25,6 +25,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -640,9 +641,9 @@ namespace SnowRabbit.Compiler.Lexer
             }
 
 
-            // 浮動小数点は素直にパースして実数トークンとして初期化をする（整数部は整数値を入れておく）
-            var number = double.Parse(tokenReadBuffer.ToString());
-            token = new Token(TokenKind.Number, number.ToString(), result, number, name, startLineNumber, startColumnNumber);
+            // 浮動小数点は実行環境のカルチャに依存しないようにパースして実数トークンとして初期化をする（整数部は整数値を入れておく）
+            var number = double.Parse(tokenReadBuffer.ToString(), CultureInfo.InvariantCulture);
+            token = new Token(TokenKind.Number, number.ToString(CultureInfo.InvariantCulture), result, number, name, startLineNumber, startColumnNumber);
         }
 
 
@@ -725,8 +726,8 @@ namespace SnowRabbit.Compiler.Lexer
                     }
 
 
-                    // 次の文字を読み込んでループを継続する
-                    readChara = ReadNextChara();
+                    // 次の文字を読み込んでループを継続する（文字列読み取り中のためコメント解釈をしないようにする）
+                    readChara = ReadNextChara(true);
                     continue;
                 }
 

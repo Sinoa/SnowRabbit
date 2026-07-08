@@ -24,6 +24,7 @@
 using SnowRabbit.Compiler.Assembler.Symbols;
 using SnowRabbit.Compiler.Lexer;
 using SnowRabbit.RuntimeEngine;
+using SnowRabbit.RuntimeEngine.VirtualMachine;
 
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
@@ -55,6 +56,13 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
                 Children[0].Compile(context);
+                if (Children[0] is FunctionCallSyntaxNode)
+                {
+                    // 関数呼び出しの戻り値は r29 に載っているため、rax 経由の返却規約に合わせて移す
+                    var moveInstruction = new SrInstruction();
+                    moveInstruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR29Index);
+                    context.AddBodyCode(moveInstruction, false);
+                }
             }
             else
             {
