@@ -34,6 +34,7 @@ public class SrPeripheralFunctionTest
 {
     // メンバ変数定義
     private SrPeripheral peripheral = null!;
+    private MyPeripheralTestClass peripheralInstance = null!;
     private SrVirtualMemory memory = default;
 
 
@@ -63,7 +64,8 @@ public class SrPeripheralFunctionTest
         // 各種例外発生パターン分（null, 非周辺機器クラス）の確認をして、正しく生成されれば問題なし
         Assert.Throws<ArgumentNullException>(() => new SrPeripheral(null!));
         Assert.Throws<SrPeripheralAttributeNotFoundException>(() => new SrPeripheral(new MyNonePeripheralTestClass()));
-        Assert.DoesNotThrow(() => peripheral = new SrPeripheral(new MyPeripheralTestClass()));
+        peripheralInstance = new MyPeripheralTestClass();
+        Assert.DoesNotThrow(() => peripheral = new SrPeripheral(peripheralInstance));
         Assert.That(peripheral.Name, Is.EqualTo("MyPeripheral"));
     }
 
@@ -84,7 +86,7 @@ public class SrPeripheralFunctionTest
         // 周辺機器から関数を取り出して実行する
         SrPeripheralFunction function = peripheral.GetPeripheralFunction("Simple");
         Assert.That(function, Is.Not.Null);
-        Task task = function.Call(memory, 0, 0);
+        Task task = function.Call(memory, 0, 0, out _);
         Assert.That(task.IsCompleted, Is.True);
 
 
@@ -94,15 +96,15 @@ public class SrPeripheralFunctionTest
         memory[4] = 456;
         memory[5] = "足し算をするよ";
         Assert.That(function, Is.Not.Null);
-        task = function.Call(memory, 3, 0);
+        task = function.Call(memory, 3, 0, out _);
         Assert.That(task.IsCompleted, Is.True);
 
 
         // 単純な戻り地を受け取る関数を取り出して実行する
         function = peripheral.GetPeripheralFunction("RetSimple");
         Assert.That(function, Is.Not.Null);
-        function.Call(memory, 0, 0);
-        Assert.That(function.GetResult().Object, Is.EqualTo("Simple Return Function"));
+        function.Call(memory, 0, 0, out SrValue retSimpleResult);
+        Assert.That(retSimpleResult.Object, Is.EqualTo("Simple Return Function"));
 
 
         // 単純な引数の受け取りと結果を返す関数を取り出して実行する
@@ -110,8 +112,8 @@ public class SrPeripheralFunctionTest
         Assert.That(function, Is.Not.Null);
         memory[0] = 123;
         memory[1] = 456;
-        function.Call(memory, 0, 0);
-        Assert.That(function.GetResult().Primitive.Int, Is.EqualTo(579));
+        function.Call(memory, 0, 0, out SrValue retSimpleExResult);
+        Assert.That(retSimpleExResult.Primitive.Int, Is.EqualTo(579));
     }
 
 
@@ -124,38 +126,38 @@ public class SrPeripheralFunctionTest
         // 直ちに完了するはずの関数を取り出して完了済みであることを確認する
         SrPeripheralFunction taskFunc = peripheral.GetPeripheralFunction("CompTaskFunc");
         Assert.That(taskFunc, Is.Not.Null);
-        Assert.That(taskFunc.Call(memory, 0, 0).IsCompleted, Is.True);
+        Assert.That(taskFunc.Call(memory, 0, 0, out _).IsCompleted, Is.True);
 
 
         // 少しだけ待つタスクを取得して待機しているかを確認する
         taskFunc = peripheral.GetPeripheralFunction("WaitTaskFunc");
         Assert.That(taskFunc, Is.Not.Null);
-        Task task = taskFunc.Call(memory, 0, 0);
+        Task task = taskFunc.Call(memory, 0, 0, out _);
         Assert.That(task.IsCompleted, Is.False);
         task.Wait();
 
 
-        // 結果を返してくれるタスクを実行して結果が想定通りか確認する
+        // 結果を返してくれるタスクを実行して結果が想定通りか確認する（同期完了時は out 引数から受け取れる）
         taskFunc = peripheral.GetPeripheralFunction("AddTaskFunc");
         Assert.That(taskFunc, Is.Not.Null);
         memory[2] = 123;
         memory[3] = 456;
-        task = taskFunc.Call(memory, 2, 0);
+        task = taskFunc.Call(memory, 2, 0, out SrValue addResult);
         Assert.That(task.IsCompleted, Is.True);
         task.Wait();
-        SrValue result = taskFunc.GetResult();
-        Assert.That(result.Primitive.Int, Is.EqualTo(579));
+        Assert.That(addResult.Primitive.Int, Is.EqualTo(579));
+        Assert.That(taskFunc.ConvertResult(task).Primitive.Int, Is.EqualTo(579));
 
 
-        // 少しだけ待つ時の結果を返すタスクを実行して結果が想定通りか確認する
+        // 少しだけ待つ時の結果を返すタスクを実行して結果が想定通りか確認する（完了後にタスクから受け取る）
         taskFunc = peripheral.GetPeripheralFunction("CombWaitTaskFunc");
         Assert.That(taskFunc, Is.Not.Null);
         memory[0] = "このメッセージは、";
         memory[1] = "結合されるはずです。";
-        task = taskFunc.Call(memory, 0, 0);
+        task = taskFunc.Call(memory, 0, 0, out _);
         Assert.That(task.IsCompleted, Is.False);
         task.Wait();
-        result = taskFunc.GetResult();
+        SrValue result = taskFunc.ConvertResult(task);
         Assert.That((string)result.Object!, Is.EqualTo("このメッセージは、結合されるはずです。"));
     }
 
@@ -173,19 +175,19 @@ public class SrPeripheralFunctionTest
         memory[1] = 456;
         memory[2] = 0;
         memory[3] = 0;
-        function.Call(memory, 0, 579);
+        function.Call(memory, 0, 579, out _);
 
 
         // プライベートな関数でも属性がついている場合はアクセスが可能であることを確認する
         function = peripheral.GetPeripheralFunction("PrivateFunc");
         Assert.That(function, Is.Not.Null);
-        function.Call(memory, 0, 0);
+        function.Call(memory, 0, 0, out _);
 
 
         // 静的な関数でも呼び出せることを確認
         function = peripheral.GetPeripheralFunction("StaticFunc");
         Assert.That(function, Is.Not.Null);
-        function.Call(memory, 0, 0);
+        function.Call(memory, 0, 0, out _);
     }
 
 
@@ -202,8 +204,8 @@ public class SrPeripheralFunctionTest
         obj.ParameterA = 123;
         obj.ParameterB = "Message";
         memory[0] = new SrValue() { Object = obj };
-        function.Call(memory, 0, 123);
-        MyDataClass result = (MyDataClass)function.GetResult().Object!;
+        function.Call(memory, 0, 123, out SrValue myDataResult);
+        MyDataClass result = (MyDataClass)myDataResult.Object!;
         Assert.That(result.ParameterA, Is.EqualTo(12300));
         Assert.That(result.ParameterB, Is.EqualTo("ParameterB : Message"));
 
@@ -212,12 +214,55 @@ public class SrPeripheralFunctionTest
         function = peripheral.GetPeripheralFunction("MyDataFuncAsync");
         Assert.That(function, Is.Not.Null);
         obj.ParameterA = 456;
-        Task task = function.Call(memory, 0, 456);
+        Task task = function.Call(memory, 0, 456, out _);
         Assert.That(task.IsCompleted, Is.False);
         task.Wait();
-        result = (MyDataClass)function.GetResult().Object!;
+        result = (MyDataClass)function.ConvertResult(task).Object!;
         Assert.That(result.ParameterA, Is.EqualTo(456000));
         Assert.That(result.ParameterB, Is.EqualTo("ParameterB : Message Async"));
+    }
+
+
+    /// <summary>
+    /// 複数プロセス相当の非同期呼び出しが混線しないことをテストします
+    /// （共有フィールド経由の結果受け渡しの回帰テスト）
+    /// </summary>
+    [Test, Order(5)]
+    public void ConcurrentAsyncCallResultSeparationTest()
+    {
+        SrPeripheralFunction function = peripheral.GetPeripheralFunction("PendingValueFunc");
+        Assert.That(function, Is.Not.Null);
+
+
+        // 2つのプロセスに相当する2回の呼び出しを、どちらも未完了のまま保持する
+        Task taskA = function.Call(memory, 0, 0, out _);
+        Task taskB = function.Call(memory, 0, 0, out _);
+        Assert.That(taskA.IsCompleted, Is.False);
+        Assert.That(taskB.IsCompleted, Is.False);
+
+
+        // B → A の順で完了させても、それぞれのタスクから自分の結果を受け取れる
+        peripheralInstance.CompletePendingValue(1, 222);
+        peripheralInstance.CompletePendingValue(0, 111);
+        Assert.That(function.ConvertResult(taskB).Primitive.Int, Is.EqualTo(222));
+        Assert.That(function.ConvertResult(taskA).Primitive.Int, Is.EqualTo(111));
+    }
+
+
+    /// <summary>
+    /// キャンセルされたタスクの結果変換が例外になることをテストします
+    /// </summary>
+    [Test, Order(6)]
+    public void CanceledTaskResultTest()
+    {
+        SrPeripheralFunction function = peripheral.GetPeripheralFunction("PendingValueFunc");
+        Assert.That(function, Is.Not.Null);
+
+
+        Task task = function.Call(memory, 0, 0, out _);
+        peripheralInstance.CancelPendingValue();
+        Assert.That(task.IsCanceled, Is.True);
+        Assert.Throws<AggregateException>(() => function.ConvertResult(task));
     }
 }
 
@@ -267,6 +312,43 @@ public class MyNonePeripheralTestClass
 [SrPeripheral("MyPeripheral")]
 public class MyPeripheralTestClass
 {
+    // 外部から完了・キャンセルを制御できる保留タスクのリスト
+    private readonly List<TaskCompletionSource<int>> pendingValueSources = new List<TaskCompletionSource<int>>();
+
+
+    /// <summary>
+    /// 外部から完了させるまで保留し続けるタスクを返す周辺機器関数の定義です
+    /// </summary>
+    /// <returns>外部から完了させるまで待機するタスクを返します</returns>
+    [SrHostFunction("PendingValueFunc")]
+    public Task<int> PendingValueFunction()
+    {
+        var source = new TaskCompletionSource<int>();
+        pendingValueSources.Add(source);
+        return source.Task;
+    }
+
+
+    /// <summary>
+    /// 指定されたインデックスの保留タスクを結果付きで完了させます
+    /// </summary>
+    /// <param name="index">完了させる保留タスクのインデックス</param>
+    /// <param name="value">タスクの結果として設定する値</param>
+    public void CompletePendingValue(int index, int value)
+    {
+        pendingValueSources[index].SetResult(value);
+    }
+
+
+    /// <summary>
+    /// 最後に生成された保留タスクをキャンセルします
+    /// </summary>
+    public void CancelPendingValue()
+    {
+        pendingValueSources[pendingValueSources.Count - 1].SetCanceled();
+    }
+
+
     /// <summary>
     /// 非常に単純な周辺機器関数の定義です
     /// </summary>

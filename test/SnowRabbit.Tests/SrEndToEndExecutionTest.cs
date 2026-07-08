@@ -143,6 +143,16 @@ public class SrEndToEndExecutionTest
         {
             Outputs.Add(value.ToString());
         }
+
+        public List<TaskCompletionSource<string>> ValueWaiters { get; } = new List<TaskCompletionSource<string>>();
+
+        [SrHostFunction("WaitValue")]
+        public Task<string> WaitValue()
+        {
+            var source = new TaskCompletionSource<string>();
+            ValueWaiters.Add(source);
+            return source.Task;
+        }
     }
 
     /// <summary>
@@ -715,6 +725,86 @@ end
             "2", "3",
             "10", "9",
         }));
+    }
+
+    /// <summary>
+    /// 同一マシン上の2つのプロセスが同じ非同期ホスト関数で中断しても、
+    /// それぞれが自分の呼び出しの結果を受け取ることをテストします（非同期結果混線の回帰テスト）
+    /// </summary>
+    [Test]
+    public void TwoProcessAsyncResultSeparationTest()
+    {
+        string script = @"
+using Write = void Test.Write(string);
+using WaitValue = string Test.WaitValue();
+
+function void main()
+    Write(WaitValue());
+end
+";
+        byte[] binaryData = CompileScript(script);
+        TestPeripheral peripheral = new TestPeripheral();
+
+        using (SrvmMachine vm = new SrvmMachine(new TestMachinePartsFactory(binaryData, peripheral)))
+        {
+            SrProcess process1 = vm.CreateProcess("test.bin");
+            SrProcess process2 = vm.CreateProcess("test.bin");
+
+            // 両プロセスとも非同期ホスト関数で中断する
+            process1.Run();
+            process2.Run();
+            Assert.That(process1.ProcessState, Is.EqualTo(SrProcessStatus.Suspended));
+            Assert.That(process2.ProcessState, Is.EqualTo(SrProcessStatus.Suspended));
+            Assert.That(peripheral.ValueWaiters, Has.Count.EqualTo(2));
+
+            // 後に中断した process2 側を先に完了・再開させる
+            peripheral.ValueWaiters[1].SetResult("second");
+            process2.Run();
+            Assert.That(process2.ProcessState, Is.EqualTo(SrProcessStatus.Stopped));
+
+            // process1 は自分の呼び出しの結果を受け取る（process2 の結果に上書きされない）
+            peripheral.ValueWaiters[0].SetResult("first");
+            process1.Run();
+            Assert.That(process1.ProcessState, Is.EqualTo(SrProcessStatus.Stopped));
+
+            process1.Dispose();
+            process2.Dispose();
+        }
+
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[] { "second", "first" }));
+    }
+
+    /// <summary>
+    /// キャンセルされたタスクを待つプロセスがパニック状態へ遷移することをテストします
+    /// （従来は Suspended のまま固まっていた問題の回帰テスト）
+    /// </summary>
+    [Test]
+    public void CanceledTaskPanicsProcessTest()
+    {
+        string script = @"
+using Write = void Test.Write(string);
+using WaitValue = string Test.WaitValue();
+
+function void main()
+    Write(WaitValue());
+end
+";
+        byte[] binaryData = CompileScript(script);
+        TestPeripheral peripheral = new TestPeripheral();
+
+        using (SrvmMachine vm = new SrvmMachine(new TestMachinePartsFactory(binaryData, peripheral)))
+        {
+            SrProcess process = vm.CreateProcess("test.bin");
+            process.Run();
+            Assert.That(process.ProcessState, Is.EqualTo(SrProcessStatus.Suspended));
+
+            // タスクをキャンセルすると、次の Run でパニックへ遷移して例外が通知される
+            peripheral.ValueWaiters[0].SetCanceled();
+            Assert.Throws<TaskCanceledException>(() => process.Run());
+            Assert.That(process.ProcessState, Is.EqualTo(SrProcessStatus.Panic));
+
+            process.Dispose();
+        }
     }
 
     /// <summary>

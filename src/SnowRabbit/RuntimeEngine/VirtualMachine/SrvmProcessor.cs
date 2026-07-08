@@ -26,6 +26,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
+using System.Threading.Tasks;
 using SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral;
 
 namespace SnowRabbit.RuntimeEngine.VirtualMachine
@@ -206,22 +207,28 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                     return;
                 }
 
-                if (process.Task.IsFaulted)
+                // タスクを見失った・失敗した・キャンセルされた・結果の変換に失敗した、のいずれもパニックとして扱う
+                if (process.Task == null || process.Task.IsFaulted || process.Task.IsCanceled)
                 {
-                    var error = process.Task.Exception;
-                    process.ProcessorContext[process.ResultReceiveRegisterNumber] = default;
-                    process.PeripheralFunction = null;
-                    process.Task = null;
-                    process.ProcessState = SrProcessStatus.Panic;
-                    process.RunningStopwatch.Stop();
-
-                    OnExceptionOccurrenced(process, error);
-                    ExceptionDispatchInfo.Capture(error).Throw();
+                    var error =
+                        process.Task == null ? new InvalidOperationException("再開する周辺機器関数のタスクを見失いました") :
+                        process.Task.IsFaulted ? (Exception)process.Task.Exception :
+                        new TaskCanceledException(process.Task);
+                    PanicSuspendedProcess(process, error);
                     return;
                 }
 
                 // タスクが完了しているのなら結果を受け取ってタスクや関連情報をクリアしつつ開始状態にする
-                process.ProcessorContext[process.ResultReceiveRegisterNumber] = process.PeripheralFunction.GetResult();
+                // （Task<T>.Result の取得などで例外が出た場合もパニックへ遷移させる）
+                try
+                {
+                    process.ProcessorContext[process.ResultReceiveRegisterNumber] = process.PeripheralFunction.ConvertResult(process.Task);
+                }
+                catch (Exception error)
+                {
+                    PanicSuspendedProcess(process, error);
+                    return;
+                }
                 process.PeripheralFunction = null;
                 process.Task = null;
                 process.ProcessState = SrProcessStatus.Running;
@@ -258,6 +265,25 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                 throw;
             }
         }
+
+
+        /// <summary>
+        /// 一時停止中プロセスの再開失敗をパニックとして処理し、例外を再スローします
+        /// </summary>
+        /// <param name="process">パニックさせるプロセス</param>
+        /// <param name="error">発生したエラー</param>
+        private void PanicSuspendedProcess(SrProcess process, Exception error)
+        {
+            process.ProcessorContext[process.ResultReceiveRegisterNumber] = default;
+            process.PeripheralFunction = null;
+            process.Task = null;
+            process.ProcessState = SrProcessStatus.Panic;
+            process.RunningStopwatch.Stop();
+
+            OnExceptionOccurrenced(process, error);
+            ExceptionDispatchInfo.Capture(error).Throw();
+        }
+
 
         /// <summary>
         /// プロセスを実際に処理する実行関数です
@@ -637,20 +663,22 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
                     case OpCode.Cpf:
                         var function = context[r2].Object as SrPeripheralFunction;
-                        var task = function.Call(memory, context[RegisterSPIndex].Primitive.Int, process.ProcessID);
+                        var task = function.Call(memory, context[RegisterSPIndex].Primitive.Int, process.ProcessID, out var callResult);
                         if (task.IsCompleted)
                         {
-                            if (!task.IsFaulted)
+                            if (task.IsFaulted)
                             {
-                                context[r1] = function.GetResult();
+                                // 例外は Execute の catch 節で一括処理される（パニック遷移とイベント発火の二重化を防ぐ）
+                                ExceptionDispatchInfo.Capture(task.Exception).Throw();
                             }
-                            else
+
+                            if (task.IsCanceled)
                             {
-                                var error = task.Exception;
-                                OnExceptionOccurrenced(process, error);
-                                ExceptionDispatchInfo.Capture(error).Throw();
-                                return;
+                                // キャンセルされたタスクもパニックとして扱う
+                                throw new TaskCanceledException(task);
                             }
+
+                            context[r1] = callResult;
                         }
                         else
                         {

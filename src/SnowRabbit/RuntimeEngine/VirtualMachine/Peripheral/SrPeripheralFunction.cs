@@ -31,7 +31,11 @@ using System.Threading.Tasks;
 namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 {
     /// <summary>
-    /// 仮想マシンとホスト間の関数を取り扱う周辺機器関数クラスです
+    /// 仮想マシンとホスト間の関数を取り扱う周辺機器関数クラスです。
+    /// このインスタンスはマシン内で関数ごとに1つが共有されます。引数バッファは Call の呼び出し内でのみ使用されるため
+    /// シングルスレッドの協調実行モデルでは安全ですが、複数スレッドから同時に Call することはできません。
+    /// 呼び出しの結果は共有フィールドに保持せず、同期完了時は Call の out 引数、非同期時はプロセスが保持する Task から
+    /// ConvertResult で受け取ります（複数プロセスの非同期呼び出しが混線しないようにするため）。
     /// </summary>
     internal class SrPeripheralFunction
     {
@@ -46,7 +50,6 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         private object[] arguments;
         private Func<SrValue, object>[] argumentSetters;
         private Func<object, SrValue> resultSetter;
-        private object result;
         private bool isTask;
         private int processIDArgumentIndex = -1;
 
@@ -240,8 +243,9 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
         /// <param name="memory">関数呼び出しに使用する仮想メモリ</param>
         /// <param name="address">引数として使用する開始アドレス</param>
         /// <param name="processID">プロセスIDとして渡す値</param>
+        /// <param name="result">呼び出しが同期的に完了した場合の変換済み結果。未完了のタスクを返した場合は既定値</param>
         /// <returns>呼び出した関数を待機するタスクを返します</returns>
-        public Task Call(SrVirtualMemory memory, int address, int processID)
+        public Task Call(SrVirtualMemory memory, int address, int processID, out SrValue result)
         {
             // 配列外参照例外を承知でいきなりループでアクセス（呼び出しコードは極力実行速度優先で実装）
             int indexGap = 0;
@@ -263,23 +267,35 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine.Peripheral
 
 
             // 関数を呼び出して引数をクリア
-            result = methodInfo.Invoke(targetInstance, arguments);
+            var invokeResult = methodInfo.Invoke(targetInstance, arguments);
             Array.Clear(arguments, 0, arguments.Length);
 
 
-            // タスクの場合は単純なTaskへキャストして返して、タスクでないなら直ちに完了を返す
-            return isTask ? (Task)result : Task.CompletedTask;
+            // タスクでないなら結果をこの場で変換して直ちに完了を返す
+            if (!isTask)
+            {
+                result = resultSetter(invokeResult);
+                return Task.CompletedTask;
+            }
+
+
+            // タスクの場合、同期的に正常完了しているならこの場で結果を変換しておく
+            // （未完了・失敗・キャンセルの場合の結果は、プロセスが保持するタスクから ConvertResult で受け取る）
+            var task = (Task)invokeResult;
+            result = (task.IsCompleted && !task.IsFaulted && !task.IsCanceled) ? resultSetter(task) : default;
+            return task;
         }
 
 
         /// <summary>
-        /// 非同期タスクの時の場合、結果をタスクから受け取ります
+        /// 完了した非同期タスクから結果を受け取ります
         /// </summary>
-        /// <returns>タスクが終了している場合の結果を受け取ります</returns>
-        public SrValue GetResult()
+        /// <param name="task">この関数の呼び出しが返した完了済みのタスク</param>
+        /// <returns>タスクの結果を変換した値を返します</returns>
+        public SrValue ConvertResult(Task task)
         {
             // 変換関数を通して返す
-            return resultSetter(result);
+            return resultSetter(task);
         }
     }
 }

@@ -24,6 +24,7 @@
 #nullable disable
 
 using System;
+using System.Threading;
 using SnowRabbit.IO;
 using SnowRabbit.RuntimeEngine.Data;
 
@@ -35,7 +36,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
     public class SrvmMemory : SrvmMachineParts
     {
         // 以下メンバ変数定義
-        private int nextProcessID = 1;
+        private int nextProcessID = 0;
 
 
 
@@ -52,7 +53,8 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             var heapMemory = CreateHeapMemory(executableData);
             var stackMemory = CreateStackMemory(executableData);
             var contextMemory = CreateContextMemory(executableData);
-            var process = new SrProcess(nextProcessID++, codeMemory, globalMemory, heapMemory, stackMemory, contextMemory, Machine);
+            // プロセスIDの採番は複数スレッドからの生成でも重複しないようにアトミックに行う
+            var process = new SrProcess(Interlocked.Increment(ref nextProcessID), codeMemory, globalMemory, heapMemory, stackMemory, contextMemory, Machine);
             SrvmProcessor.InitializeProcessorContext(process);
             return process;
         }
