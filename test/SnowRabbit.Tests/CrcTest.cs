@@ -87,4 +87,26 @@ public class CrcTest
         ulong result64 = crc64Ecma.Calculate(testData);
         Assert.That(result64, Is.EqualTo(crc64Expected));
     }
+
+
+    /// <summary>
+    /// 範囲指定のCalculateが全範囲指定でも例外なく全範囲計算と一致することをテストします（境界チェックの回帰テスト）
+    /// </summary>
+    [Test]
+    public void CrcCalculateRangeTest()
+    {
+        // 全範囲を範囲指定で計算しても、全範囲計算と同じ結果になる
+        Crc32Standard crc32 = new Crc32Standard();
+        Assert.That(crc32.Calculate(testData, 0, testData.Length), Is.EqualTo(crc32.Calculate(testData)));
+
+
+        Crc64Ecma crc64Ecma = new Crc64Ecma();
+        Assert.That(crc64Ecma.Calculate(testData, 0, testData.Length), Is.EqualTo(crc64Ecma.Calculate(testData)));
+
+
+        // 範囲を超える指定は引数例外になる
+        Assert.Throws<ArgumentOutOfRangeException>(() => crc32.Calculate(testData, 0, testData.Length + 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => crc32.Calculate(testData, -1, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => crc32.Calculate(testData, 0, -1));
+    }
 }

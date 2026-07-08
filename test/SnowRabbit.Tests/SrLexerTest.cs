@@ -362,4 +362,151 @@ public class SrLexerTest
             Assert.That(token.Kind, Is.EqualTo(TokenKind.EndOfToken));
         }
     }
+
+    /// <summary>
+    /// 剰余演算子トークンが正しく認識されることをテストします
+    /// </summary>
+    [Test]
+    public void PercentTokenTest()
+    {
+        string script = "a % b";
+
+        using (StringReader reader = new StringReader(script))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Identifier));
+
+            lexer.ReadNextToken(out token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Percent));
+
+            lexer.ReadNextToken(out token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Identifier));
+        }
+    }
+
+    /// <summary>
+    /// 16進数整数リテラルが正しく認識されることをテストします
+    /// </summary>
+    [Test]
+    public void HexIntegerLiteralTest()
+    {
+        string script = "0xFF 0x1f 0x0";
+
+        using (StringReader reader = new StringReader(script))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Integer));
+            Assert.That(token.Integer, Is.EqualTo(255));
+
+            lexer.ReadNextToken(out token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Integer));
+            Assert.That(token.Integer, Is.EqualTo(31));
+
+            lexer.ReadNextToken(out token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Integer));
+            Assert.That(token.Integer, Is.EqualTo(0));
+        }
+    }
+
+    /// <summary>
+    /// シングルクォートの文字列リテラルが正しく認識されることをテストします
+    /// </summary>
+    [Test]
+    public void SingleQuoteStringLiteralTest()
+    {
+        string script = "'hello' '日本語' 'quote\\'inner'";
+
+        using (StringReader reader = new StringReader(script))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.String));
+            Assert.That(token.Text, Is.EqualTo("hello"));
+
+            lexer.ReadNextToken(out token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.String));
+            Assert.That(token.Text, Is.EqualTo("日本語"));
+
+            lexer.ReadNextToken(out token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.String));
+            Assert.That(token.Text, Is.EqualTo("quote'inner"));
+        }
+    }
+
+    /// <summary>
+    /// 文字列リテラルのエスケープシーケンスが正しく解釈されることをテストします
+    /// </summary>
+    [Test]
+    public void StringEscapeSequenceTest()
+    {
+        string script = "\"tab\\there\" \"new\\nline\" \"back\\\\slash\" \"quote\\\"inner\"";
+
+        using (StringReader reader = new StringReader(script))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.String));
+            Assert.That(token.Text, Is.EqualTo("tab\there"));
+
+            lexer.ReadNextToken(out token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.String));
+            Assert.That(token.Text, Is.EqualTo("new\nline"));
+
+            lexer.ReadNextToken(out token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.String));
+            Assert.That(token.Text, Is.EqualTo("back\\slash"));
+
+            lexer.ReadNextToken(out token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.String));
+            Assert.That(token.Text, Is.EqualTo("quote\"inner"));
+        }
+    }
+
+    /// <summary>
+    /// 文字列リテラル内のエスケープ直後にスラッシュ2連続が現れても
+    /// コメントとして解釈されないことをテストします（回帰テスト）
+    /// </summary>
+    [Test]
+    public void StringEscapeFollowedByDoubleSlashTest()
+    {
+        string script = "\"x\\t// not comment\" after";
+
+        using (StringReader reader = new StringReader(script))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.String));
+            Assert.That(token.Text, Is.EqualTo("x\t// not comment"));
+
+            lexer.ReadNextToken(out token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Identifier));
+            Assert.That(token.Text, Is.EqualTo("after"));
+        }
+    }
+
+    /// <summary>
+    /// 実数リテラルのパースが実行環境のカルチャに依存しないことをテストします（回帰テスト）
+    /// </summary>
+    [Test]
+    [SetCulture("de-DE")]
+    public void NumberLiteralCultureInvariantTest()
+    {
+        string script = "3.14";
+
+        using (StringReader reader = new StringReader(script))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Number));
+            Assert.That(token.Number, Is.EqualTo(3.14).Within(0.001));
+        }
+    }
 }

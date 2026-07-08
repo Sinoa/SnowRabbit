@@ -430,4 +430,83 @@ end
 
         Assert.That(node, Is.Not.Null);
     }
+
+    /// <summary>
+    /// 剰余演算子がパースできることをテストします
+    /// </summary>
+    [Test]
+    public void ParseModuloExpressionTest()
+    {
+        string script = @"
+function void Main()
+    local int x = 10;
+    local int y = x % 3;
+    local int z = 1 + x % 3 * 2;
+end
+";
+        MemoryScriptStorage storage = new MemoryScriptStorage("test.srs", script);
+        SrCompiler compiler = new SrCompiler(storage, new NullReportPrinter());
+
+        compiler.Parse("test.srs", out SyntaxNode node);
+
+        Assert.That(node, Is.Not.Null);
+    }
+
+    /// <summary>
+    /// 剰余演算子を含むスクリプトがコンパイルできることをテストします
+    /// </summary>
+    [Test]
+    public void CompileModuloScriptTest()
+    {
+        string script = @"
+function int Mod3(int value)
+    return value % 3;
+end
+
+function void main()
+    local int result = Mod3(10) + 10 % 4;
+end
+";
+        MemoryScriptStorage storage = new MemoryScriptStorage("test.srs", script);
+        SrCompiler compiler = new SrCompiler(storage, new NullReportPrinter());
+
+        using (MemoryStream outputStream = new MemoryStream())
+        {
+            compiler.Compile("test.srs", outputStream);
+
+            // バイナリが生成されていることを確認
+            Assert.That(outputStream.Length, Is.GreaterThan(0));
+        }
+    }
+
+    /// <summary>
+    /// 関数本体内の文字列リテラルとペリフェラル宣言を含むスクリプトが
+    /// コンパイルできることをテストします（文字列シンボルのアドレス解決の回帰テスト）
+    /// </summary>
+    [Test]
+    public void CompileStringLiteralInFunctionTest()
+    {
+        string script = @"
+using Print = void Console.WriteLine(string);
+
+global string g_Message = ""global literal"";
+
+function void main()
+    local string message = ""local literal"";
+    message = ""reassigned literal"";
+    Print(message);
+    Print(""direct argument literal"");
+end
+";
+        MemoryScriptStorage storage = new MemoryScriptStorage("test.srs", script);
+        SrCompiler compiler = new SrCompiler(storage, new NullReportPrinter());
+
+        using (MemoryStream outputStream = new MemoryStream())
+        {
+            compiler.Compile("test.srs", outputStream);
+
+            // バイナリが生成されていることを確認
+            Assert.That(outputStream.Length, Is.GreaterThan(0));
+        }
+    }
 }

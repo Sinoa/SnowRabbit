@@ -8,6 +8,8 @@
         <IsPackable>false</IsPackable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <RootNamespace>SnowRabbit.Tests</RootNamespace>
+        <!-- .NET 8 ランタイム不在の環境では、インストール済みのより新しいメジャーバージョンで実行する -->
+        <RollForward>Major</RollForward>
     </PropertyGroup>
 
     <ItemGroup>
