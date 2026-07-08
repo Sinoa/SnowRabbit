@@ -173,6 +173,7 @@
     : unary_expression
     | muldiv_expression { '*' unary_expression }
     | muldiv_expression { '/' unary_expression }
+    | muldiv_expression { '%' unary_expression }
 
 ### unary_expression
     : post_unary_expression

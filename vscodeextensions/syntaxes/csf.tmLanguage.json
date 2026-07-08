@@ -20,13 +20,28 @@
       "match": "//.*$"
     },
     "string": {
-      "name": "string.quoted.double.csf",
-      "begin": "\"",
-      "end": "\"",
       "patterns": [
         {
-          "name": "constant.character.escape.csf",
-          "match": "\\\\."
+          "name": "string.quoted.double.csf",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.csf",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.csf",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.csf",
+              "match": "\\\\."
+            }
+          ]
         }
       ]
     },
@@ -55,6 +70,10 @@
     },
     "constant-numeric": {
       "patterns": [
+        {
+          "name": "constant.numeric.hex.csf",
+          "match": "\\b0[xX][0-9a-fA-F]+\\b"
+        },
         {
           "name": "constant.numeric.float.csf",
           "match": "\\b\\d+\\.\\d+\\b"
@@ -95,7 +114,7 @@
         },
         {
           "name": "keyword.operator.arithmetic.csf",
-          "match": "[+\\-*/]"
+          "match": "[+\\-*/%]"
         }
       ]
     }

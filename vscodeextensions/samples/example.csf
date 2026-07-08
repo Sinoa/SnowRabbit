@@ -1,6 +1,6 @@
 // Pre-Processor directives
 #compile "main.csf"
-#link "library.obj"
+#link "library.bin"
 #const MAX_COUNT 100
 
 // Peripheral declaration
@@ -20,7 +20,7 @@ function void main()
     local string msg = "Hello, World!\n";
 
     // For loop
-    for (i = 0; i < MAX_COUNT; i++)
+    for (i = 0; i < MAX_COUNT; ++i)
         result = result + 1.5;
         if (result >= 100.0)
             break;
@@ -47,6 +47,7 @@ function void main()
     local int b = 20;
     local int c = a + b * 2 - 1;
     c = c / 3;
+    c = c % 4;
     a += 5;
     b -= 3;
     a = a & b;
