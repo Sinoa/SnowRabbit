@@ -195,6 +195,9 @@ dotnet run --project src/SampleApplication/SampleApplication.csproj
 
 # コマンドラインコンパイラ (snowrabbitc) の実行例
 dotnet run --project src/SnowRabbitCompiler/SnowRabbitCompiler.csproj -- script.srs -v
+
+# ライブラリをオブジェクトファイル (.sro) としてコンパイル (#link で利用)
+dotnet run --project src/SnowRabbitCompiler/SnowRabbitCompiler.csproj -- library.srs -c
 ```
 
 ## ディレクトリ構成

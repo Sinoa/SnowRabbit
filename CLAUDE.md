@@ -24,6 +24,9 @@ dotnet run --project src/SampleApplication/SampleApplication.csproj
 
 # コマンドラインコンパイラ (snowrabbitc) 実行
 dotnet run --project src/SnowRabbitCompiler/SnowRabbitCompiler.csproj -- script.srs -v
+
+# リンク可能なオブジェクトファイル (.sro) の作成 (#link で参照する)
+dotnet run --project src/SnowRabbitCompiler/SnowRabbitCompiler.csproj -- library.srs -c
 ```
 
 ## アーキテクチャ
@@ -35,6 +38,7 @@ dotnet run --project src/SnowRabbitCompiler/SnowRabbitCompiler.csproj -- script.
 3. **Assembler** (`Assembler/SrAssembler`) → バイナリ実行コードを生成
 
 エントリーポイント: `SrCompiler.Compile(path, outStream)` がパイプライン全体を統括する。
+`SrCompiler.CompileObject(path, outStream)` はリンク可能なオブジェクト(SROB形式・`.sro`)を出力し、`#link` は `SrObjectImporter` がコンパイル前にシンボルとコードをマージする(アドレス解決は通常のアセンブルに委ねる)。
 デバッグ用に `SrDisassembler.Disassemble(stream)` でバイナリを逆アセンブルできる。
 `SrParser.cs` 冒頭のBNFコメントが文法の一次情報で、`vscodeextensions/syntax.md` と同期させること。
 
@@ -82,7 +86,7 @@ end
 **制御構文**: `if`/`else`/`else if`, `for`, `while`, `break`, `return`
 **リテラル**: 整数(10進/16進 `0x`)、実数、文字列(`"..."` と `'...'`、エスケープは `\n \t \\ \" \'` の5種)、`true`, `false`, `null`
 **演算子**: 算術 `+ - * / %`、比較、論理(`&&`/`||`は短絡評価)、ビット演算、複合代入(`%=`は無し)。インクリメントは前置(`++a`)と後置(`a++`)に対応
-**ディレクティブ**: `#const`, `#compile`(他スクリプトの取り込み), `#link`(予約構文・未実装)
+**ディレクティブ**: `#const`, `#compile`(他スクリプトの取り込み), `#link`(コンパイル済みオブジェクト `.sro` のリンク)
 
 詳細仕様は `docs/LANGUAGE_REFERENCE.md` を参照。VS Code用の構文ハイライト拡張は `vscodeextensions/` にある(こちらの言語IDは `csf`・拡張子 `.csf`)。
 
