@@ -364,6 +364,28 @@ end
     }
 
     /// <summary>
+    /// 変数以外への後置インクリメントがコンパイルエラーになることをテストします
+    /// </summary>
+    [Test]
+    public void PostfixIncrementOnNonVariableTest()
+    {
+        AssertCompileError(@"
+function void main()
+    local int x = 5++;
+end
+");
+        AssertCompileError(@"
+function int GetValue()
+    return 1;
+end
+
+function void main()
+    local int x = GetValue()++;
+end
+");
+    }
+
+    /// <summary>
     /// 型の混在する比較・条件がコンパイルエラーになることをテストします
     /// </summary>
     [Test]

@@ -186,6 +186,8 @@
 ### post_unary_expression
     : primary_expression
     | primary_expression '(' [ argument_list ] ')'
+    | post_unary_expression '++'
+    | post_unary_expression '--'
 
 ### primary_expression
     : literal

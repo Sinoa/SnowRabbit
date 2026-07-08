@@ -213,6 +213,8 @@
 ### post_unary_expression
     : primary_expression
     | primary_expression '(' [ argument_list ] ')'
+    | post_unary_expression '++'
+    | post_unary_expression '--'
 
 ### primary_expression
     : literal
@@ -1058,20 +1060,32 @@ namespace SnowRabbit.Compiler.Parser
         }
 
         /// <summary>
-        /// 後置単項式（関数呼び出し）をパースします
+        /// 後置単項式（関数呼び出し、後置インクリメント/デクリメント）をパースします
         /// </summary>
         /// <returns>式ノード</returns>
         private SyntaxNode ParsePostUnaryExpression()
         {
             var expression = ParsePrimaryExpression();
-            if (!CheckTokenAndReadNext(TokenKind.OpenParen)) return expression;
+            if (CheckTokenAndReadNext(TokenKind.OpenParen))
+            {
+                // 関数呼び出し
+                var functionCall = new FunctionCallSyntaxNode();
+                functionCall.Add(expression);
+                functionCall.Add(ParseArgumentList());
+                RequireTokenPair(TokenKind.CloseParen, "(", ")");
+                expression = functionCall;
+            }
 
-            // 関数呼び出し
-            var functionCall = new FunctionCallSyntaxNode();
-            functionCall.Add(expression);
-            functionCall.Add(ParseArgumentList());
-            RequireTokenPair(TokenKind.CloseParen, "(", ")");
-            return functionCall;
+            // 後置インクリメント/デクリメント
+            while (CheckAnyToken(TokenKind.DoublePlus, TokenKind.DoubleMinus))
+            {
+                GetCurrentTokenAndReadNext(out var operation);
+                var postfixExpression = new PostfixUnaryExpressionSyntaxNode(operation);
+                postfixExpression.Add(expression);
+                expression = postfixExpression;
+            }
+
+            return expression;
         }
 
         /// <summary>

@@ -61,8 +61,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
             operationTable = new Dictionary<int, OperationHandler>()
             {
-                { TokenKind.DoubleVerticalbar, OpConditionOr },
-                { TokenKind.DoubleAnd, OpConditionAnd },
                 { TokenKind.Verticalbar, OpLogicalOr },
                 { TokenKind.Circumflex, OpLogicalExOr },
                 { TokenKind.And, OpLogicalAnd },
@@ -427,7 +425,92 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
+            if (Token.Kind == TokenKind.DoubleAnd || Token.Kind == TokenKind.DoubleVerticalbar)
+            {
+                CompileShortCircuitExpression(Children[0], Children[1], Token, context);
+                return;
+            }
+
+
             CompileBinaryExpression(Children[0], Children[1], Token, context);
+        }
+
+
+        /// <summary>
+        /// 条件論理演算（&amp;&amp; / ||）を短絡評価としてコンパイルします。
+        /// 左辺で結果が確定した場合、右辺のコードは実行されません。
+        /// </summary>
+        private void CompileShortCircuitExpression(SyntaxNode leftExpression, SyntaxNode rightExpression, in Token operation, SrCompileContext context)
+        {
+            var isAnd = operation.Kind == TokenKind.DoubleAnd;
+            var leftRegisterIndex = CompileExpressionValue(leftExpression, context, out var leftType);
+            EmitBooleanNormalize(leftRegisterIndex, leftType, operation, context);
+
+
+            var instruction = new SrInstruction();
+            int patchTargetAddress;
+            if (isAnd)
+            {
+                // 左辺が偽なら右辺を評価せず、式全体の結果を偽(0)とする
+                instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, leftRegisterIndex, 0, 2);
+                context.AddBodyCode(instruction, false);
+                patchTargetAddress = context.BodyCodeList.Count;
+                instruction.Set(OpCode.Br);
+                context.AddBodyCode(instruction, false);
+            }
+            else
+            {
+                // 左辺が真なら右辺を評価せず、式全体の結果を真(1)とする
+                patchTargetAddress = context.BodyCodeList.Count;
+                instruction.Set(OpCode.Bnz);
+                context.AddBodyCode(instruction, false);
+            }
+
+
+            var rightRegisterIndex = CompileExpressionValue(rightExpression, context, out var rightType);
+            EmitBooleanNormalize(rightRegisterIndex, rightType, operation, context);
+            instruction.Set(OpCode.Mov, leftRegisterIndex, rightRegisterIndex);
+            context.AddBodyCode(instruction, false);
+            context.ReleaseRegisterIndex(rightRegisterIndex);
+
+
+            // スキップ用分岐命令の飛び先を式の終端へパッチする
+            if (isAnd)
+            {
+                instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, context.BodyCodeList.Count - patchTargetAddress);
+            }
+            else
+            {
+                instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, leftRegisterIndex, 0, context.BodyCodeList.Count - patchTargetAddress);
+            }
+            context.UpdateBodyCode(patchTargetAddress, instruction, false);
+
+
+            ResultRegisterIndex = leftRegisterIndex;
+            ResultType = SrRuntimeType.Boolean;
+        }
+
+
+        /// <summary>
+        /// レジスタの値をその型に応じて真偽値(1/0)へ正規化する命令を出力します
+        /// </summary>
+        private static void EmitBooleanNormalize(byte registerIndex, SrRuntimeType type, in Token operation, SrCompileContext context)
+        {
+            var instruction = new SrInstruction();
+            if (type == SrRuntimeType.Object || type == SrRuntimeType.String)
+            {
+                // 参照型は null でないことを真とする
+                instruction.Set(OpCode.Tonnull, registerIndex, registerIndex);
+            }
+            else if (type == SrRuntimeType.Integer || type == SrRuntimeType.Number || type == SrRuntimeType.Boolean)
+            {
+                instruction.Set(OpCode.Tne, registerIndex, registerIndex, SrvmProcessor.RegisterZeroIndex);
+            }
+            else
+            {
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, operation.Text, type);
+            }
+            context.AddBodyCode(instruction, false);
         }
 
 
@@ -622,7 +705,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             ResultType = operationType;
 
 
-            // 比較・等価・条件演算の結果型は、オペランドの型ではなく真偽値になる
+            // 比較・等価演算の結果型は、オペランドの型ではなく真偽値になる
             switch (operation.Kind)
             {
                 case TokenKind.DoubleEqual:
@@ -631,8 +714,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 case TokenKind.CloseAngle:
                 case TokenKind.LesserEqual:
                 case TokenKind.GreaterEqual:
-                case TokenKind.DoubleVerticalbar:
-                case TokenKind.DoubleAnd:
                     ResultType = SrRuntimeType.Boolean;
                     break;
             }
@@ -678,52 +759,6 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
         #region Operation functions
-        private static void OpConditionOr(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
-        {
-            var instruction = new SrInstruction();
-            if (type == SrRuntimeType.Object || type == SrRuntimeType.String)
-            {
-                instruction.Set(OpCode.Tonnull, leftRegister, leftRegister);
-                context.AddBodyCode(instruction, false);
-                instruction.Set(OpCode.Tonnull, rightRegister, rightRegister);
-                context.AddBodyCode(instruction, false);
-            }
-            else
-            {
-                instruction.Set(OpCode.Tne, leftRegister, leftRegister, SrvmProcessor.RegisterZeroIndex);
-                context.AddBodyCode(instruction, false);
-                instruction.Set(OpCode.Tne, rightRegister, rightRegister, SrvmProcessor.RegisterZeroIndex);
-                context.AddBodyCode(instruction, false);
-            }
-
-            instruction.Set(OpCode.Or, leftRegister, leftRegister, rightRegister);
-            context.AddBodyCode(instruction, false);
-        }
-
-
-        private static void OpConditionAnd(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
-        {
-            var instruction = new SrInstruction();
-            if (type == SrRuntimeType.Object || type == SrRuntimeType.String)
-            {
-                instruction.Set(OpCode.Tonnull, leftRegister, leftRegister);
-                context.AddBodyCode(instruction, false);
-                instruction.Set(OpCode.Tonnull, rightRegister, rightRegister);
-                context.AddBodyCode(instruction, false);
-            }
-            else
-            {
-                instruction.Set(OpCode.Tne, leftRegister, leftRegister, SrvmProcessor.RegisterZeroIndex);
-                context.AddBodyCode(instruction, false);
-                instruction.Set(OpCode.Tne, rightRegister, rightRegister, SrvmProcessor.RegisterZeroIndex);
-                context.AddBodyCode(instruction, false);
-            }
-
-            instruction.Set(OpCode.And, leftRegister, leftRegister, rightRegister);
-            context.AddBodyCode(instruction, false);
-        }
-
-
         private static void OpLogicalOr(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)

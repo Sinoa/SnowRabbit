@@ -20,7 +20,7 @@ function void main()
     local string msg = "Hello, World!\n";
 
     // For loop
-    for (i = 0; i < MAX_COUNT; ++i)
+    for (i = 0; i < MAX_COUNT; i++)
         result = result + 1.5;
         if (result >= 100.0)
             break;

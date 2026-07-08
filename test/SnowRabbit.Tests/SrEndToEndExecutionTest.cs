@@ -598,6 +598,126 @@ end
     }
 
     /// <summary>
+    /// 条件論理演算子（&amp;&amp; / ||）が短絡評価されることをテストします
+    /// （左辺で結果が確定した場合に右辺の副作用が発生しないことの検証）
+    /// </summary>
+    [Test]
+    public void ShortCircuitEvaluationExecutionTest()
+    {
+        string script = @"
+using WriteInt = void Test.WriteInt(int);
+using WriteBool = void Test.WriteBool(bool);
+
+global int g_Calls = 0;
+
+function bool TrueWithCount()
+    g_Calls += 1;
+    return true;
+end
+
+function bool FalseWithCount()
+    g_Calls += 1;
+    return false;
+end
+
+function void main()
+    // && の左辺が偽なら右辺は評価されない
+    g_Calls = 0;
+    WriteBool(FalseWithCount() && TrueWithCount());
+    WriteInt(g_Calls);
+
+    // || の左辺が真なら右辺は評価されない
+    g_Calls = 0;
+    WriteBool(TrueWithCount() || TrueWithCount());
+    WriteInt(g_Calls);
+
+    // 左辺で確定しない場合は右辺も評価される
+    g_Calls = 0;
+    WriteBool(TrueWithCount() && FalseWithCount());
+    WriteInt(g_Calls);
+
+    // 真偽値の全組み合わせ
+    WriteBool(true && true);
+    WriteBool(true && false);
+    WriteBool(false || true);
+    WriteBool(false || false);
+
+    // 比較式との混在
+    local int count = 3;
+    local bool flag = true;
+    if (flag && count > 0)
+        WriteInt(100);
+    end
+end
+";
+        TestPeripheral peripheral = CompileAndRun(script);
+
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[]
+        {
+            "False", "1",
+            "True", "1",
+            "False", "2",
+            "True", "False", "True", "False",
+            "100",
+        }));
+    }
+
+    /// <summary>
+    /// 後置インクリメント/デクリメントが変更前の値を返し、変数を正しく更新することをテストします
+    /// </summary>
+    [Test]
+    public void PostfixIncrementDecrementExecutionTest()
+    {
+        string script = @"
+using WriteInt = void Test.WriteInt(int);
+
+global int g_Value = 10;
+
+function void main()
+    local int a = 1;
+    local int b = a++;
+    WriteInt(a);
+    WriteInt(b);
+
+    local int c = a--;
+    WriteInt(a);
+    WriteInt(c);
+
+    local int d = ++a;
+    WriteInt(a);
+    WriteInt(d);
+
+    // for 文の更新式として使用
+    local int i = 0;
+    local int total = 0;
+    for (i = 0; i < 3; i++)
+        total += i;
+    end
+    WriteInt(total);
+
+    // 引数の中で使用（変更前の値が渡される）
+    WriteInt(a++);
+    WriteInt(a);
+
+    // グローバル変数への後置演算
+    WriteInt(g_Value--);
+    WriteInt(g_Value);
+end
+";
+        TestPeripheral peripheral = CompileAndRun(script);
+
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[]
+        {
+            "2", "1",
+            "1", "2",
+            "2", "2",
+            "3",
+            "2", "3",
+            "10", "9",
+        }));
+    }
+
+    /// <summary>
     /// 言語リファレンスのフィボナッチ数列サンプルが正しく実行されることをテストします
     /// （再帰呼び出しとローカル変数への関数戻り値格納の検証）
     /// </summary>
