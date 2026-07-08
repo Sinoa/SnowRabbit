@@ -36,6 +36,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         public SrRuntimeType Type { get; private set; }
 
 
+        /// <summary>
+        /// この引数が渡されるパラメータの型。ArgumentListSyntaxNode からコンパイル前に注入されます。
+        /// </summary>
+        internal SrRuntimeType ExpectedParameterType { get; set; }
+
+
 
         public ArgumentSyntaxNode(in Token token) : base(token)
         {
@@ -45,24 +51,26 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         public override void Compile(SrCompileContext context)
         {
             var expression = Children[0];
-            expression.Compile(context);
+            var valueRegisterIndex = ExpressionSyntaxNode.CompileExpressionValue(expression, context, out var valueType);
+
+
+            // パラメータの型へ暗黙変換できない引数は型エラー
+            if (!ExpressionSyntaxNode.TryEmitImplicitConversion(valueRegisterIndex, valueType, ExpectedParameterType, context))
+            {
+                throw context.ErrorReporter.InvalidParameterStoreType(expression.Token, valueType, ExpectedParameterType);
+            }
+
+
+            Type = ExpectedParameterType;
 
 
             SrInstruction instruction = default;
-            if (expression is FunctionCallSyntaxNode functionCallSyntaxNode)
-            {
-                Type = context.AssemblyData.GetFunctionSymbol(functionCallSyntaxNode.FunctionName).ReturnType;
-                instruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR29Index);
-                context.AddBodyCode(instruction, false);
-            }
-            else
-            {
-                Type = ((ExpressionSyntaxNode)expression).ResultType;
-            }
-
-
-            instruction.Set(OpCode.Push, SrvmProcessor.RegisterAIndex);
+            instruction.Set(OpCode.Push, valueRegisterIndex);
             context.AddBodyCode(instruction, false);
+
+
+            // 値はスタックへ退避済みのため、ネストした呼び出しでレジスタを溜め込まないように即時返却する
+            context.ReleaseRegisterIndex(valueRegisterIndex);
         }
     }
 }

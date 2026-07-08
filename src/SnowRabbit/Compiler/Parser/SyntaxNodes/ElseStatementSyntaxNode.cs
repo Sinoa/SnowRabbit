@@ -59,7 +59,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             foreach (var node in Children)
             {
-                node.Compile(context);
+                node.CompileAsStatement(context);
             }
         }
     }

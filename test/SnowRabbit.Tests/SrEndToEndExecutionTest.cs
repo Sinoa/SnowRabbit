@@ -394,6 +394,188 @@ end
     }
 
     /// <summary>
+    /// 式の中に関数呼び出しが含まれても評価途中の値が破壊されないことをテストします
+    /// （レジスタプールリセットによる値破壊の回帰テスト）
+    /// </summary>
+    [Test]
+    public void FunctionCallInExpressionExecutionTest()
+    {
+        string script = @"
+using WriteInt = void Test.WriteInt(int);
+
+function int Identity(int value)
+    return value;
+end
+
+function int Times10(int value)
+    return value * 10;
+end
+
+function void main()
+    local int a = 100;
+    local int b = 1;
+    WriteInt(a + Identity(b));
+    WriteInt(Identity(b) + a);
+    WriteInt(Times10(1) + Times10(2));
+    WriteInt(Times10(1) + Times10(2) * Times10(3));
+end
+";
+        TestPeripheral peripheral = CompileAndRun(script);
+
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[] { "101", "101", "30", "610" }));
+    }
+
+    /// <summary>
+    /// ネストした引数の関数呼び出しと複数引数の関数呼び出しが正しく評価されることをテストします
+    /// </summary>
+    [Test]
+    public void NestedFunctionCallArgumentExecutionTest()
+    {
+        string script = @"
+using WriteInt = void Test.WriteInt(int);
+
+function int Times10(int value)
+    return value * 10;
+end
+
+function int AddBoth(int a, int b)
+    return a + b;
+end
+
+function void main()
+    WriteInt(Times10(Times10(1) + 2) * 3);
+    WriteInt(AddBoth(Times10(1), Times10(2)));
+    WriteInt(AddBoth(AddBoth(1, 2), AddBoth(3, 4)));
+end
+";
+        TestPeripheral peripheral = CompileAndRun(script);
+
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[] { "360", "30", "10" }));
+    }
+
+    /// <summary>
+    /// 呼び出し先が多数のレジスタを使用しても、呼び出し元の評価途中の値が保存されることをテストします
+    /// （UsedRegisterSet 過少申告によるレジスタ退避漏れの回帰テスト）
+    /// </summary>
+    [Test]
+    public void RegisterPreservationAcrossCallExecutionTest()
+    {
+        string script = @"
+using WriteInt = void Test.WriteInt(int);
+
+function int Sum(int a, int b)
+    local int t1 = a * 2;
+    local int t2 = b * 3;
+    local int t3 = t1 + t2;
+    local int t4 = t3 - a;
+    local int t5 = t4 + b;
+    return t1 + t2 + t3 + t4 + t5 - (t1 + t2 + t3 + t4 + t5) + a + b;
+end
+
+function void main()
+    local int a = 5;
+    local int b = 7;
+    local int c = 11;
+    WriteInt((a * 2 + b * 3) + Sum(a + b, a * b) + c * 5);
+end
+";
+        TestPeripheral peripheral = CompileAndRun(script);
+
+        // (10 + 21) + (12 + 35) + 55 = 133
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[] { "133" }));
+    }
+
+    /// <summary>
+    /// 条件式・更新式・return・代入の中の関数呼び出しが正しく動作することをテストします
+    /// </summary>
+    [Test]
+    public void FunctionCallInControlPositionsExecutionTest()
+    {
+        string script = @"
+using WriteInt = void Test.WriteInt(int);
+
+global int g_Calls = 0;
+
+function int Zero()
+    return 0;
+end
+
+function int One()
+    g_Calls += 1;
+    return 1;
+end
+
+function int Wrap(int value)
+    return value + 1;
+end
+
+function void main()
+    if (Zero() + 1 == 1)
+        WriteInt(1);
+    end
+
+    local int x = 0;
+    while (x + One() < 5)
+        x = x + 1;
+    end
+    WriteInt(x);
+
+    local int i = 0;
+    local int total = 0;
+    for (i = Zero(); i < Wrap(2); i = i + One())
+        total += i;
+    end
+    WriteInt(total);
+
+    WriteInt(Wrap(Zero()) + 1);
+end
+";
+        TestPeripheral peripheral = CompileAndRun(script);
+
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[] { "1", "4", "3", "2" }));
+    }
+
+    /// <summary>
+    /// 整数から実数への暗黙昇格が代入・初期化・引数・戻り値で機能することをテストします
+    /// </summary>
+    [Test]
+    public void ImplicitIntToNumberPromotionExecutionTest()
+    {
+        string script = @"
+using WriteInt = void Test.WriteInt(int);
+
+function number Half(number value)
+    return value / 2;
+end
+
+function number GetOne()
+    return 1;
+end
+
+function void main()
+    local number n = 1;
+    n += 1;
+    if (n == 2.0)
+        WriteInt(1);
+    end
+    if (Half(5) == 2.5)
+        WriteInt(2);
+    end
+    if (GetOne() == 1.0)
+        WriteInt(3);
+    end
+    local string s = null;
+    if (s == null)
+        WriteInt(4);
+    end
+end
+";
+        TestPeripheral peripheral = CompileAndRun(script);
+
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[] { "1", "2", "3", "4" }));
+    }
+
+    /// <summary>
     /// 比較・条件演算の結果が真偽値として bool 引数のホスト関数へ渡せることをテストします
     /// （比較演算の結果型の回帰テスト）
     /// </summary>

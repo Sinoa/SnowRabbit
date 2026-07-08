@@ -57,19 +57,17 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             if (expression == null) return;
 
 
-            expression.Compile(context);
-            if (expression is ExpressionSyntaxNode)
+            // 初期化式を評価して、宣言された型へ暗黙変換できるか検査してから格納する
+            var valueRegisterIndex = ExpressionSyntaxNode.CompileStatementExpressionValue(expression, context, out var valueType);
+            if (!ExpressionSyntaxNode.TryEmitImplicitConversion(valueRegisterIndex, valueType, type, context))
             {
-                SrInstruction instruction = default;
-                instruction.Set(OpCode.Str, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterBPIndex, 0, -localSymbol.Address);
-                context.AddBodyCode(instruction, false);
+                throw context.ErrorReporter.InvalidCast(Children[1].Token, valueType, type);
             }
-            else if (expression is FunctionCallSyntaxNode)
-            {
-                SrInstruction instruction = default;
-                instruction.Set(OpCode.Str, SrvmProcessor.RegisterR29Index, SrvmProcessor.RegisterBPIndex, 0, -localSymbol.Address);
-                context.AddBodyCode(instruction, false);
-            }
+
+
+            SrInstruction instruction = default;
+            instruction.Set(OpCode.Str, valueRegisterIndex, SrvmProcessor.RegisterBPIndex, 0, -localSymbol.Address);
+            context.AddBodyCode(instruction, false);
         }
     }
 }

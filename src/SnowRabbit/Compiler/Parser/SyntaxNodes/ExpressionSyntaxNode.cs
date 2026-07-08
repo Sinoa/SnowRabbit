@@ -1,29 +1,28 @@
 // zlib License
-// 
+//
 // Copyright (c) 2019 Sinoa
-// 
+//
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
 // arising from the use of this software.
-// 
+//
 // Permission is granted to anyone to use this software for any purpose,
 // including commercial applications, and to alter it and redistribute it
 // freely, subject to the following restrictions:
-// 
+//
 // 1. The origin of this software must not be misrepresented; you must not
 // claim that you wrote the original software. If you use this software
 // in a product, an acknowledgment in the product documentation would be
 // appreciated but is not required.
-// 
+//
 // 2. Altered source versions must be plainly marked as such, and must not be
 // misrepresented as being the original software.
-// 
+//
 // 3. This notice may not be removed or altered from any source
 // distribution.
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using SnowRabbit.Compiler.Assembler.Symbols;
 using SnowRabbit.Compiler.Lexer;
@@ -33,40 +32,35 @@ using SnowRabbit.RuntimeEngine.VirtualMachine;
 namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 {
     /// <summary>
-    /// 式構文を表す構文ノードクラスです
+    /// 式構文を表す構文ノードクラスです。
+    /// レジスタの取得と返却は SrCompileContext が所有するプールに対して行い、
+    /// プールのリセットは文の境界（CompileAsStatement または CompileStatementExpressionValue）でのみ行われます。
     /// </summary>
     public class ExpressionSyntaxNode : SyntaxNode
     {
-        private static readonly Dictionary<int, Action<SyntaxNode, byte, SyntaxNode, byte, SrRuntimeType, SrCompileContext>> operationTable;
+        /// <summary>
+        /// 二項演算のコード生成処理を表すデリゲートです
+        /// </summary>
+        private delegate void OperationHandler(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context);
 
-        // メンバ変数定義
-        private HashSet<byte> usedRegisterIndexs;
-        private Stack<byte> freeRegisterStack;
+        private static readonly Dictionary<int, OperationHandler> operationTable;
 
 
         /// <summary>
         /// この式構文による結果を出力する先のレジスタインデックス
         /// </summary>
-        public byte ResultRegisterIndex { get; private set; }
+        public byte ResultRegisterIndex { get; protected set; }
 
         /// <summary>
         /// この式構文による結果を出力したときの型
         /// </summary>
-        public SrRuntimeType ResultType { get; private set; }
+        public SrRuntimeType ResultType { get; protected set; }
 
 
         static ExpressionSyntaxNode()
         {
-            operationTable = new Dictionary<int, Action<SyntaxNode, byte, SyntaxNode, byte, SrRuntimeType, SrCompileContext>>()
+            operationTable = new Dictionary<int, OperationHandler>()
             {
-                { TokenKind.Equal, OpAssignment },
-                { TokenKind.PlusEqual, OpPlusAssignment },
-                { TokenKind.MinusEqual, OpMinusAssignment },
-                { TokenKind.AsteriskEqual, OpMullAssignment },
-                { TokenKind.SlashEqual, OpDivAssignment },
-                { TokenKind.AndEqual, OpAndAssignment },
-                { TokenKind.VerticalbarEqual, OpOrAssignment },
-                { TokenKind.CircumflexEqual, OpExOrAssignment },
                 { TokenKind.DoubleVerticalbar, OpConditionOr },
                 { TokenKind.DoubleAnd, OpConditionAnd },
                 { TokenKind.Verticalbar, OpLogicalOr },
@@ -88,6 +82,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             };
         }
 
+
         /// <summary>
         /// ExpressionSyntaxNode クラスのインスタンスを初期化します
         /// </summary>
@@ -96,79 +91,118 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         {
         }
 
-        #region Register control utility
+
+        #region Expression value compile utility
         /// <summary>
-        /// レジスタ追跡情報を初期化します。
-        /// ルート式の場合はコンテキストのプールからリセットして取得し、
-        /// ネスト式の場合は親から継承します。
+        /// 文の境界から式の値をコンパイルします。レジスタプールをリセットしてから式を評価し、
+        /// 結果が格納されたレジスタ番号と結果の型を返します。
         /// </summary>
+        /// <param name="node">コンパイルする式のノード</param>
         /// <param name="context">コンパイルコンテキスト</param>
-        private void InitializeRegisterInformation(SrCompileContext context)
+        /// <param name="resultType">式の結果の型</param>
+        /// <returns>式の結果が格納されたレジスタ番号を返します</returns>
+        internal static byte CompileStatementExpressionValue(SyntaxNode node, SrCompileContext context, out SrRuntimeType resultType)
         {
-            if (Parent is ExpressionSyntaxNode parentExpression)
-            {
-                usedRegisterIndexs = parentExpression.usedRegisterIndexs;
-                freeRegisterStack = parentExpression.freeRegisterStack;
-                return;
-            }
-
-            // ルート式: プールをリセットして再利用
+            // 文をまたいで生存するレジスタ値は存在しないため、文の境界でプールをリセットする
             context.ResetRegisterPool();
-            usedRegisterIndexs = context.GetPooledUsedRegisterSet();
-            freeRegisterStack = context.GetPooledFreeRegisterStack();
+            return CompileExpressionValue(node, context, out resultType);
         }
 
-        private void FinalizeRegisterInformation(SrCompileContext context)
-        {
-            if (Parent is ExpressionSyntaxNode) return;
-            var functionSymbol = context.AssemblyData.GetFunctionSymbol(context.CurrentCompileFunctionName);
-            functionSymbol.UsedRegisterSet.UnionWith(usedRegisterIndexs);
-        }
 
-        private byte TakeFreeRegisterIndex()
+        /// <summary>
+        /// 制御構文の条件式をコンパイルします。条件として使用可能な型（真偽値・整数・実数）であることを検査します。
+        /// </summary>
+        /// <param name="node">条件式のノード</param>
+        /// <param name="context">コンパイルコンテキスト</param>
+        /// <returns>条件の結果が格納されたレジスタ番号を返します</returns>
+        internal static byte CompileConditionExpressionValue(SyntaxNode node, SrCompileContext context)
         {
-            if (freeRegisterStack.Count == 0)
+            var conditionRegisterIndex = CompileStatementExpressionValue(node, context, out var conditionType);
+            if (conditionType != SrRuntimeType.Boolean && conditionType != SrRuntimeType.Integer && conditionType != SrRuntimeType.Number)
             {
-                // 空きレジスタがもうない
-                throw new System.Exception();
+                // 条件式として評価できない型
+                throw context.ErrorReporter.TypeMismatch(node.Token, SrRuntimeType.Boolean, conditionType);
             }
 
-            var freeRegisterIndex = freeRegisterStack.Pop();
-            usedRegisterIndexs.Add(freeRegisterIndex);
-            return freeRegisterIndex;
+
+            return conditionRegisterIndex;
         }
 
-        private void ReleaseRegister(byte registerIndex)
-        {
-            freeRegisterStack.Push(registerIndex);
-        }
-        #endregion
 
-        #region Load Store control
-        private byte LoadFromExpression(SyntaxNode node, SrCompileContext context, out SrRuntimeType returnType)
+        /// <summary>
+        /// 式の値をコンパイルし、結果が格納されたレジスタ番号と結果の型を返します。
+        /// 式の途中（ネストした部分式や引数）から呼び出す場合はレジスタプールをリセットしません。
+        /// </summary>
+        /// <param name="node">コンパイルする式のノード</param>
+        /// <param name="context">コンパイルコンテキスト</param>
+        /// <param name="resultType">式の結果の型</param>
+        /// <returns>式の結果が格納されたレジスタ番号を返します</returns>
+        internal static byte CompileExpressionValue(SyntaxNode node, SrCompileContext context, out SrRuntimeType resultType)
         {
             switch (node)
             {
-                case LiteralSyntaxNode x: return LoadFromLiteral(x, context, out returnType);
-                case IdentifierSyntaxNode x: return LoadFromIdentifier(x, context, out returnType);
-                case FunctionCallSyntaxNode x: return LoadFromFunctionCall(x, context, out returnType);
+                case LiteralSyntaxNode x: return LoadFromLiteral(x, context, out resultType);
+                case IdentifierSyntaxNode x: return LoadFromIdentifier(x, context, out resultType);
+                case FunctionCallSyntaxNode x: return LoadFromFunctionCall(x, context, out resultType);
             }
+
 
             if (node is ExpressionSyntaxNode expressionNode)
             {
                 expressionNode.Compile(context);
-                returnType = expressionNode.ResultType;
+                resultType = expressionNode.ResultType;
                 return expressionNode.ResultRegisterIndex;
             }
 
-            throw new System.Exception();
+
+            // 式として評価できないノード
+            throw context.ErrorReporter.UnknownExpression(node.Token);
         }
 
-        private byte LoadFromLiteral(LiteralSyntaxNode literal, SrCompileContext context, out SrRuntimeType returnType)
+
+        /// <summary>
+        /// 値を対象の型へ暗黙変換できる場合は、必要な変換命令を出力して true を返します。
+        /// 許可される暗黙変換は「同一型」「整数から実数への昇格」「文字列とオブジェクトの相互受け渡し」のみです。
+        /// </summary>
+        /// <param name="valueRegisterIndex">変換対象の値が格納されたレジスタ番号</param>
+        /// <param name="fromType">値の型</param>
+        /// <param name="targetType">変換先の型</param>
+        /// <param name="context">コンパイルコンテキスト</param>
+        /// <returns>暗黙変換が可能な場合は true を、不可能な場合は false を返します</returns>
+        internal static bool TryEmitImplicitConversion(byte valueRegisterIndex, SrRuntimeType fromType, SrRuntimeType targetType, SrCompileContext context)
+        {
+            if (fromType == targetType) return true;
+
+
+            // 整数から実数への昇格
+            if (fromType == SrRuntimeType.Integer && targetType == SrRuntimeType.Number)
+            {
+                var instruction = new SrInstruction();
+                instruction.Set(OpCode.Movitf, valueRegisterIndex, valueRegisterIndex);
+                context.AddBodyCode(instruction, false);
+                return true;
+            }
+
+
+            // 文字列とオブジェクトは相互に受け渡し可能（null リテラルはオブジェクト型のため）
+            if ((fromType == SrRuntimeType.String && targetType == SrRuntimeType.Object) ||
+                (fromType == SrRuntimeType.Object && targetType == SrRuntimeType.String))
+            {
+                return true;
+            }
+
+
+            return false;
+        }
+        #endregion
+
+
+        #region Load Store control
+        private static byte LoadFromLiteral(LiteralSyntaxNode literal, SrCompileContext context, out SrRuntimeType returnType)
         {
             var literalToken = literal.Token;
             var instruction = new SrInstruction();
-            var targetRegisterIndex = TakeFreeRegisterIndex();
+            var targetRegisterIndex = context.TakeFreeRegisterIndex(literalToken);
             switch (context.ToRuntimeType(literalToken.Kind))
             {
                 case SrRuntimeType.Integer:
@@ -204,13 +238,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     return targetRegisterIndex;
             }
 
-            // 何を処理すれば良いのか
-            throw new System.Exception();
+
+            // 何をロードすれば良いのか不明
+            throw context.ErrorReporter.UnknownLiteralType(literalToken);
         }
 
-        private byte LoadFromIdentifier(IdentifierSyntaxNode identifier, SrCompileContext context, out SrRuntimeType returnType)
+
+        private static byte LoadFromIdentifier(IdentifierSyntaxNode identifier, SrCompileContext context, out SrRuntimeType returnType)
         {
-            var targetRegisterIndex = TakeFreeRegisterIndex();
             var identifierToken = identifier.Token;
             var variableSymbol = context.AssemblyData.GetVariableSymbol(identifierToken.Text, context.CurrentCompileFunctionName);
             if (variableSymbol == null)
@@ -219,6 +254,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw context.ErrorReporter.UnknownSymbol(identifierToken);
             }
 
+
+            var targetRegisterIndex = context.TakeFreeRegisterIndex(identifierToken);
             returnType = variableSymbol.Type;
             var instruction = new SrInstruction();
             switch (variableSymbol)
@@ -269,27 +306,33 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     break;
             }
 
+
             return targetRegisterIndex;
         }
 
-        private byte LoadFromFunctionCall(FunctionCallSyntaxNode functionCall, SrCompileContext context, out SrRuntimeType returnType)
+
+        private static byte LoadFromFunctionCall(FunctionCallSyntaxNode functionCall, SrCompileContext context, out SrRuntimeType returnType)
         {
-            var functionName = functionCall.Children[0].Token.Text;
+            var functionNameToken = functionCall.Children[0].Token;
+            var functionName = functionNameToken.Text;
             var functionSymbol = context.AssemblyData.GetFunctionSymbol(functionName);
             if (functionSymbol == null)
             {
                 // 未定義の関数
-                throw context.ErrorReporter.UnknownSymbol(functionCall.Children[0].Token);
+                throw context.ErrorReporter.UnknownSymbol(functionNameToken);
             }
+
 
             if (functionSymbol.ReturnType == SrRuntimeType.Void)
             {
                 // void の関数は値として取り出せない
-                throw context.ErrorReporter.NotSupporteReturnVoid(functionCall.Children[0].Token, functionName);
+                throw context.ErrorReporter.NotSupporteReturnVoid(functionNameToken, functionName);
             }
 
+
+            // 呼び出しの戻り値は r29 に載るため、プールから取得したレジスタへ直ちに取り込む
             functionCall.Compile(context);
-            var targetRegisterIndex = TakeFreeRegisterIndex();
+            var targetRegisterIndex = context.TakeFreeRegisterIndex(functionNameToken);
             var instruction = new SrInstruction();
             instruction.Set(OpCode.Mov, targetRegisterIndex, SrvmProcessor.RegisterR29Index);
             context.AddBodyCode(instruction, false);
@@ -297,12 +340,20 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             return targetRegisterIndex;
         }
 
-        private static void StoreResult(SyntaxNode identifierNode, byte srcRegisterIndex, SrCompileContext context)
+
+        /// <summary>
+        /// 指定された識別子の変数へレジスタの値を格納するコードを出力します
+        /// </summary>
+        /// <param name="identifierNode">格納先変数の識別子ノード</param>
+        /// <param name="srcRegisterIndex">格納する値が入ったレジスタ番号</param>
+        /// <param name="context">コンパイルコンテキスト</param>
+        internal static void StoreResult(SyntaxNode identifierNode, byte srcRegisterIndex, SrCompileContext context)
         {
             if (!(identifierNode is IdentifierSyntaxNode))
             {
                 throw context.ErrorReporter.InvalidIdentifier(identifierNode.Token);
             }
+
 
             var name = identifierNode.Token.Text;
             var variableSymbol = context.AssemblyData.GetVariableSymbol(name, context.CurrentCompileFunctionName);
@@ -310,6 +361,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             {
                 throw context.ErrorReporter.NotVariable(identifierNode.Token, name);
             }
+
 
             SrInstruction instruction = default;
             switch (variableSymbol)
@@ -330,56 +382,96 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     return;
             }
 
+
             throw context.ErrorReporter.NotVariable(identifierNode.Token, name);
         }
         #endregion
 
+
         #region Main compile code
         public override void Compile(SrCompileContext context)
         {
-            InitializeRegisterInformation(context);
-
             if (Children.Count == 0)
             {
-                CompileUnaryExpression(this, default, context);
-            }
-            else if (Children.Count == 1)
-            {
-                CompileUnaryExpression(Children[0], Token, context);
-            }
-            else if (Children.Count == 2)
-            {
-                CompileExpression(Children[0], Children[1], Token, context);
+                // 子を持たない式はリテラルまたは識別子の葉ノードのみ
+                // （LoadFrom系は具象型で先に判定されるため、ここで再帰することはない）
+                switch (this)
+                {
+                    case LiteralSyntaxNode literal:
+                        ResultRegisterIndex = LoadFromLiteral(literal, context, out var literalType);
+                        ResultType = literalType;
+                        return;
+
+                    case IdentifierSyntaxNode identifier:
+                        ResultRegisterIndex = LoadFromIdentifier(identifier, context, out var identifierType);
+                        ResultType = identifierType;
+                        return;
+                }
+
+
+                throw context.ErrorReporter.UnknownExpression(Token);
             }
 
-            FinalizeRegisterInformation(context);
+
+            if (Children.Count == 1)
+            {
+                CompileUnaryExpression(Children[0], Token, context);
+                return;
+            }
+
+
+            if (IsAssignmentOperation(Token.Kind))
+            {
+                CompileAssignmentExpression(Children[0], Children[1], Token, context);
+                return;
+            }
+
+
+            CompileBinaryExpression(Children[0], Children[1], Token, context);
         }
+
+
+        private static bool IsAssignmentOperation(int tokenKind)
+        {
+            return
+                tokenKind == TokenKind.Equal ||
+                tokenKind == TokenKind.PlusEqual ||
+                tokenKind == TokenKind.MinusEqual ||
+                tokenKind == TokenKind.AsteriskEqual ||
+                tokenKind == TokenKind.SlashEqual ||
+                tokenKind == TokenKind.AndEqual ||
+                tokenKind == TokenKind.VerticalbarEqual ||
+                tokenKind == TokenKind.CircumflexEqual;
+        }
+
 
         private void CompileUnaryExpression(SyntaxNode expression, in Token operation, SrCompileContext context)
         {
-            var targetRegisterIndex = LoadFromExpression(expression, context, out var returnType);
+            var targetRegisterIndex = CompileExpressionValue(expression, context, out var operandType);
 
             var instruction = new SrInstruction();
             switch (operation.Kind)
             {
                 case TokenKind.Plus:
+                    if (operandType != SrRuntimeType.Integer && operandType != SrRuntimeType.Number)
+                    {
+                        throw context.ErrorReporter.InvalidUnaryOperation(operation, "+", operandType);
+                    }
                     break;
 
                 case TokenKind.Minus:
-                    if (returnType == SrRuntimeType.String || returnType == SrRuntimeType.Object || returnType == SrRuntimeType.Void)
+                    if (operandType != SrRuntimeType.Integer && operandType != SrRuntimeType.Number)
                     {
-                        // 文字列 オブジェクト void に対する処理は不可
-                        throw new System.Exception();
+                        throw context.ErrorReporter.InvalidUnaryOperation(operation, "-", operandType);
                     }
-                    instruction.Set(returnType == SrRuntimeType.Integer ? OpCode.Neg : OpCode.Fneg, targetRegisterIndex, targetRegisterIndex);
+                    instruction.Set(operandType == SrRuntimeType.Integer ? OpCode.Neg : OpCode.Fneg, targetRegisterIndex, targetRegisterIndex);
                     context.AddBodyCode(instruction, false);
                     break;
 
                 case TokenKind.Exclamation:
-                    if (returnType != SrRuntimeType.Boolean)
+                    if (operandType != SrRuntimeType.Boolean)
                     {
-                        // 論理反転は今の所booleanのみ対応
-                        throw new System.Exception();
+                        throw context.ErrorReporter.InvalidUnaryOperation(operation, "!", operandType);
                     }
                     // ゼロとの等価判定で論理値を反転する（算術否定では true(1) が -1 になり反転しない）
                     instruction.Set(OpCode.Teq, targetRegisterIndex, targetRegisterIndex, SrvmProcessor.RegisterZeroIndex);
@@ -387,10 +479,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     break;
 
                 case TokenKind.DoublePlus:
-                    if (returnType != SrRuntimeType.Integer)
+                    if (operandType != SrRuntimeType.Integer)
                     {
-                        // インクリメント操作は整数のみ対応
-                        throw new System.Exception();
+                        throw context.ErrorReporter.InvalidUnaryOperation(operation, "++", operandType);
                     }
                     instruction.Set(OpCode.Addl, targetRegisterIndex, targetRegisterIndex, 0, 1);
                     context.AddBodyCode(instruction, false);
@@ -398,10 +489,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     break;
 
                 case TokenKind.DoubleMinus:
-                    if (returnType != SrRuntimeType.Integer)
+                    if (operandType != SrRuntimeType.Integer)
                     {
-                        // デクリメント操作は整数のみ対応
-                        throw new System.Exception();
+                        throw context.ErrorReporter.InvalidUnaryOperation(operation, "--", operandType);
                     }
                     instruction.Set(OpCode.Subl, targetRegisterIndex, targetRegisterIndex, 0, 1);
                     context.AddBodyCode(instruction, false);
@@ -409,18 +499,128 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                     break;
             }
 
-            ResultType = returnType;
+            ResultType = operandType;
             ResultRegisterIndex = targetRegisterIndex;
         }
 
-        private void CompileExpression(SyntaxNode leftExpression, SyntaxNode rightExpression, in Token operation, SrCompileContext context)
-        {
-            ResultRegisterIndex = LoadFromExpression(leftExpression, context, out var leftResultType);
-            var rightRegisterIndex = LoadFromExpression(rightExpression, context, out var rightResultType);
-            ResultType = CompileCastExpression(ResultRegisterIndex, leftResultType, rightRegisterIndex, rightResultType, context);
 
-            operationTable[operation.Kind](leftExpression, ResultRegisterIndex, rightExpression, rightRegisterIndex, ResultType, context);
-            ReleaseRegister(rightRegisterIndex);
+        private void CompileAssignmentExpression(SyntaxNode leftExpression, SyntaxNode rightExpression, in Token operation, SrCompileContext context)
+        {
+            // 代入先は変数の識別子であるべき
+            if (!(leftExpression is IdentifierSyntaxNode))
+            {
+                throw context.ErrorReporter.InvalidIdentifier(leftExpression.Token);
+            }
+
+
+            var variableName = leftExpression.Token.Text;
+            var variableSymbol = context.AssemblyData.GetVariableSymbol(variableName, context.CurrentCompileFunctionName);
+            if (variableSymbol == null)
+            {
+                throw context.ErrorReporter.NotVariable(leftExpression.Token, variableName);
+            }
+
+
+            var variableType = variableSymbol.Type;
+            if (operation.Kind == TokenKind.Equal)
+            {
+                // 単純代入は右辺のみを評価して変数の型へ暗黙変換してから格納する
+                var valueRegisterIndex = CompileExpressionValue(rightExpression, context, out var valueType);
+                if (!TryEmitImplicitConversion(valueRegisterIndex, valueType, variableType, context))
+                {
+                    throw context.ErrorReporter.InvalidCast(operation, valueType, variableType);
+                }
+
+
+                StoreResult(leftExpression, valueRegisterIndex, context);
+                ResultRegisterIndex = valueRegisterIndex;
+                ResultType = variableType;
+                return;
+            }
+
+
+            // 複合代入は変数の現在値と右辺を評価してから演算して書き戻す
+            var leftRegisterIndex = CompileExpressionValue(leftExpression, context, out _);
+            var rightRegisterIndex = CompileExpressionValue(rightExpression, context, out var rightType);
+            if (!TryEmitImplicitConversion(rightRegisterIndex, rightType, variableType, context))
+            {
+                // 変数の型へ変換できない右辺（int変数へのnumber代入などの縮小変換を含む）
+                throw context.ErrorReporter.InvalidCast(operation, rightType, variableType);
+            }
+
+
+            var instruction = new SrInstruction();
+            instruction.Set(SelectCompoundAssignmentOpCode(operation, variableType, context), leftRegisterIndex, leftRegisterIndex, rightRegisterIndex);
+            context.AddBodyCode(instruction, false);
+            StoreResult(leftExpression, leftRegisterIndex, context);
+            context.ReleaseRegisterIndex(rightRegisterIndex);
+            ResultRegisterIndex = leftRegisterIndex;
+            ResultType = variableType;
+        }
+
+
+        private static OpCode SelectCompoundAssignmentOpCode(in Token operation, SrRuntimeType variableType, SrCompileContext context)
+        {
+            var isInteger = variableType == SrRuntimeType.Integer;
+            var isNumber = variableType == SrRuntimeType.Number;
+            switch (operation.Kind)
+            {
+                case TokenKind.PlusEqual:
+                    if (isInteger) return OpCode.Add;
+                    if (isNumber) return OpCode.Fadd;
+                    break;
+
+                case TokenKind.MinusEqual:
+                    if (isInteger) return OpCode.Sub;
+                    if (isNumber) return OpCode.Fsub;
+                    break;
+
+                case TokenKind.AsteriskEqual:
+                    if (isInteger) return OpCode.Mul;
+                    if (isNumber) return OpCode.Fmul;
+                    break;
+
+                case TokenKind.SlashEqual:
+                    if (isInteger) return OpCode.Div;
+                    if (isNumber) return OpCode.Fdiv;
+                    break;
+
+                case TokenKind.AndEqual:
+                    if (isInteger) return OpCode.And;
+                    break;
+
+                case TokenKind.VerticalbarEqual:
+                    if (isInteger) return OpCode.Or;
+                    break;
+
+                case TokenKind.CircumflexEqual:
+                    if (isInteger) return OpCode.Xor;
+                    break;
+            }
+
+
+            throw context.ErrorReporter.InvalidBinaryOperation(operation, operation.Text, variableType);
+        }
+
+
+        private void CompileBinaryExpression(SyntaxNode leftExpression, SyntaxNode rightExpression, in Token operation, SrCompileContext context)
+        {
+            ResultRegisterIndex = CompileExpressionValue(leftExpression, context, out var leftResultType);
+            var rightRegisterIndex = CompileExpressionValue(rightExpression, context, out var rightResultType);
+            var operationType = CompileCastExpression(ResultRegisterIndex, leftResultType, rightRegisterIndex, rightResultType, operation, context);
+
+
+            if (!operationTable.TryGetValue(operation.Kind, out var operationHandler))
+            {
+                // 演算子として処理できないトークン
+                throw context.ErrorReporter.UnknownExpression(operation);
+            }
+
+
+            operationHandler(operation, ResultRegisterIndex, rightRegisterIndex, operationType, context);
+            context.ReleaseRegisterIndex(rightRegisterIndex);
+            ResultType = operationType;
+
 
             // 比較・等価・条件演算の結果型は、オペランドの型ではなく真偽値になる
             switch (operation.Kind)
@@ -438,158 +638,47 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
         }
 
-        private SrRuntimeType CompileCastExpression(byte leftRegister, SrRuntimeType leftType, byte rightRegister, SrRuntimeType rightType, SrCompileContext context)
+
+        private static SrRuntimeType CompileCastExpression(byte leftRegister, SrRuntimeType leftType, byte rightRegister, SrRuntimeType rightType, in Token operation, SrCompileContext context)
         {
+            if (leftType == rightType) return leftType;
+
+
             var instruction = new SrInstruction();
-
-            if (leftType != rightType)
+            if (leftType == SrRuntimeType.Number && rightType == SrRuntimeType.Integer)
             {
-                if (leftType == SrRuntimeType.Number)
-                {
-                    if (rightType != SrRuntimeType.Integer)
-                    {
-                        // 整数以外は実数キャストは出来ない
-                        throw new System.Exception();
-                    }
-
-                    instruction.Set(OpCode.Movitf, rightRegister, rightRegister);
-                    context.AddBodyCode(instruction, false);
-                    return SrRuntimeType.Number;
-                }
-
-                if (rightType == SrRuntimeType.Number)
-                {
-                    if (leftType != SrRuntimeType.Integer)
-                    {
-                        // 整数以外は実数キャストは出来ない
-                        throw new System.Exception();
-                    }
-
-                    instruction.Set(OpCode.Movitf, leftRegister, leftRegister);
-                    context.AddBodyCode(instruction, false);
-                    return SrRuntimeType.Number;
-                }
+                // 右辺の整数を実数へ昇格
+                instruction.Set(OpCode.Movitf, rightRegister, rightRegister);
+                context.AddBodyCode(instruction, false);
+                return SrRuntimeType.Number;
             }
 
-            return leftType;
+
+            if (rightType == SrRuntimeType.Number && leftType == SrRuntimeType.Integer)
+            {
+                // 左辺の整数を実数へ昇格
+                instruction.Set(OpCode.Movitf, leftRegister, leftRegister);
+                context.AddBodyCode(instruction, false);
+                return SrRuntimeType.Number;
+            }
+
+
+            // 文字列とオブジェクトの混在はオブジェクトとして扱う（null 比較のため）
+            if ((leftType == SrRuntimeType.String && rightType == SrRuntimeType.Object) ||
+                (leftType == SrRuntimeType.Object && rightType == SrRuntimeType.String))
+            {
+                return SrRuntimeType.Object;
+            }
+
+
+            // それ以外の型の混在は演算できない
+            throw context.ErrorReporter.InvalidCast(operation, rightType, leftType);
         }
         #endregion
 
+
         #region Operation functions
-        private static void OpAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
-        {
-            var instruction = new SrInstruction();
-            instruction.Set(OpCode.Mov, leftRegister, rightRegister);
-            context.AddBodyCode(instruction, false);
-            StoreResult(leftSyntaxNode, leftRegister, context);
-        }
-
-        private static void OpPlusAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
-        {
-            if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
-            {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
-            }
-
-            var instruction = new SrInstruction();
-            instruction.Set(type == SrRuntimeType.Integer ? OpCode.Add : OpCode.Fadd, leftRegister, leftRegister, rightRegister);
-            context.AddBodyCode(instruction, false);
-
-            StoreResult(leftSyntaxNode, leftRegister, context);
-        }
-
-        private static void OpMinusAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
-        {
-            if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
-            {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
-            }
-
-            var instruction = new SrInstruction();
-            instruction.Set(type == SrRuntimeType.Integer ? OpCode.Sub : OpCode.Fsub, leftRegister, leftRegister, rightRegister);
-            context.AddBodyCode(instruction, false);
-
-            StoreResult(leftSyntaxNode, leftRegister, context);
-        }
-
-        private static void OpMullAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
-        {
-            if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
-            {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
-            }
-
-            var instruction = new SrInstruction();
-            instruction.Set(type == SrRuntimeType.Integer ? OpCode.Mul : OpCode.Fmul, leftRegister, leftRegister, rightRegister);
-            context.AddBodyCode(instruction, false);
-
-            StoreResult(leftSyntaxNode, leftRegister, context);
-        }
-
-        private static void OpDivAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
-        {
-            if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
-            {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
-            }
-
-            var instruction = new SrInstruction();
-            instruction.Set(type == SrRuntimeType.Integer ? OpCode.Div : OpCode.Fdiv, leftRegister, leftRegister, rightRegister);
-            context.AddBodyCode(instruction, false);
-
-            StoreResult(leftSyntaxNode, leftRegister, context);
-        }
-
-        private static void OpAndAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
-        {
-            if (type != SrRuntimeType.Integer)
-            {
-                // 現在は整数のみ対応
-                throw new Exception();
-            }
-
-            var instruction = new SrInstruction();
-            instruction.Set(OpCode.And, leftRegister, leftRegister, rightRegister);
-            context.AddBodyCode(instruction, false);
-
-            StoreResult(leftSyntaxNode, leftRegister, context);
-        }
-
-        private static void OpOrAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
-        {
-            if (type != SrRuntimeType.Integer)
-            {
-                // 現在は整数のみ対応
-                throw new Exception();
-            }
-
-            var instruction = new SrInstruction();
-            instruction.Set(OpCode.Or, leftRegister, leftRegister, rightRegister);
-            context.AddBodyCode(instruction, false);
-
-            StoreResult(leftSyntaxNode, leftRegister, context);
-        }
-
-        private static void OpExOrAssignment(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
-        {
-            if (type != SrRuntimeType.Integer)
-            {
-                // 現在は整数のみ対応
-                throw new Exception();
-            }
-
-            var instruction = new SrInstruction();
-            instruction.Set(OpCode.Xor, leftRegister, leftRegister, rightRegister);
-            context.AddBodyCode(instruction, false);
-
-            StoreResult(leftSyntaxNode, leftRegister, context);
-        }
-
-        private static void OpConditionOr(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+        private static void OpConditionOr(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             var instruction = new SrInstruction();
             if (type == SrRuntimeType.Object || type == SrRuntimeType.String)
@@ -611,7 +700,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpConditionAnd(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpConditionAnd(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             var instruction = new SrInstruction();
             if (type == SrRuntimeType.Object || type == SrRuntimeType.String)
@@ -633,12 +723,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpLogicalOr(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpLogicalOr(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
-                // 現在は整数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, "|", type);
             }
 
             var instruction = new SrInstruction();
@@ -646,12 +736,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpLogicalExOr(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpLogicalExOr(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
-                // 現在は整数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, "^", type);
             }
 
             var instruction = new SrInstruction();
@@ -659,12 +749,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpLogicalAnd(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpLogicalAnd(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
-                // 現在は整数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, "&", type);
             }
 
             var instruction = new SrInstruction();
@@ -672,7 +762,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpEqual(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpEqual(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             var instruction = new SrInstruction();
             if (type == SrRuntimeType.Object || type == SrRuntimeType.String)
@@ -687,7 +778,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
         }
 
-        private static void OpNotEqual(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpNotEqual(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             var instruction = new SrInstruction();
             if (type == SrRuntimeType.Object || type == SrRuntimeType.String)
@@ -702,12 +794,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
         }
 
-        private static void OpRelationLesser(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpRelationLesser(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, "<", type);
             }
 
             var instruction = new SrInstruction();
@@ -715,12 +807,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpRelationGrater(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpRelationGrater(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, ">", type);
             }
 
             var instruction = new SrInstruction();
@@ -728,12 +820,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpRelationLesserEqual(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpRelationLesserEqual(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, "<=", type);
             }
 
             var instruction = new SrInstruction();
@@ -741,12 +833,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpRelationGraterEqual(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpRelationGraterEqual(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, ">=", type);
             }
 
             var instruction = new SrInstruction();
@@ -754,12 +846,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpLeftBitShift(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpLeftBitShift(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
-                // 現在は整数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, "<<", type);
             }
 
             var instruction = new SrInstruction();
@@ -767,12 +859,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpRightBitShift(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpRightBitShift(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (type != SrRuntimeType.Integer)
             {
-                // 現在は整数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, ">>", type);
             }
 
             var instruction = new SrInstruction();
@@ -780,12 +872,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpAdd(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpAdd(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, "+", type);
             }
 
             var instruction = new SrInstruction();
@@ -793,12 +885,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpSub(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpSub(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, "-", type);
             }
 
             var instruction = new SrInstruction();
@@ -806,12 +898,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpMull(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpMull(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, "*", type);
             }
 
             var instruction = new SrInstruction();
@@ -819,12 +911,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpDiv(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpDiv(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, "/", type);
             }
 
             var instruction = new SrInstruction();
@@ -832,12 +924,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.AddBodyCode(instruction, false);
         }
 
-        private static void OpMod(SyntaxNode leftSyntaxNode, byte leftRegister, SyntaxNode rightSyntaxNode, byte rightRegister, SrRuntimeType type, SrCompileContext context)
+
+        private static void OpMod(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
             if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
             {
-                // 現在は整数または実数のみ対応
-                throw new Exception();
+                throw context.ErrorReporter.InvalidBinaryOperation(operation, "%", type);
             }
 
             var instruction = new SrInstruction();

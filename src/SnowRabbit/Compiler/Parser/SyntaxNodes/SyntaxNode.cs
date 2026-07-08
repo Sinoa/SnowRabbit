@@ -99,5 +99,17 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         public virtual void Compile(SrCompileContext context)
         {
         }
+
+
+        /// <summary>
+        /// この構文ノードを文としてコンパイルします。
+        /// 文の境界ではレジスタプールをリセットしてからコンパイルします（文をまたいで生存するレジスタ値は存在しないため）。
+        /// </summary>
+        /// <param name="context">コンパイル中のコンテキスト</param>
+        public void CompileAsStatement(SrCompileContext context)
+        {
+            context.ResetRegisterPool();
+            Compile(context);
+        }
     }
 }

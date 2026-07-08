@@ -45,8 +45,7 @@ namespace SnowRabbit.Compiler.Parser
         private readonly Stack<SrLabelSymbol> breakTargetAddressStack = new Stack<SrLabelSymbol>();
         private readonly List<SrLabelSymbol> patchTargetLabelList = new List<SrLabelSymbol>();
 
-        // レジスタ追跡プール（式ごとに再利用してアロケーションを削減）
-        private readonly HashSet<byte> pooledUsedRegisterSet = new HashSet<byte>();
+        // 空きレジスタ管理スタック（文の境界でリセットして再利用する）
         private readonly Stack<byte> pooledFreeRegisterStack = new Stack<byte>(25);
 
 
@@ -63,6 +62,12 @@ namespace SnowRabbit.Compiler.Parser
         /// 現在コンパイルをしている関数名
         /// </summary>
         public string CurrentCompileFunctionName { get; private set; }
+
+
+        /// <summary>
+        /// 現在コンパイルをしている関数のシンボル
+        /// </summary>
+        public SrScriptFunctionSymbol CurrentFunctionSymbol { get; private set; }
 
 
         public SrLabelSymbol CurrentFunctionLeaveLabelSymbol { get; private set; }
@@ -210,6 +215,7 @@ namespace SnowRabbit.Compiler.Parser
             leaveLabel.FunctionName = functionName;
             if (!AssemblyData.AddSymbol(symbol)) return null;
             CurrentCompileFunctionName = functionName;
+            CurrentFunctionSymbol = symbol;
             CurrentFunctionLeaveLabelSymbol = leaveLabel;
             return symbol;
         }
@@ -232,6 +238,7 @@ namespace SnowRabbit.Compiler.Parser
             CurrentFunctionLeaveLabelSymbol.Address = HeadCodeList.Count + bodyCodeList.Count;
 
             CurrentCompileFunctionName = null;
+            CurrentFunctionSymbol = null;
             CurrentFunctionLeaveLabelSymbol = null;
 
             headCodeList.Clear();
@@ -279,28 +286,42 @@ namespace SnowRabbit.Compiler.Parser
 
         #region レジスタプール管理
         /// <summary>
-        /// 式コンパイル用のレジスタ追跡セットを取得します。
-        /// 式のルートノードでリセット後に呼び出してください。
+        /// 空きレジスタを1つ取得します。取得したレジスタは現在コンパイル中の関数の使用済みレジスタ集合へ記録されます。
         /// </summary>
-        /// <returns>使用中レジスタを追跡するHashSet</returns>
-        public HashSet<byte> GetPooledUsedRegisterSet() => pooledUsedRegisterSet;
+        /// <param name="token">レジスタ枯渇時のエラー報告に使用するトークン</param>
+        /// <returns>取得したレジスタ番号を返します</returns>
+        public byte TakeFreeRegisterIndex(in Token token)
+        {
+            if (pooledFreeRegisterStack.Count == 0)
+            {
+                // 空きレジスタが枯渇した（式が複雑すぎる）
+                throw ErrorReporter.RegisterExhausted(token);
+            }
+
+
+            // 取得したレジスタは関数のプロローグ/エピローグで退避されるように、取得時点で使用済みとして記録する
+            var registerIndex = pooledFreeRegisterStack.Pop();
+            CurrentFunctionSymbol?.UsedRegisterSet.Add(registerIndex);
+            return registerIndex;
+        }
 
 
         /// <summary>
-        /// 式コンパイル用の空きレジスタスタックを取得します。
-        /// 式のルートノードでリセット後に呼び出してください。
+        /// 使い終わったレジスタを空きレジスタとして返却します
         /// </summary>
-        /// <returns>空きレジスタを管理するStack</returns>
-        public Stack<byte> GetPooledFreeRegisterStack() => pooledFreeRegisterStack;
+        /// <param name="registerIndex">返却するレジスタ番号</param>
+        public void ReleaseRegisterIndex(byte registerIndex)
+        {
+            pooledFreeRegisterStack.Push(registerIndex);
+        }
 
 
         /// <summary>
-        /// レジスタ追跡プールをリセットして再利用可能な状態にします。
-        /// 式のルートノードのコンパイル開始時に呼び出してください。
+        /// レジスタプールをリセットして再利用可能な状態にします。
+        /// 文の境界（文のコンパイル開始時）に呼び出してください。
         /// </summary>
         public void ResetRegisterPool()
         {
-            pooledUsedRegisterSet.Clear();
             pooledFreeRegisterStack.Clear();
 
             // 使用可能なレジスタをスタックにプッシュ（逆順でプッシュして期待順序でポップ）

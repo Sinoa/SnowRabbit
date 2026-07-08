@@ -66,15 +66,9 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var instruction = new SrInstruction();
 
 
-            var condition = Children[0];
-            condition.Compile(context);
-            if (condition is FunctionCallSyntaxNode)
-            {
-                instruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR29Index);
-                context.AddBodyCode(instruction, false);
-            }
-
-            instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, 0, 0, 2);
+            // 条件式を評価して、結果レジスタが非ゼロなら then 節へ、ゼロなら分岐命令へ進む
+            var conditionRegisterIndex = ExpressionSyntaxNode.CompileConditionExpressionValue(Children[0], context);
+            instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, conditionRegisterIndex, 0, 2);
             context.AddBodyCode(instruction, false);
             var updateTargetAddress = context.BodyCodeList.Count;
             instruction.Set(OpCode.Br);
@@ -103,7 +97,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 }
 
 
-                child.Compile(context);
+                child.CompileAsStatement(context);
             }
 
 

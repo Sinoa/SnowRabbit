@@ -53,21 +53,11 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             for (int i = argumentCount - 1; i >= 0; --i)
             {
+                // 型検査と暗黙変換は値がレジスタ上にあるうちに行う必要があるため、
+                // 期待するパラメータ型を引数ノードへ注入してからコンパイルする
                 var argumentNode = (ArgumentSyntaxNode)Children[i];
+                argumentNode.ExpectedParameterType = functionSymbol.GetParameter(i + 1).Type;
                 argumentNode.Compile(context);
-
-                var argumentType = argumentNode.Type;
-                var parameterType = functionSymbol.GetParameter(i + 1).Type;
-                if (argumentType != parameterType)
-                {
-                    var isObjectOrString =
-                        argumentType == SrRuntimeType.Object && parameterType == SrRuntimeType.String ||
-                        argumentType == SrRuntimeType.String && parameterType == SrRuntimeType.Object;
-                    if (!isObjectOrString)
-                    {
-                        throw context.ErrorReporter.InvalidParameterStoreType(Token, argumentType, parameterType);
-                    }
-                }
             }
         }
     }

@@ -59,7 +59,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
             // for initialize expression code
-            initializeExpression?.Compile(context);
+            initializeExpression?.CompileAsStatement(context);
 
 
             // goto conditional temporary code
@@ -70,7 +70,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             // for counting expression code
             var forCountingHeadAddress = context.BodyCodeList.Count;
-            countingExpression?.Compile(context);
+            countingExpression?.CompileAsStatement(context);
 
 
             // update goto conditional code
@@ -83,13 +83,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var breakTargetLabelSymbol = context.CurrentBreakTargetLabel;
             if (conditionalExpression != null)
             {
-                conditionalExpression.Compile(context);
-                if (conditionalExpression is FunctionCallSyntaxNode)
-                {
-                    instruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR29Index);
-                    context.AddBodyCode(instruction, false);
-                }
-                instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, SrvmProcessor.RegisterAIndex, 0, 2);
+                var conditionRegisterIndex = ExpressionSyntaxNode.CompileConditionExpressionValue(conditionalExpression, context);
+                instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, conditionRegisterIndex, 0, 2);
                 context.AddBodyCode(instruction, false);
                 instruction.Set(OpCode.Brl, 0, 0, 0, breakTargetLabelSymbol.InitialAddress);
                 context.AddBodyCode(instruction, true);
@@ -99,7 +94,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             // for body code
             for (int i = 3; i < Children.Count; ++i)
             {
-                Children[i].Compile(context);
+                Children[i].CompileAsStatement(context);
             }
 
 

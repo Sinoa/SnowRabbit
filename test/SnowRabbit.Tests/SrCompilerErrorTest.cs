@@ -262,4 +262,129 @@ end
             compiler.Parse("test.srs", out _);
         });
     }
+
+    /// <summary>
+    /// 指定されたスクリプトのコンパイル（コード生成まで）が型エラーになることを検証します
+    /// </summary>
+    private static void AssertCompileError(string script)
+    {
+        MemoryScriptStorage storage = new MemoryScriptStorage("test.srs", script);
+        SrCompiler compiler = new SrCompiler(storage, new NullReportPrinter());
+
+        Assert.Throws<SrSyntaxErrorException>(() =>
+        {
+            using MemoryStream outputStream = new MemoryStream();
+            compiler.Compile("test.srs", outputStream);
+        });
+    }
+
+    /// <summary>
+    /// ローカル変数の初期化子の型不一致がコンパイルエラーになることをテストします
+    /// </summary>
+    [Test]
+    public void LocalVariableInitializerTypeMismatchTest()
+    {
+        AssertCompileError(@"
+function void main()
+    local int x = 1.5;
+end
+");
+        AssertCompileError(@"
+function void main()
+    local int x = ""hello"";
+end
+");
+    }
+
+    /// <summary>
+    /// 代入の型不一致がコンパイルエラーになることをテストします
+    /// </summary>
+    [Test]
+    public void AssignmentTypeMismatchTest()
+    {
+        AssertCompileError(@"
+function void main()
+    local int x = 0;
+    x = ""hello"";
+end
+");
+        AssertCompileError(@"
+function void main()
+    local int x = 0;
+    x = 1.5;
+end
+");
+    }
+
+    /// <summary>
+    /// 複合代入の縮小変換（int変数へのnumber）がコンパイルエラーになることをテストします
+    /// </summary>
+    [Test]
+    public void CompoundAssignmentNarrowingTest()
+    {
+        AssertCompileError(@"
+function void main()
+    local int i = 0;
+    i += 1.5;
+end
+");
+    }
+
+    /// <summary>
+    /// return の型不一致がコンパイルエラーになることをテストします
+    /// </summary>
+    [Test]
+    public void ReturnTypeMismatchTest()
+    {
+        AssertCompileError(@"
+function int F()
+    return ""text"";
+end
+
+function void main()
+    local int x = F();
+end
+");
+    }
+
+    /// <summary>
+    /// 実数から整数パラメータへの縮小渡しがコンパイルエラーになることをテストします
+    /// </summary>
+    [Test]
+    public void ArgumentNarrowingTypeMismatchTest()
+    {
+        AssertCompileError(@"
+function void Take(int value)
+end
+
+function void main()
+    Take(1.5);
+end
+");
+    }
+
+    /// <summary>
+    /// 型の混在する比較・条件がコンパイルエラーになることをテストします
+    /// </summary>
+    [Test]
+    public void MixedTypeOperationTest()
+    {
+        AssertCompileError(@"
+function void main()
+    local bool b = true;
+    local int x = 0;
+    if (b == x)
+        x = 1;
+    end
+end
+");
+        AssertCompileError(@"
+function void main()
+    local string s = ""text"";
+    while (s)
+        break;
+    end
+end
+");
+    }
 }

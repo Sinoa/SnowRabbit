@@ -47,17 +47,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.EnterNestedBlock("while");
 
 
-            var condition = Children[0];
             var whileHeadAddress = context.BodyCodeList.Count;
-            condition.Compile(context);
+            var conditionRegisterIndex = ExpressionSyntaxNode.CompileConditionExpressionValue(Children[0], context);
             var instruction = new SrInstruction();
-            if (condition is FunctionCallSyntaxNode)
-            {
-                // 関数呼び出しの戻り値は r29 に載っているため、条件判定レジスタの rax へ移す
-                instruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR29Index);
-                context.AddBodyCode(instruction, false);
-            }
-            instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, 0, 0, 2);
+            instruction.Set(OpCode.Bnz, SrvmProcessor.RegisterIPIndex, conditionRegisterIndex, 0, 2);
             context.AddBodyCode(instruction, false);
             instruction.Set(OpCode.Br, SrvmProcessor.RegisterIPIndex, 0, 0, 0);
             context.AddBodyCode(instruction, false);
@@ -66,7 +59,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             for (int i = 1; i < Children.Count; ++i)
             {
-                Children[i].Compile(context);
+                Children[i].CompileAsStatement(context);
             }
 
 

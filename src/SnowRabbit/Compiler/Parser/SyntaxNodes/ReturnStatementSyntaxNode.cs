@@ -55,12 +55,19 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 }
 
 
-                Children[0].Compile(context);
-                if (Children[0] is FunctionCallSyntaxNode)
+                // 戻り値の式を評価して、関数の戻り値型へ暗黙変換できるか検査する
+                var valueRegisterIndex = ExpressionSyntaxNode.CompileStatementExpressionValue(Children[0], context, out var valueType);
+                if (!ExpressionSyntaxNode.TryEmitImplicitConversion(valueRegisterIndex, valueType, functionSymbol.ReturnType, context))
                 {
-                    // 関数呼び出しの戻り値は r29 に載っているため、rax 経由の返却規約に合わせて移す
+                    throw context.ErrorReporter.InvalidCast(Token, valueType, functionSymbol.ReturnType);
+                }
+
+
+                // 返却規約（エピローグが rax を r29 へ移す）に合わせて結果を rax へ移す
+                if (valueRegisterIndex != SrvmProcessor.RegisterAIndex)
+                {
                     var moveInstruction = new SrInstruction();
-                    moveInstruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterR29Index);
+                    moveInstruction.Set(OpCode.Mov, SrvmProcessor.RegisterAIndex, valueRegisterIndex);
                     context.AddBodyCode(moveInstruction, false);
                 }
             }

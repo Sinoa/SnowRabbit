@@ -52,7 +52,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             for (int i = 3; i < Children.Count; ++i)
             {
-                Children[i].Compile(context);
+                Children[i].CompileAsStatement(context);
             }
 
 
