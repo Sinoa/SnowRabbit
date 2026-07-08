@@ -35,9 +35,9 @@ function void main()
 	Wait(5000);
 	Write("Testメッセージ二回目");
 	Check(1, 2, 1 + 2 + 3 + 4);
-	CheckBool(1);
-	CheckBool(0);
-	CheckBool(2);
+	CheckBool(1 == 1);
+	CheckBool(0 != 0);
+	CheckBool(2 > 1);
 	CheckBool(true);
 	CheckBool(false);
 

@@ -37,18 +37,24 @@ namespace SampleApplication
     {
         private static void Main()
         {
-            var outStream = new FileStream("sample.bin", FileMode.Create);
+            // カレントディレクトリに依存せず実行できるように、出力ディレクトリ基準でパスを解決する
+            var scriptPath = Path.Combine(AppContext.BaseDirectory, "Sample.srs");
+            var binaryPath = Path.Combine(AppContext.BaseDirectory, "sample.bin");
+            var dumpPath = Path.Combine(AppContext.BaseDirectory, "dump.txt");
+
+
+            var outStream = new FileStream(binaryPath, FileMode.Create);
             var compiler = new SrCompiler();
             var printer = new ConsoleSyntaxTreePrinter();
             compiler.IsContainSymbolInfo = true;
-            compiler.Parse("Sample.srs", out var node);
+            compiler.Parse(scriptPath, out var node);
             printer.Print(node);
             Console.WriteLine("");
 
 
             try
             {
-                compiler.Compile("Sample.srs", outStream);
+                compiler.Compile(scriptPath, outStream);
             }
             catch (Exception error)
             {
@@ -61,12 +67,12 @@ namespace SampleApplication
             }
 
 
-            var disassembleDumpText = new SrDisassembler().Disassemble(new FileStream("sample.bin", FileMode.Open));
-            File.WriteAllText("dump.txt", disassembleDumpText);
+            var disassembleDumpText = new SrDisassembler().Disassemble(new FileStream(binaryPath, FileMode.Open));
+            File.WriteAllText(dumpPath, disassembleDumpText);
 
 
             var vm = new SrvmMachine(new MyFactory());
-            var process = vm.CreateProcess("sample.bin");
+            var process = vm.CreateProcess(binaryPath);
             while (process.ProcessState != SrProcessStatus.Stopped)
             {
                 process.Run();
@@ -105,9 +111,9 @@ namespace SampleApplication
 
 
         [SrHostFunction("Wait")]
-        public Task Wait(int second)
+        public Task Wait(int millisecond)
         {
-            return Task.Delay(second);
+            return Task.Delay(millisecond);
         }
 
 

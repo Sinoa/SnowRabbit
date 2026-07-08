@@ -86,8 +86,8 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                 // テーブルに存在する周辺機器分回る
                 foreach (var record in peripheralTable)
                 {
-                    // もし IDisposable を実装しているなら解放をする
-                    (record.Value as IDisposable)?.Dispose();
+                    // もしアタッチされたインスタンスが IDisposable を実装しているなら解放をする
+                    (record.Value.TargetInstance as IDisposable)?.Dispose();
                 }
 
 

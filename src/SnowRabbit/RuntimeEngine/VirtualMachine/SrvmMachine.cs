@@ -113,7 +113,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         public T GetPeripheral<T>(string peripheralName) where T : class
         {
             ThrowExceptionIfObjectDisposed();
-            return Firmware.GetPeripheral(peripheralName).TargetInstance as T;
+            return Firmware.GetPeripheral(peripheralName)?.TargetInstance as T;
         }
 
 

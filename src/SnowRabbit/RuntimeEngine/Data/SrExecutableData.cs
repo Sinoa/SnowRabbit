@@ -137,6 +137,7 @@ namespace SnowRabbit.RuntimeEngine.Data
                 record.Address = info.Address;
                 record.Offset = offset;
                 record.Length = data.Length;
+                recordList.Add(record);
 
 
                 buffer.Write(data, 0, data.Length);

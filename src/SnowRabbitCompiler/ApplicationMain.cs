@@ -60,7 +60,10 @@ internal class ApplicationMain
 
         rootCommand.SetHandler(CompileFiles, inputArgument, outputOption, symbolsOption, verboseOption);
 
-        return rootCommand.Invoke(args);
+        // Invoke の戻り値 (void ハンドラでは常に 0) が Environment.ExitCode を上書きしてしまうため、
+        // ハンドラ内で設定した ExitCode を失敗として反映する
+        int invokeResult = rootCommand.Invoke(args);
+        return invokeResult != 0 ? invokeResult : Environment.ExitCode;
     }
 
     private static void CompileFiles(string[] inputs, string? output, bool symbols, bool verbose)
@@ -165,6 +168,10 @@ internal class ApplicationMain
 
     private static bool CompileSingleFile(string inputPath, string outputPath, bool symbols, bool verbose)
     {
+        // 失敗時に既存の出力ファイルを壊したり書きかけのファイルを残したりしないよう、
+        // 一時ファイルへ書き込んでから成功時にのみ出力先へ置き換える
+        string temporaryPath = outputPath + ".tmp";
+
         try
         {
             using SrCompiler compiler = new();
@@ -176,9 +183,12 @@ internal class ApplicationMain
                 Directory.CreateDirectory(outputDir);
             }
 
-            using FileStream outputStream = new(outputPath, FileMode.Create);
-            compiler.Compile(inputPath, outputStream);
+            using (FileStream outputStream = new(temporaryPath, FileMode.Create))
+            {
+                compiler.Compile(inputPath, outputStream);
+            }
 
+            File.Move(temporaryPath, outputPath, overwrite: true);
             return true;
         }
         catch (Exception ex)
@@ -191,6 +201,18 @@ internal class ApplicationMain
             else
             {
                 Console.Error.WriteLine($"  {ex.Message}");
+            }
+
+            try
+            {
+                if (File.Exists(temporaryPath))
+                {
+                    File.Delete(temporaryPath);
+                }
+            }
+            catch (IOException)
+            {
+                // 一時ファイルの削除失敗はコンパイル結果に影響しないため無視する
             }
 
             return false;

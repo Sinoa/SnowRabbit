@@ -359,7 +359,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         break;
 
                     case OpCode.Movitf:
-                        context[r1].Primitive.Float = (float)context[r1].Primitive.Long;
+                        context[r1].Primitive.Float = (float)context[r2].Primitive.Long;
                         break;
                     #endregion
 
@@ -619,7 +619,13 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
                     #region CSharp Host Control
                     case OpCode.Gpf:
-                        var peripheral = Machine.Firmware.GetPeripheral(context[r2].Object as string);
+                        var peripheralName = context[r2].Object as string;
+                        var peripheral = Machine.Firmware.GetPeripheral(peripheralName);
+                        if (peripheral == null)
+                        {
+                            // 未登録の周辺機器名を参照された場合は、名前が分かる例外で通知する
+                            throw new SrPeripheralNotFoundException($"周辺機器 '{peripheralName}' が見つかりませんでした");
+                        }
                         context[r1].Object = peripheral.GetPeripheralFunction(context[r3].Object as string);
                         context[r1].Primitive.Ulong = 0;
                         break;
