@@ -69,4 +69,86 @@ public class SrVirtualMemoryTest
         Assert.That(stackMemory[0x00000004].Primitive.Int, Is.EqualTo(445566));
         Assert.That(rawMemory[0x00000022].Primitive.Int, Is.EqualTo(445566));
     }
+
+
+    /// <summary>
+    /// 定義されていないセグメント番号へのアクセスが例外になることをテストします
+    /// </summary>
+    [Test]
+    public void InvalidSegmentAccessTest()
+    {
+        // 実体の配列を用意して仮想メモリのインスタンスを用意する
+        SrValue[] rawMemory = new SrValue[40];
+        MemoryBlock<SrValue> programMemory = new MemoryBlock<SrValue>(rawMemory, 0, 10);
+        MemoryBlock<SrValue> globalMemory = new MemoryBlock<SrValue>(rawMemory, 10, 10);
+        MemoryBlock<SrValue> heapMemory = new MemoryBlock<SrValue>(rawMemory, 20, 10);
+        MemoryBlock<SrValue> stackMemory = new MemoryBlock<SrValue>(rawMemory, 30, 10);
+        SrVirtualMemory virtualMemory = new SrVirtualMemory(programMemory, globalMemory, heapMemory, stackMemory);
+
+
+        // セグメント番号4以上（スタックセグメントの次）へのアクセスは読み書きともに例外になることを確認する
+        Assert.Throws<IndexOutOfRangeException>(() => _ = virtualMemory[0x00400000]);
+        Assert.Throws<IndexOutOfRangeException>(() => virtualMemory[0x00400000] = 123);
+        Assert.Throws<IndexOutOfRangeException>(() => _ = virtualMemory[0x7FF00000]);
+
+
+        // 負の仮想アドレス（負のセグメント番号）へのアクセスも例外になることを確認する
+        Assert.Throws<IndexOutOfRangeException>(() => _ = virtualMemory[-1]);
+    }
+
+
+#if DEBUG
+    /// <summary>
+    /// セグメント長を超えるオフセットへのアクセスが境界チェックで例外になることをテストします
+    /// </summary>
+    [Test]
+    public void OffsetBoundaryAccessTest()
+    {
+        // 実体の配列を用意して仮想メモリのインスタンスを用意する（各セグメント長は10）
+        SrValue[] rawMemory = new SrValue[40];
+        MemoryBlock<SrValue> programMemory = new MemoryBlock<SrValue>(rawMemory, 0, 10);
+        MemoryBlock<SrValue> globalMemory = new MemoryBlock<SrValue>(rawMemory, 10, 10);
+        MemoryBlock<SrValue> heapMemory = new MemoryBlock<SrValue>(rawMemory, 20, 10);
+        MemoryBlock<SrValue> stackMemory = new MemoryBlock<SrValue>(rawMemory, 30, 10);
+        SrVirtualMemory virtualMemory = new SrVirtualMemory(programMemory, globalMemory, heapMemory, stackMemory);
+
+
+        // セグメント内の最終要素へのアクセスは正常に動作することを確認する
+        Assert.DoesNotThrow(() => virtualMemory[0x00100009] = 1);
+
+
+        // セグメント長ちょうどのオフセット（境界外）へのアクセスは読み書きともに例外になることを確認する
+        // （デバッグビルドの MemoryBlock 境界チェックによって検出される）
+        Assert.Throws<ArgumentOutOfRangeException>(() => _ = virtualMemory[0x0000000A]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => _ = virtualMemory[0x0010000A]);
+        Assert.Throws<ArgumentOutOfRangeException>(() => virtualMemory[0x0020000A] = 123);
+        Assert.Throws<ArgumentOutOfRangeException>(() => virtualMemory[0x0030000A] = 123);
+    }
+#endif
+
+
+    /// <summary>
+    /// セグメント長の上限（2^20要素）を超えるメモリブロックの指定が例外になることをテストします
+    /// </summary>
+    [Test]
+    public void SegmentLengthLimitTest()
+    {
+        // 上限丁度の長さと上限を1要素超える長さのメモリブロックを用意する
+        const int MaxSegmentLength = 1 << 20;
+        SrValue[] rawMemory = new SrValue[MaxSegmentLength + 1];
+        MemoryBlock<SrValue> maxLengthBlock = new MemoryBlock<SrValue>(rawMemory, 0, MaxSegmentLength);
+        MemoryBlock<SrValue> tooLongBlock = new MemoryBlock<SrValue>(rawMemory, 0, MaxSegmentLength + 1);
+        MemoryBlock<SrValue> smallBlock = new MemoryBlock<SrValue>(rawMemory, 0, 4);
+
+
+        // 上限丁度の長さのセグメントは生成できることを確認する
+        Assert.DoesNotThrow(() => _ = new SrVirtualMemory(maxLengthBlock, smallBlock, smallBlock, smallBlock));
+
+
+        // どのセグメントであっても上限を超える長さの指定は例外になることを確認する
+        Assert.Throws<ArgumentOutOfRangeException>(() => _ = new SrVirtualMemory(tooLongBlock, smallBlock, smallBlock, smallBlock));
+        Assert.Throws<ArgumentOutOfRangeException>(() => _ = new SrVirtualMemory(smallBlock, tooLongBlock, smallBlock, smallBlock));
+        Assert.Throws<ArgumentOutOfRangeException>(() => _ = new SrVirtualMemory(smallBlock, smallBlock, tooLongBlock, smallBlock));
+        Assert.Throws<ArgumentOutOfRangeException>(() => _ = new SrVirtualMemory(smallBlock, smallBlock, smallBlock, tooLongBlock));
+    }
 }
