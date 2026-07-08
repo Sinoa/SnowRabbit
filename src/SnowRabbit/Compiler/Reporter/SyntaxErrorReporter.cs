@@ -213,5 +213,23 @@ namespace SnowRabbit.Compiler.Reporter
         {
             return CreateAndReportErrorMessage(token, $"不明なリテラル型 '{token.Text}' です。");
         }
+
+
+        /// <summary>
+        /// リンクオブジェクトが見つからないエラー
+        /// </summary>
+        public SrSyntaxErrorException LinkObjectNotFound(in Token token, string path)
+        {
+            return CreateAndReportErrorMessage(token, $"リンクオブジェクト '{path}' が見つかりませんでした。");
+        }
+
+
+        /// <summary>
+        /// リンクオブジェクトが読み込めないエラー
+        /// </summary>
+        public SrSyntaxErrorException InvalidLinkObject(in Token token, string path, string reason)
+        {
+            return CreateAndReportErrorMessage(token, $"リンクオブジェクト '{path}' を読み込めませんでした。({reason})");
+        }
     }
 }

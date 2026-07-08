@@ -22,6 +22,7 @@
 // distribution.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using SnowRabbit.Compiler.Assembler;
 using SnowRabbit.Compiler.IO;
@@ -39,6 +40,7 @@ namespace SnowRabbit.Compiler
     {
         // メンバ変数定義
         private readonly ISrScriptStorage scriptStorage;
+        private readonly ISrObjectStorage objectStorage;
         private readonly ISrCompileReportPrinter reportPrinter;
 
 
@@ -65,10 +67,23 @@ namespace SnowRabbit.Compiler
         }
 
 
-        public SrCompiler(ISrScriptStorage storage, ISrCompileReportPrinter printer)
+        public SrCompiler(ISrScriptStorage storage, ISrCompileReportPrinter printer) : this(storage, new SrFileSystemObjectStorage(), printer)
+        {
+        }
+
+
+        /// <summary>
+        /// SrCompiler クラスのインタンスを初期化します
+        /// </summary>
+        /// <param name="storage">スクリプトを保持しているストレージ</param>
+        /// <param name="objectStorage">#link が参照するオブジェクトファイルを保持しているストレージ</param>
+        /// <param name="printer">コンパイルレポートを出力するプリンタ</param>
+        /// <exception cref="ArgumentNullException">storage または objectStorage または printer が null です</exception>
+        public SrCompiler(ISrScriptStorage storage, ISrObjectStorage objectStorage, ISrCompileReportPrinter printer)
         {
             // 参照を受け取る
             scriptStorage = storage ?? throw new ArgumentNullException(nameof(storage));
+            this.objectStorage = objectStorage ?? throw new ArgumentNullException(nameof(objectStorage));
             reportPrinter = printer ?? throw new ArgumentNullException(nameof(printer));
         }
 
@@ -144,10 +159,70 @@ namespace SnowRabbit.Compiler
         /// <param name="isObjectCompileMode">リンク可能なオブジェクトとしてコンパイルする場合は true</param>
         public void Compile(SyntaxNode node, out SrAssemblyData assemblyData, bool isObjectCompileMode)
         {
-            // コンパイルしてアセンブリデータを渡す
+            // #link されたオブジェクトを先にインポートしてからコンパイルする
+            // （関数呼び出しなどのシンボル解決はコンパイル時に行われるため、シンボルが先に揃っている必要がある）
             var compileContext = new SrCompileContext(reportPrinter, isObjectCompileMode);
+            ImportLinkObjects(node, compileContext, new HashSet<string>());
             node.Compile(compileContext);
             assemblyData = compileContext.AssemblyData;
+        }
+
+
+        /// <summary>
+        /// 構文木から #link ディレクティブを収集して、参照されたオブジェクトファイルをインポートします。
+        /// #compile で取り込まれたスクリプトの #link も対象になります。同一パスの重複リンクはスキップされます。
+        /// </summary>
+        /// <param name="node">走査する構文木のノード</param>
+        /// <param name="context">インポート先のコンパイルコンテキスト</param>
+        /// <param name="linkedPaths">既にリンクされたパスの集合</param>
+        private void ImportLinkObjects(SyntaxNode node, SrCompileContext context, HashSet<string> linkedPaths)
+        {
+            if (!(node is CompileUnitSyntaxNode)) return;
+
+
+            foreach (var child in node.Children)
+            {
+                if (child is LinkObjectDirectiveSyntaxNode linkDirective)
+                {
+                    ImportLinkObject(linkDirective, context, linkedPaths);
+                }
+                else if (child is CompileUnitSyntaxNode)
+                {
+                    // #compile で展開されたスクリプトの中の #link も対象にする
+                    ImportLinkObjects(child, context, linkedPaths);
+                }
+            }
+        }
+
+
+        private void ImportLinkObject(LinkObjectDirectiveSyntaxNode linkDirective, SrCompileContext context, HashSet<string> linkedPaths)
+        {
+            // 同一パスの重複リンクはスキップする（複数のスクリプトが同じライブラリをリンクする構成を許容する）
+            var path = linkDirective.Token.Text;
+            if (!linkedPaths.Add(path)) return;
+
+
+            var stream = objectStorage.OpenRead(path);
+            if (stream == null)
+            {
+                throw context.ErrorReporter.LinkObjectNotFound(linkDirective.Token, path);
+            }
+
+
+            try
+            {
+                SrObjectData objectData;
+                using (var reader = new SrObjectDataReader(stream))
+                {
+                    objectData = reader.Read();
+                }
+                SrObjectImporter.Import(objectData, context, linkDirective.Token, path);
+            }
+            catch (SrMalformedObjectDataException error)
+            {
+                // 壊れたオブジェクトはコンパイルエラーとして報告する
+                throw context.ErrorReporter.InvalidLinkObject(linkDirective.Token, path, error.Message);
+            }
         }
 
 

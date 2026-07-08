@@ -48,6 +48,11 @@ internal class ApplicationMain
             description: "シンボル情報を出力に含める",
             getDefaultValue: () => false);
 
+        Option<bool> objectOption = new(
+            aliases: ["-c", "--object"],
+            description: "実行バイナリではなく #link 可能なオブジェクトファイル (.sro) を出力する",
+            getDefaultValue: () => false);
+
         Option<bool> verboseOption = new(
             aliases: ["-v", "--verbose"],
             description: "詳細な出力を表示",
@@ -56,9 +61,10 @@ internal class ApplicationMain
         rootCommand.AddArgument(inputArgument);
         rootCommand.AddOption(outputOption);
         rootCommand.AddOption(symbolsOption);
+        rootCommand.AddOption(objectOption);
         rootCommand.AddOption(verboseOption);
 
-        rootCommand.SetHandler(CompileFiles, inputArgument, outputOption, symbolsOption, verboseOption);
+        rootCommand.SetHandler(CompileFiles, inputArgument, outputOption, symbolsOption, objectOption, verboseOption);
 
         // Invoke の戻り値 (void ハンドラでは常に 0) が Environment.ExitCode を上書きしてしまうため、
         // ハンドラ内で設定した ExitCode を失敗として反映する
@@ -66,7 +72,7 @@ internal class ApplicationMain
         return invokeResult != 0 ? invokeResult : Environment.ExitCode;
     }
 
-    private static void CompileFiles(string[] inputs, string? output, bool symbols, bool verbose)
+    private static void CompileFiles(string[] inputs, string? output, bool symbols, bool objectMode, bool verbose)
     {
         List<string> files = ExpandInputFiles(inputs);
 
@@ -84,19 +90,24 @@ internal class ApplicationMain
             return;
         }
 
+        if (objectMode && symbols && verbose)
+        {
+            Console.WriteLine("注記: オブジェクトファイルは常に完全なシンボル情報を含むため、-s オプションは無視されます。");
+        }
+
         int successCount = 0;
         int failCount = 0;
 
         foreach (string file in files)
         {
-            string outputPath = output ?? Path.ChangeExtension(file, ".bin");
+            string outputPath = output ?? Path.ChangeExtension(file, objectMode ? ".sro" : ".bin");
 
             if (verbose)
             {
                 Console.WriteLine($"コンパイル中: {file} -> {outputPath}");
             }
 
-            bool success = CompileSingleFile(file, outputPath, symbols, verbose);
+            bool success = CompileSingleFile(file, outputPath, symbols, objectMode, verbose);
 
             if (success)
             {
@@ -166,7 +177,7 @@ internal class ApplicationMain
         return files;
     }
 
-    private static bool CompileSingleFile(string inputPath, string outputPath, bool symbols, bool verbose)
+    private static bool CompileSingleFile(string inputPath, string outputPath, bool symbols, bool objectMode, bool verbose)
     {
         // 失敗時に既存の出力ファイルを壊したり書きかけのファイルを残したりしないよう、
         // 一時ファイルへ書き込んでから成功時にのみ出力先へ置き換える
@@ -185,7 +196,14 @@ internal class ApplicationMain
 
             using (FileStream outputStream = new(temporaryPath, FileMode.Create))
             {
-                compiler.Compile(inputPath, outputStream);
+                if (objectMode)
+                {
+                    compiler.CompileObject(inputPath, outputStream);
+                }
+                else
+                {
+                    compiler.Compile(inputPath, outputStream);
+                }
             }
 
             File.Move(temporaryPath, outputPath, overwrite: true);

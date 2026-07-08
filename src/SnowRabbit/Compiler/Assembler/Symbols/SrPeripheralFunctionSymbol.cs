@@ -21,6 +21,8 @@
 // 3. This notice may not be removed or altered from any source
 // distribution.
 
+using System.Collections.Generic;
+
 namespace SnowRabbit.Compiler.Assembler.Symbols
 {
     /// <summary>
@@ -55,6 +57,41 @@ namespace SnowRabbit.Compiler.Assembler.Symbols
         public SrPeripheralFunctionSymbol(string name, int initialAddress) : base(name, initialAddress, SrSymbolKind.PeripheralFunction)
         {
             PeripheralGlobalVariableName = $"___PF__{name}___";
+        }
+
+
+        /// <summary>
+        /// この周辺機器関数のシグネチャ（戻り値型・周辺機器名・関数名・パラメータ型の並び）が一致するか確認します
+        /// </summary>
+        /// <param name="returnType">比較する戻り値型</param>
+        /// <param name="peripheralName">比較する周辺機器名</param>
+        /// <param name="peripheralFunctionName">比較する周辺機器関数名</param>
+        /// <param name="parameterTypes">比較するパラメータ型の並び</param>
+        /// <returns>シグネチャが一致する場合は true を、一致しない場合は false を返します</returns>
+        public bool SignatureEquals(SrRuntimeType returnType, string peripheralName, string peripheralFunctionName, IReadOnlyList<SrRuntimeType> parameterTypes)
+        {
+            if (ReturnType != returnType || PeripheralName != peripheralName || PeripheralFunctionName != peripheralFunctionName)
+            {
+                return false;
+            }
+
+
+            if (ParameterTable.Count != parameterTypes.Count)
+            {
+                return false;
+            }
+
+
+            for (int i = 0; i < parameterTypes.Count; ++i)
+            {
+                if (GetParameter(i + 1).Type != parameterTypes[i])
+                {
+                    return false;
+                }
+            }
+
+
+            return true;
         }
     }
 }

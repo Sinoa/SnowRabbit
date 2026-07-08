@@ -36,8 +36,40 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             var returnType = context.ToRuntimeType(Children[1].Token.Kind);
             var peripheralName = Children[2].Token.Text;
             var peripheralFuncName = Children[3].Token.Text;
-            if (context.AssemblyData.GetGlobalSymbol(functionName) != null)
+
+
+            // 宣言されたパラメータ型の一覧を先に確定させる（既存宣言との照合と登録の両方に使用する）
+            var parameterTypes = new System.Collections.Generic.List<SrRuntimeType>();
+            if (Children[4] != null)
             {
+                var typeList = (TypeListSyntaxNode)Children[4];
+                foreach (var type in typeList.Children)
+                {
+                    var runtimeType = context.ToRuntimeType(type.Token.Kind);
+                    if (!IsSupportType(runtimeType))
+                    {
+                        // 未サポートの型
+                        throw context.ErrorReporter.NotSupportedType(type.Token, runtimeType);
+                    }
+
+
+                    parameterTypes.Add(runtimeType);
+                }
+            }
+
+
+            var existingSymbol = context.AssemblyData.GetGlobalSymbol(functionName);
+            if (existingSymbol != null)
+            {
+                // 同一シグネチャのペリフェラル宣言の再宣言は何もしない
+                // （#link したオブジェクトや #compile したスクリプトが同じ using を持つケースを許容するため）
+                if (existingSymbol is SrPeripheralFunctionSymbol existingPeripheral &&
+                    existingPeripheral.SignatureEquals(returnType, peripheralName, peripheralFuncName, parameterTypes))
+                {
+                    return;
+                }
+
+
                 // 既に使用されている名前
                 throw context.ErrorReporter.PredefinedSymbol(Children[0].Token, functionName);
             }
@@ -47,25 +79,10 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.CreateOrGetStringSymbol(peripheralFuncName);
             var symbol = context.CreatePeripheralFunctionSymbol(returnType, functionName, peripheralName, peripheralFuncName);
             context.CreateGlobalVariableSymbol(SrRuntimeType.Object, symbol.PeripheralGlobalVariableName, default);
-            if (Children[4] == null)
-            {
-                return;
-            }
-
-
-            var typeList = (TypeListSyntaxNode)Children[4];
             int typeCount = 0;
-            foreach (var type in typeList.Children)
+            foreach (var parameterType in parameterTypes)
             {
-                var runtimeType = context.ToRuntimeType(type.Token.Kind);
-                if (!IsSupportType(runtimeType))
-                {
-                    // 未サポートの型
-                    throw context.ErrorReporter.NotSupportedType(type.Token, runtimeType);
-                }
-
-
-                symbol.AddOrGetParameter(typeCount++.ToString(), runtimeType);
+                symbol.AddOrGetParameter(typeCount++.ToString(), parameterType);
             }
         }
 
