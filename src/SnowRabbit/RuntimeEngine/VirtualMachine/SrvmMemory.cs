@@ -43,9 +43,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         internal SrProcess CreateProcess(string path)
         {
             var dataStream = Machine.Storage.Open(path) ?? throw new ExecutableDataNotFoundException(null, path);
-            var reader = new SrExecutableDataReader(dataStream);
-            var executableData = reader.Read();
-            reader.Dispose();
+            SrExecutableData executableData;
+            using (var reader = new SrExecutableDataReader(dataStream))
+            {
+                // 読み取りが失敗してもリーダー（および元ストリーム）が確実に破棄されるようにする
+                executableData = reader.Read();
+            }
 
 
             var codeMemory = CreateCodeMemory(executableData);
@@ -67,7 +70,12 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             Array.Copy(instructionCodes, 0, codeMemory, 0, instructionCodes.Length);
             for (int i = 0; i < data.StringRecordCount; ++i)
             {
+                // 文字列レコードのアドレスは命令領域の直後の文字列領域を指していなければならない
                 var record = data.GetString(i);
+                if (record.Address < instructionCodes.Length || record.Address >= codeMemory.Length)
+                {
+                    throw new SrMalformedExecutableDataException($"文字列レコードのアドレス '{record.Address}' が不正です");
+                }
                 codeMemory[record.Address].Object = record.String;
             }
 

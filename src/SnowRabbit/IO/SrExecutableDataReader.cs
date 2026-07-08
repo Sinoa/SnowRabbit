@@ -73,16 +73,50 @@ namespace SnowRabbit.IO
 
         public SrExecutableData Read()
         {
+            try
+            {
+                return ReadCore();
+            }
+            catch (EndOfStreamException error)
+            {
+                // 途中で終端に達した場合は切り詰められたデータとして報告する
+                throw new SrMalformedExecutableDataException("実行データが途中で切り詰められています", error);
+            }
+            catch (InvalidDataException error)
+            {
+                throw new SrMalformedExecutableDataException("実行データに不正な値が含まれています", error);
+            }
+        }
+
+
+        private SrExecutableData ReadCore()
+        {
+            // 各要素数の常識的な上限（下位20bitオフセットの設計上、プログラム領域は 2^20 要素まで）
+            const int MaxCodeElementCount = 1 << 20;
+
+
             var magicNumber = binaryIO.ReadUInt();
             if (magicNumber != SrExecutableData.MagicNumber)
             {
-                throw new Exception();
+                throw new SrMalformedExecutableDataException("マジックナンバーが一致しません。SnowRabbit の実行データ (SROF) ではありません");
             }
 
 
             var codeCount = binaryIO.ReadInt();
             var recordCount = binaryIO.ReadInt();
             var symbolCount = binaryIO.ReadInt();
+            if (codeCount < 0 || codeCount > MaxCodeElementCount)
+            {
+                throw new SrMalformedExecutableDataException($"命令数 '{codeCount}' が不正です");
+            }
+            if (recordCount < 0 || recordCount > MaxCodeElementCount)
+            {
+                throw new SrMalformedExecutableDataException($"文字列レコード数 '{recordCount}' が不正です");
+            }
+            if (symbolCount < -1 || symbolCount > MaxCodeElementCount)
+            {
+                throw new SrMalformedExecutableDataException($"シンボル数 '{symbolCount}' が不正です");
+            }
 
 
             var codes = new SrValue[codeCount];
@@ -95,13 +129,17 @@ namespace SnowRabbit.IO
 
 
             var recodes = new StringRecord[recordCount];
-            var dataSize = 0;
+            var dataSize = 0L;
             for (int i = 0; i < recordCount; ++i)
             {
                 var record = new StringRecord();
                 record.Address = binaryIO.ReadInt();
                 record.Offset = binaryIO.ReadInt();
                 record.Length = binaryIO.ReadInt();
+                if (record.Length < 0 || record.Offset < 0)
+                {
+                    throw new SrMalformedExecutableDataException($"文字列レコード '{i}' の範囲 (Offset={record.Offset}, Length={record.Length}) が不正です");
+                }
                 dataSize += record.Length;
 
 
@@ -109,8 +147,14 @@ namespace SnowRabbit.IO
             }
 
 
+            if (dataSize > int.MaxValue)
+            {
+                throw new SrMalformedExecutableDataException($"文字列プールの合計サイズ '{dataSize}' が不正です");
+            }
+
+
             var stringPool = new byte[dataSize];
-            binaryIO.Read(stringPool);
+            binaryIO.ReadExactly(stringPool);
 
 
             SrSymbol[] symbols = symbolCount > 0 ? new SrSymbol[symbolCount] : Array.Empty<SrSymbol>();

@@ -137,6 +137,7 @@ namespace SnowRabbit.IO
         /// <param name="size">読み取る長さ</param>
         /// <param name="reverse">読み取ったデータを反転するかどうか</param>
         /// <exception cref="ObjectDisposedException">オブジェクトリソースが解放済みです</exception>
+        /// <exception cref="EndOfStreamException">要求されたサイズを読み込む前にストリームの終端へ到達しました</exception>
         private void Read(int index, int size, bool reverse)
         {
             // 事前例外処理を行っておく
@@ -151,8 +152,18 @@ namespace SnowRabbit.IO
             }
 
 
-            // 指定された長さをストリームから読み込む
-            BaseStream.Read(streamBuffer, index, size);
+            // 指定された長さをストリームから読み切る（Stream.Read は要求サイズ未満を返すことがある）
+            var totalReadSize = 0;
+            while (totalReadSize < size)
+            {
+                var readSize = BaseStream.Read(streamBuffer, index + totalReadSize, size - totalReadSize);
+                if (readSize == 0)
+                {
+                    // 読み切る前に終端へ到達した（切り詰められた・壊れたデータ）
+                    throw new EndOfStreamException("要求されたサイズのデータを読み込む前にストリームの終端へ到達しました");
+                }
+                totalReadSize += readSize;
+            }
 
 
             // もしデータ反転指示が出ていたら
@@ -215,6 +226,28 @@ namespace SnowRabbit.IO
         {
             // そのまま直接読み込む
             return BaseStream.Read(buffer, offset, count);
+        }
+
+
+        /// <summary>
+        /// 指定されたバイト配列を、その長さぶん必ず読み切ります
+        /// </summary>
+        /// <param name="buffer">読み取ったバイト配列を受け取るバッファ</param>
+        /// <exception cref="EndOfStreamException">要求されたサイズを読み込む前にストリームの終端へ到達しました</exception>
+        public void ReadExactly(byte[] buffer)
+        {
+            // ストリームから読み切る（Stream.Read は要求サイズ未満を返すことがある）
+            var totalReadSize = 0;
+            while (totalReadSize < buffer.Length)
+            {
+                var readSize = BaseStream.Read(buffer, totalReadSize, buffer.Length - totalReadSize);
+                if (readSize == 0)
+                {
+                    // 読み切る前に終端へ到達した（切り詰められた・壊れたデータ）
+                    throw new EndOfStreamException("要求されたサイズのデータを読み込む前にストリームの終端へ到達しました");
+                }
+                totalReadSize += readSize;
+            }
         }
 
 
@@ -342,6 +375,11 @@ namespace SnowRabbit.IO
         {
             // 符号付き32bit整数を読み込んで、読み取るべきデータサイズ分もう一度読み込む
             var dataSize = ReadInt();
+            if (dataSize < 0)
+            {
+                // 負の長さは壊れたデータ
+                throw new InvalidDataException($"文字列の長さ '{dataSize}' が不正です");
+            }
             Read(0, dataSize, false);
 
 
