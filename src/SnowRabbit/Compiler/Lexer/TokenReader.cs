@@ -237,14 +237,17 @@ namespace SnowRabbit.Compiler.Lexer
             this.name = name;
 
 
-            // キーワードテーブルを取得するが、失敗したら
+            // キーワードテーブルの取得と生成は複数スレッドからの同時生成でも壊れないように排他する
             var myType = GetType();
-            if (!KeywordTableTable.TryGetValue(myType, out keywordTable))
+            lock (KeywordTableTable)
             {
-                // 新しくトークンテーブルを生成してトークンの追加を行いトークンテーブルを登録する
-                keywordTable = CreateDefaultTokenTable();
-                SetupToken(keywordTable);
-                KeywordTableTable[myType] = keywordTable;
+                if (!KeywordTableTable.TryGetValue(myType, out keywordTable))
+                {
+                    // 新しくトークンテーブルを生成してトークンの追加を行いトークンテーブルを登録する
+                    keywordTable = CreateDefaultTokenTable();
+                    SetupToken(keywordTable);
+                    KeywordTableTable[myType] = keywordTable;
+                }
             }
         }
 
@@ -397,8 +400,9 @@ namespace SnowRabbit.Compiler.Lexer
 
             // 最後に読み込んだ文字を取得して'\n'を除く空白文字なら、有効な文字がくるまで読み飛ばす
             // ただしAllowEndOfLineTokenがfalseならラインフィールドもトークンとして認めない
+            // （BOM (U+FEFF) はトークンとして扱えないため空白として読み飛ばす）
             var readChara = lastReadChara;
-            while ((!AllowEndOfLineToken || readChara != '\n') && char.IsWhiteSpace((char)readChara))
+            while ((!AllowEndOfLineToken || readChara != '\n') && (char.IsWhiteSpace((char)readChara) || readChara == '\uFEFF'))
             {
                 // 次の文字を読み込む
                 readChara = ReadNextChara();
@@ -418,8 +422,8 @@ namespace SnowRabbit.Compiler.Lexer
             // 読み取った最初の文字によってトークン読み込み関数を呼び分ける
             switch ((char)readChara)
             {
-                // 数字なら、数値トークンとして読み込む
-                case char n when char.IsDigit(n):
+                // ASCII数字なら、数値トークンとして読み込む（全角数字などのUnicode数字は数値として扱わない）
+                case char n when IsAsciiDigit(n):
                     ReadIntegerOrNumberToken(readChara, out token);
                     break;
 
@@ -490,6 +494,13 @@ namespace SnowRabbit.Compiler.Lexer
             }
 
 
+            // CR単独の改行（旧Mac形式）はLFとして扱い行番号を正しく数える（CRLFは後続のLFに委ねる）
+            if (readChara == '\r' && reader.Peek() != '\n')
+            {
+                readChara = '\n';
+            }
+
+
             // もし非文字列トークン読み取りモードかつスラッシュなら
             if (!readStringTokenMode && readChara == '/')
             {
@@ -505,8 +516,9 @@ namespace SnowRabbit.Compiler.Lexer
                     }
 
 
-                    // ストリーム最後であったとしても行コメントは改行コードとして返す
-                    lastReadChara = '\n';
+                    // コメントの終わりが改行なら改行として、ストリーム終端ならそのまま終端として返す
+                    // （終端を改行にすり替えると行番号が実際より1つ進んでしまう）
+                    lastReadChara = readChara == -1 ? EndOfStream : '\n';
                     return lastReadChara;
                 }
             }
@@ -520,6 +532,29 @@ namespace SnowRabbit.Compiler.Lexer
 
 
         #region Token builder functions
+        /// <summary>
+        /// 指定された文字がASCII数字（0-9）かどうかを判定します。
+        /// 数値リテラルの解釈はASCII数字に限定します（全角数字などのUnicode数字を数値として扱わないため）。
+        /// </summary>
+        /// <param name="chara">判定する文字</param>
+        /// <returns>ASCII数字の場合は true を返します</returns>
+        private static bool IsAsciiDigit(int chara)
+        {
+            return '0' <= chara && chara <= '9';
+        }
+
+
+        /// <summary>
+        /// 指定された文字がASCIIの16進数字（0-9, A-F, a-f）かどうかを判定します
+        /// </summary>
+        /// <param name="chara">判定する文字</param>
+        /// <returns>16進数字の場合は true を返します</returns>
+        private static bool IsHexDigit(int chara)
+        {
+            return IsAsciiDigit(chara) || ('A' <= chara && chara <= 'F') || ('a' <= chara && chara <= 'f');
+        }
+
+
         /// <summary>
         /// ストリームから整数または実数数値トークンとして読み込みトークンを形成します
         /// </summary>
@@ -536,15 +571,32 @@ namespace SnowRabbit.Compiler.Lexer
             // 数字が読み込まれる間はループ
             var readChara = firstChara;
             long result = 0L;
-            while (char.IsDigit((char)readChara))
+            var overflow = false;
+            while (IsAsciiDigit(readChara))
             {
                 // 文字列バッファには詰めていく
                 tokenReadBuffer.Append((char)readChara);
 
 
-                // 数字から数値へ変換して次の文字を読み取る
-                result = result * 10 + (readChara - '0');
+                // 数字から数値へ変換して次の文字を読み取る（64bit整数の範囲を超えたら以降は桁の消費のみ行う）
+                var digit = readChara - '0';
+                if (result > (long.MaxValue - digit) / 10)
+                {
+                    overflow = true;
+                }
+                else
+                {
+                    result = result * 10 + digit;
+                }
                 readChara = ReadNextChara();
+            }
+
+
+            // 64bit整数の範囲を超えた10進リテラルはエラーとして扱う
+            if (overflow && readChara != '.')
+            {
+                token = new Token(TokenKind.Unknown, $"整数リテラル '{tokenReadBuffer}' は64bit整数の範囲を超えています", 0, 0.0, name, startLineNumber, startColumnNumber);
+                return;
             }
 
 
@@ -557,7 +609,7 @@ namespace SnowRabbit.Compiler.Lexer
 
 
                 // 次の文字が16進数の範囲の文字でないなら
-                if (!(char.IsDigit((char)readChara) || ('A' <= readChara && readChara <= 'F') || ('a' <= readChara && readChara <= 'f')))
+                if (!IsHexDigit(readChara))
                 {
                     // 何をしたいのか整数トークンとして解釈出来ない事を初期化する
                     token = new Token(TokenKind.Unknown, $"16進数は最低でも1桁以上の入力が必要です '{tokenReadBuffer}'", 0, 0.0, name, startLineNumber, startColumnNumber);
@@ -566,8 +618,10 @@ namespace SnowRabbit.Compiler.Lexer
 
 
                 // 数字またはa-fA-Fの文字の間はループ
-                while (char.IsDigit((char)readChara) || ('A' <= readChara && readChara <= 'F') || ('a' <= readChara && readChara <= 'f'))
+                var hexDigitCount = 0;
+                while (IsHexDigit(readChara))
                 {
+                    ++hexDigitCount;
                     // 文字バッファに文字を詰めて単体数字の数値を得る
                     tokenReadBuffer.Append((char)readChara);
                     int unitValue;
@@ -603,6 +657,14 @@ namespace SnowRabbit.Compiler.Lexer
                 }
 
 
+                // 64bit(16桁)を超える16進リテラルはエラーとして扱う
+                if (hexDigitCount > 16)
+                {
+                    token = new Token(TokenKind.Unknown, $"16進数リテラル '{tokenReadBuffer}' は64bit整数の範囲を超えています", 0, 0.0, name, startLineNumber, startColumnNumber);
+                    return;
+                }
+
+
                 // 整数トークンとして初期化をする（トークン文字列は16進数の文字列を入れる）
                 token = new Token(TokenKind.Integer, tokenReadBuffer.ToString(), result, result, name, startLineNumber, startColumnNumber);
                 return;
@@ -624,7 +686,7 @@ namespace SnowRabbit.Compiler.Lexer
 
 
             // もし数字では無いのなら
-            if (!char.IsDigit((char)readChara))
+            if (!IsAsciiDigit(readChara))
             {
                 // どういうトークンなのかが不明になった
                 token = new Token(TokenKind.Unknown, $"実数はピリオドのみで終了することは出来ません '{tokenReadBuffer}'", 0, 0.0, name, startLineNumber, startColumnNumber);
@@ -633,7 +695,7 @@ namespace SnowRabbit.Compiler.Lexer
 
 
             // 数字が続くまでループ
-            while (char.IsDigit((char)readChara))
+            while (IsAsciiDigit(readChara))
             {
                 // 文字列バッファには詰めていく
                 tokenReadBuffer.Append((char)readChara);
@@ -709,6 +771,12 @@ namespace SnowRabbit.Compiler.Lexer
                 {
                     // 次の文字を読み込んで文字によって判定する
                     readChara = ReadNextChara(true);
+                    if (readChara == EndOfStream)
+                    {
+                        // エスケープの途中でストリームが終了した（文字列の開始位置を報告する）
+                        token = new Token(TokenKind.Unknown, "文字列が正しく終了していません", 0, 0.0, name, startLineNumber, startColumnNumber);
+                        return;
+                    }
                     switch ((char)readChara)
                     {
                         // 各文字に相当する文字をバッファに入れる

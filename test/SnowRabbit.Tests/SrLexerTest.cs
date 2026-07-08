@@ -509,4 +509,160 @@ public class SrLexerTest
             Assert.That(token.Number, Is.EqualTo(3.14).Within(0.001));
         }
     }
+
+    /// <summary>
+    /// 64bit整数の範囲を超える10進リテラルがエラートークンになることをテストします
+    /// （従来は無警告でラップして別の値になっていた）
+    /// </summary>
+    [Test]
+    public void IntegerOverflowTest()
+    {
+        // 上限ちょうどは正常に読める
+        using (StringReader reader = new StringReader("9223372036854775807"))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Integer));
+            Assert.That(token.Integer, Is.EqualTo(long.MaxValue));
+        }
+
+        // 上限+1はエラートークンになる
+        using (StringReader reader = new StringReader("9223372036854775808"))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Unknown));
+        }
+    }
+
+    /// <summary>
+    /// 64bit(16桁)を超える16進リテラルがエラートークンになることをテストします
+    /// </summary>
+    [Test]
+    public void HexIntegerOverflowTest()
+    {
+        // 16桁ちょうどは正常に読める (0xFFFFFFFFFFFFFFFF = -1)
+        using (StringReader reader = new StringReader("0xFFFFFFFFFFFFFFFF"))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Integer));
+            Assert.That(token.Integer, Is.EqualTo(-1));
+        }
+
+        // 17桁はエラートークンになる
+        using (StringReader reader = new StringReader("0xFFFFFFFFFFFFFFFFF"))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Unknown));
+        }
+    }
+
+    /// <summary>
+    /// 全角数字が数値リテラルとして解釈されないことをテストします
+    /// （従来は無警告で不正な値になり、小数部に混ざるとクラッシュしていた）
+    /// </summary>
+    [Test]
+    public void FullWidthDigitIsNotNumberTest()
+    {
+        // 全角数字だけの入力は数値にならない
+        using (StringReader reader = new StringReader("１２３"))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.Not.EqualTo(TokenKind.Integer));
+        }
+
+        // 小数部に全角数字が混ざってもクラッシュせず、実数部分までが数値として読まれる
+        using (StringReader reader = new StringReader("3.1４"))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+            Assert.DoesNotThrow(() =>
+            {
+                lexer.ReadNextToken(out Token token);
+                Assert.That(token.Kind, Is.EqualTo(TokenKind.Number));
+                Assert.That(token.Number, Is.EqualTo(3.1).Within(0.001));
+            });
+        }
+    }
+
+    /// <summary>
+    /// エスケープの途中でストリームが終了した文字列が、開始位置付きの未終端エラーになることをテストします
+    /// </summary>
+    [Test]
+    public void StringEscapeAtEndOfStreamTest()
+    {
+        string script = "\"abc\\";
+
+        using (StringReader reader = new StringReader(script))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.Unknown));
+            Assert.That(token.Text, Is.EqualTo("文字列が正しく終了していません"));
+            Assert.That(token.LineNumber, Is.EqualTo(1));
+            Assert.That(token.ColumnNumber, Is.EqualTo(1));
+        }
+    }
+
+    /// <summary>
+    /// 先頭のBOM (U+FEFF) が読み飛ばされることをテストします
+    /// </summary>
+    [Test]
+    public void BomSkipTest()
+    {
+        string script = "﻿function";
+
+        using (StringReader reader = new StringReader(script))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Kind, Is.EqualTo(SrTokenKind.Function));
+        }
+    }
+
+    /// <summary>
+    /// 改行の無いままストリーム終端に達する行コメントで行番号がずれないことをテストします
+    /// </summary>
+    [Test]
+    public void CommentAtEndOfStreamLineNumberTest()
+    {
+        string script = "a // trailing comment";
+
+        using (StringReader reader = new StringReader(script))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Text, Is.EqualTo("a"));
+            Assert.That(token.LineNumber, Is.EqualTo(1));
+
+            lexer.ReadNextToken(out token);
+            Assert.That(token.Kind, Is.EqualTo(TokenKind.EndOfToken));
+            Assert.That(token.LineNumber, Is.EqualTo(1));
+        }
+    }
+
+    /// <summary>
+    /// CR単独の改行（旧Mac形式）でも行番号が数えられることをテストします
+    /// </summary>
+    [Test]
+    public void CarriageReturnOnlyLineNumberTest()
+    {
+        string script = "a\rb";
+
+        using (StringReader reader = new StringReader(script))
+        {
+            SrLexer lexer = new SrLexer("test", reader);
+
+            lexer.ReadNextToken(out Token token);
+            Assert.That(token.Text, Is.EqualTo("a"));
+            Assert.That(token.LineNumber, Is.EqualTo(1));
+
+            lexer.ReadNextToken(out token);
+            Assert.That(token.Text, Is.EqualTo("b"));
+            Assert.That(token.LineNumber, Is.EqualTo(2));
+        }
+    }
 }
