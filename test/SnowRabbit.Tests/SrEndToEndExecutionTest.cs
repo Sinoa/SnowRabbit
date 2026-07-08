@@ -21,6 +21,7 @@
 // 3. This notice may not be removed or altered from any source
 // distribution.
 
+using System.Globalization;
 using SnowRabbit.Compiler;
 using SnowRabbit.Compiler.IO;
 using SnowRabbit.Compiler.Reporter;
@@ -144,6 +145,18 @@ public class SrEndToEndExecutionTest
             Outputs.Add(value.ToString());
         }
 
+        [SrHostFunction("GetNumber")]
+        public float GetNumber()
+        {
+            return 1.5f;
+        }
+
+        [SrHostFunction("WriteNumber")]
+        public void WriteNumber(float value)
+        {
+            Outputs.Add(value.ToString(CultureInfo.InvariantCulture));
+        }
+
         public List<TaskCompletionSource<string>> ValueWaiters { get; } = new List<TaskCompletionSource<string>>();
 
         [SrHostFunction("WaitValue")]
@@ -259,6 +272,27 @@ end
             "1", "2", "Fizz", "4", "Buzz", "Fizz", "7", "8", "Fizz", "Buzz", "11", "Fizz", "13", "14", "FizzBuzz",
         };
         Assert.That(peripheral.Outputs, Is.EqualTo(expected));
+    }
+
+    /// <summary>
+    /// number を返すペリフェラル関数の戻り値を number で受けて正しい値が伝わることをテストします
+    /// （number 戻り値を int で受けた際に不正な値が出ていた問題の回帰テスト）
+    /// </summary>
+    [Test]
+    public void PeripheralFunctionNumberReturnExecutionTest()
+    {
+        string script = @"
+using GetNumber = number Test.GetNumber();
+using WriteNumber = void Test.WriteNumber(number);
+
+function void main()
+    local number value = GetNumber();
+    WriteNumber(value);
+end
+";
+        TestPeripheral peripheral = CompileAndRun(script);
+
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[] { "1.5" }));
     }
 
     /// <summary>

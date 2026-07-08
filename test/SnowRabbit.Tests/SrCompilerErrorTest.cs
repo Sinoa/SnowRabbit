@@ -364,6 +364,29 @@ end
     }
 
     /// <summary>
+    /// number を返すペリフェラル関数の戻り値を int で受けるとコンパイルエラーになることをテストします
+    /// </summary>
+    [Test]
+    public void PeripheralFunctionReturnNarrowingTest()
+    {
+        AssertCompileError(@"
+using GetValue = number Test.GetValue();
+
+function void main()
+    local int x = GetValue();
+end
+");
+        AssertCompileError(@"
+using GetValue = number Test.GetValue();
+
+function void main()
+    local int x = 0;
+    x = GetValue();
+end
+");
+    }
+
+    /// <summary>
     /// 文字列と数値の混合連結・文字列への非対応演算がコンパイルエラーになることをテストします
     /// </summary>
     [Test]
