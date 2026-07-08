@@ -718,6 +718,52 @@ end
     }
 
     /// <summary>
+    /// 文字列連結が連鎖・変数・複合代入・引数・戻り値・グローバル代入で正しく動作することをテストします
+    /// </summary>
+    [Test]
+    public void StringConcatenationExecutionTest()
+    {
+        string script = @"
+using Write = void Test.Write(string);
+
+global string g_Message = """";
+
+function string Decorate(string text)
+    return ""["" + text + ""]"";
+end
+
+function void main()
+    local string name = ""World"";
+    local string message = ""Hello, "" + name + ""!"";
+    Write(message);
+
+    message += ""!!"";
+    Write(message);
+
+    Write(""a"" + ""b"" + ""c"");
+    Write(Decorate(""deco""));
+
+    g_Message = ""global"" + "" "" + ""concat"";
+    Write(g_Message);
+
+    local string empty = """" + """";
+    Write(""x"" + empty + ""y"");
+end
+";
+        TestPeripheral peripheral = CompileAndRun(script);
+
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[]
+        {
+            "Hello, World!",
+            "Hello, World!!!",
+            "abc",
+            "[deco]",
+            "global concat",
+            "xy",
+        }));
+    }
+
+    /// <summary>
     /// 言語リファレンスのフィボナッチ数列サンプルが正しく実行されることをテストします
     /// （再帰呼び出しとローカル変数への関数戻り値格納の検証）
     /// </summary>

@@ -651,6 +651,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 case TokenKind.PlusEqual:
                     if (isInteger) return OpCode.Add;
                     if (isNumber) return OpCode.Fadd;
+                    if (variableType == SrRuntimeType.String) return OpCode.Sadd;
                     break;
 
                 case TokenKind.MinusEqual:
@@ -910,13 +911,17 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
         private static void OpAdd(in Token operation, byte leftRegister, byte rightRegister, SrRuntimeType type, SrCompileContext context)
         {
-            if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number))
+            if (!(type == SrRuntimeType.Integer || type == SrRuntimeType.Number || type == SrRuntimeType.String))
             {
                 throw context.ErrorReporter.InvalidBinaryOperation(operation, "+", type);
             }
 
             var instruction = new SrInstruction();
-            instruction.Set(type == SrRuntimeType.Integer ? OpCode.Add : OpCode.Fadd, leftRegister, leftRegister, rightRegister);
+            var opCode =
+                type == SrRuntimeType.Integer ? OpCode.Add :
+                type == SrRuntimeType.Number ? OpCode.Fadd :
+                OpCode.Sadd;
+            instruction.Set(opCode, leftRegister, leftRegister, rightRegister);
             context.AddBodyCode(instruction, false);
         }
 

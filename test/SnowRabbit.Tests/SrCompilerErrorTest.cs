@@ -364,6 +364,29 @@ end
     }
 
     /// <summary>
+    /// 文字列と数値の混合連結・文字列への非対応演算がコンパイルエラーになることをテストします
+    /// </summary>
+    [Test]
+    public void InvalidStringOperationTest()
+    {
+        AssertCompileError(@"
+function void main()
+    local string s = ""a"" + 1;
+end
+");
+        AssertCompileError(@"
+function void main()
+    local string s = 1 + ""a"";
+end
+");
+        AssertCompileError(@"
+function void main()
+    local string s = ""a"" - ""b"";
+end
+");
+    }
+
+    /// <summary>
     /// 変数以外への後置インクリメントがコンパイルエラーになることをテストします
     /// </summary>
     [Test]

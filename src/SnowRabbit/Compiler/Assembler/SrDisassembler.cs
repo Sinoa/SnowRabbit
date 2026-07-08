@@ -190,6 +190,7 @@ namespace SnowRabbit.Compiler.Assembler
                 case OpCode.Powl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
                 case OpCode.Neg: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}\n";
                 case OpCode.Negl: return $"    0x{addressText}  {opCodeText}{operand1}, {immediate}\n";
+                case OpCode.Sadd: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
                 case OpCode.Fadd: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";
                 case OpCode.Faddl: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {immediate}\n";
                 case OpCode.Fsub: return $"    0x{addressText}  {opCodeText}{operand1}, {operand2}, {operand3}\n";

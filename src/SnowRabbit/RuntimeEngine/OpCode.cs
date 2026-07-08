@@ -174,6 +174,11 @@ namespace SnowRabbit.RuntimeEngine
         Negl = 0x2D,
 
         /// <summary>
+        /// レジスタ間の文字列連結をします：Ra = Rb + Rc（Rb と Rc はオブジェクト部に文字列を持つこと）
+        /// </summary>
+        Sadd = 0x2E,
+
+        /// <summary>
         /// レジスタ間の浮動小数点加算をします：Ra = Rb + Rc
         /// </summary>
         Fadd = 0x40,

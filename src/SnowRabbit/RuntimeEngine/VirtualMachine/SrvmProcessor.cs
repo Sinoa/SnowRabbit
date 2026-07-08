@@ -420,6 +420,11 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         context[r1].Primitive.Long = -instruction.Int;
                         break;
 
+                    case OpCode.Sadd:
+                        context[r1].Object = (context[r2].Object as string) + (context[r3].Object as string);
+                        context[r1].Primitive.Ulong = 0;
+                        break;
+
                     case OpCode.Fadd:
                         context[r1].Primitive.Float = context[r2].Primitive.Float + context[r3].Primitive.Float;
                         break;
