@@ -17,22 +17,22 @@
   "contributes": {
     "languages": [
       {
-        "id": "csf",
+        "id": "srs",
         "aliases": [
-          "CSF",
-          "csf"
+          "SnowRabbit Script",
+          "srs"
         ],
         "extensions": [
-          ".csf"
+          ".srs"
         ],
         "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
       {
-        "language": "csf",
-        "scopeName": "source.csf",
-        "path": "./syntaxes/csf.tmLanguage.json"
+        "language": "srs",
+        "scopeName": "source.srs",
+        "path": "./syntaxes/srs.tmLanguage.json"
       }
     ]
   }

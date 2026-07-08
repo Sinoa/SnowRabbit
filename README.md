@@ -213,7 +213,7 @@ SnowRabbit/
 ├── test/
 │   └── SnowRabbit.Tests/      # テストプロジェクト（NUnit 4）
 ├── docs/                      # 言語リファレンス
-├── vscodeextensions/          # VS Code 構文ハイライト拡張（言語ID: csf）
+├── vscodeextensions/          # VS Code 構文ハイライト拡張（言語ID: srs）
 └── SnowRabbit.slnx
 ```
 

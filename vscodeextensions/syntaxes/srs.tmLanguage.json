@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-  "name": "CSF",
-  "scopeName": "source.csf",
+  "name": "SnowRabbit Script",
+  "scopeName": "source.srs",
   "patterns": [
     { "include": "#comment" },
     { "include": "#string" },
@@ -16,29 +16,29 @@
   ],
   "repository": {
     "comment": {
-      "name": "comment.line.double-slash.csf",
+      "name": "comment.line.double-slash.srs",
       "match": "//.*$"
     },
     "string": {
       "patterns": [
         {
-          "name": "string.quoted.double.csf",
+          "name": "string.quoted.double.srs",
           "begin": "\"",
           "end": "\"",
           "patterns": [
             {
-              "name": "constant.character.escape.csf",
+              "name": "constant.character.escape.srs",
               "match": "\\\\."
             }
           ]
         },
         {
-          "name": "string.quoted.single.csf",
+          "name": "string.quoted.single.srs",
           "begin": "'",
           "end": "'",
           "patterns": [
             {
-              "name": "constant.character.escape.csf",
+              "name": "constant.character.escape.srs",
               "match": "\\\\."
             }
           ]
@@ -48,38 +48,38 @@
     "preprocessor": {
       "match": "^\\s*(#)(compile|link|const)\\b",
       "captures": {
-        "1": { "name": "keyword.control.directive.csf" },
-        "2": { "name": "keyword.control.directive.csf" }
+        "1": { "name": "keyword.control.directive.srs" },
+        "2": { "name": "keyword.control.directive.srs" }
       }
     },
     "keyword-declaration": {
-      "name": "keyword.declaration.csf",
+      "name": "keyword.declaration.srs",
       "match": "\\b(function|using|global|local)\\b"
     },
     "keyword-control": {
-      "name": "keyword.control.csf",
+      "name": "keyword.control.srs",
       "match": "\\b(if|else|for|while|break|return|end)\\b"
     },
     "type": {
-      "name": "support.type.csf",
+      "name": "support.type.srs",
       "match": "\\b(void|int|number|string|object|bool)\\b"
     },
     "constant-language": {
-      "name": "constant.language.csf",
+      "name": "constant.language.srs",
       "match": "\\b(true|false|null)\\b"
     },
     "constant-numeric": {
       "patterns": [
         {
-          "name": "constant.numeric.hex.csf",
+          "name": "constant.numeric.hex.srs",
           "match": "\\b0[xX][0-9a-fA-F]+\\b"
         },
         {
-          "name": "constant.numeric.float.csf",
+          "name": "constant.numeric.float.srs",
           "match": "\\b\\d+\\.\\d+\\b"
         },
         {
-          "name": "constant.numeric.integer.csf",
+          "name": "constant.numeric.integer.srs",
           "match": "\\b\\d+\\b"
         }
       ]
@@ -87,33 +87,33 @@
     "function-call": {
       "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
       "captures": {
-        "1": { "name": "entity.name.function.csf" }
+        "1": { "name": "entity.name.function.srs" }
       }
     },
     "operator": {
       "patterns": [
         {
-          "name": "keyword.operator.assignment.csf",
+          "name": "keyword.operator.assignment.srs",
           "match": "\\+\\=|\\-\\=|\\*\\=|\\/\\=|&\\=|\\|\\=|\\^\\=|(?<![=!<>])=(?!=)"
         },
         {
-          "name": "keyword.operator.comparison.csf",
+          "name": "keyword.operator.comparison.srs",
           "match": "==|!=|<=|>=|<<?|>>?"
         },
         {
-          "name": "keyword.operator.logical.csf",
+          "name": "keyword.operator.logical.srs",
           "match": "\\|\\||&&|!"
         },
         {
-          "name": "keyword.operator.bitwise.csf",
+          "name": "keyword.operator.bitwise.srs",
           "match": "[&|^]"
         },
         {
-          "name": "keyword.operator.increment-decrement.csf",
+          "name": "keyword.operator.increment-decrement.srs",
           "match": "\\+\\+|\\-\\-"
         },
         {
-          "name": "keyword.operator.arithmetic.csf",
+          "name": "keyword.operator.arithmetic.srs",
           "match": "[+\\-*/%]"
         }
       ]

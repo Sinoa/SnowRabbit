@@ -1,5 +1,5 @@
 // Pre-Processor directives
-#compile "main.csf"
+#compile "main.srs"
 #link "library.bin"
 #const MAX_COUNT 100
 

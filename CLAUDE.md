@@ -88,7 +88,7 @@ end
 **演算子**: 算術 `+ - * / %`、比較、論理(`&&`/`||`は短絡評価)、ビット演算、複合代入(`%=`は無し)。インクリメントは前置(`++a`)と後置(`a++`)に対応
 **ディレクティブ**: `#const`, `#compile`(他スクリプトの取り込み), `#link`(コンパイル済みオブジェクト `.sro` のリンク)
 
-詳細仕様は `docs/LANGUAGE_REFERENCE.md` を参照。VS Code用の構文ハイライト拡張は `vscodeextensions/` にある(こちらの言語IDは `csf`・拡張子 `.csf`)。
+詳細仕様は `docs/LANGUAGE_REFERENCE.md` を参照。VS Code用の構文ハイライト拡張は `vscodeextensions/` にある(言語ID `srs`・拡張子 `.srs` で本体と統一)。
 
 ## コーディング規約
 
