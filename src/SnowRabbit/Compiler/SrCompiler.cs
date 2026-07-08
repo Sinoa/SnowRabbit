@@ -28,6 +28,7 @@ using SnowRabbit.Compiler.IO;
 using SnowRabbit.Compiler.Parser;
 using SnowRabbit.Compiler.Parser.SyntaxNodes;
 using SnowRabbit.Compiler.Reporter;
+using SnowRabbit.IO;
 
 namespace SnowRabbit.Compiler
 {
@@ -89,6 +90,29 @@ namespace SnowRabbit.Compiler
 
 
         /// <summary>
+        /// 指定されたパスのスクリプトを、リンク可能なオブジェクトファイル (SROB) としてコンパイルします。
+        /// オブジェクトとしてコンパイルする場合 main 関数は不要で、スタートアップコードは生成されません。
+        /// </summary>
+        /// <param name="path">コンパイルするスクリプトのパス</param>
+        /// <param name="outStream">オブジェクトファイルを出力するストリーム</param>
+        /// <exception cref="ArgumentException">path が null または 空文字列 または 空白文字列 です</exception>
+        /// <exception cref="ArgumentNullException">outStream が null です</exception>
+        public void CompileObject(string path, Stream outStream)
+        {
+            if (outStream == null) throw new ArgumentNullException(nameof(outStream));
+
+
+            // パースとオブジェクトモードでのコンパイルをして、アドレス解決前のアセンブリデータをそのまま書き込む
+            Parse(path, out var node);
+            Compile(node, out var assemblyData, true);
+            using (var writer = new SrObjectDataWriter(outStream, true))
+            {
+                writer.Write(assemblyData);
+            }
+        }
+
+
+        /// <summary>
         /// パーサを使用してスクリプトから構文木を作ります
         /// </summary>
         /// <param name="path">構文解析する対象となるスクリプトのパス</param>
@@ -107,8 +131,21 @@ namespace SnowRabbit.Compiler
         /// <param name="assemblyData">コンパイルされた結果のアセンブリデータを出力する先の参照</param>
         public void Compile(SyntaxNode node, out SrAssemblyData assemblyData)
         {
+            // 通常（実行コード生成）モードでコンパイルする
+            Compile(node, out assemblyData, false);
+        }
+
+
+        /// <summary>
+        /// 構文木からアセンブリコードを作り出すためにコンパイルをします
+        /// </summary>
+        /// <param name="node">生成された構文木のルートノード</param>
+        /// <param name="assemblyData">コンパイルされた結果のアセンブリデータを出力する先の参照</param>
+        /// <param name="isObjectCompileMode">リンク可能なオブジェクトとしてコンパイルする場合は true</param>
+        public void Compile(SyntaxNode node, out SrAssemblyData assemblyData, bool isObjectCompileMode)
+        {
             // コンパイルしてアセンブリデータを渡す
-            var compileContext = new SrCompileContext(reportPrinter);
+            var compileContext = new SrCompileContext(reportPrinter, isObjectCompileMode);
             node.Compile(compileContext);
             assemblyData = compileContext.AssemblyData;
         }

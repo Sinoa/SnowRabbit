@@ -40,7 +40,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
-            if (Parent == null)
+            // オブジェクトコンパイルモードではスタートアップコードを生成しない（main も不要）
+            if (Parent == null && !context.IsObjectCompileMode)
             {
                 CompileStartupCode(context);
             }

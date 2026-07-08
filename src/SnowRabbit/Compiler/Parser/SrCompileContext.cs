@@ -55,6 +55,13 @@ namespace SnowRabbit.Compiler.Parser
         public SrAssemblyData AssemblyData { get; } = new SrAssemblyData();
 
 
+        /// <summary>
+        /// リンク可能なオブジェクトとしてコンパイルするモードかどうか。
+        /// オブジェクトモードでは main 関数が不要になり、スタートアップコード（___init）を生成しません。
+        /// </summary>
+        public bool IsObjectCompileMode { get; }
+
+
         public SyntaxErrorReporter ErrorReporter { get; }
 
 
@@ -93,12 +100,18 @@ namespace SnowRabbit.Compiler.Parser
         }
 
 
-        public SrCompileContext(ISrCompileReportPrinter printer)
+        public SrCompileContext(ISrCompileReportPrinter printer) : this(printer, false)
+        {
+        }
+
+
+        public SrCompileContext(ISrCompileReportPrinter printer, bool isObjectCompileMode)
         {
             HeadCodeList = headCodeList.AsReadOnly();
             BodyCodeList = bodyCodeList.AsReadOnly();
             TailCodeList = tailCodeList.AsReadOnly();
             ErrorReporter = new SyntaxErrorReporter(printer);
+            IsObjectCompileMode = isObjectCompileMode;
         }
 
 
@@ -110,6 +123,17 @@ namespace SnowRabbit.Compiler.Parser
         {
             // ひたすらデクリメントし続けるアドレスを返す
             return nextVirtualAddress--;
+        }
+
+
+        /// <summary>
+        /// 新しい仮想アドレスを割り当てます。
+        /// オブジェクトファイルのインポートなど、シンボル生成メソッドを経由しないシンボル構築に使用します。
+        /// </summary>
+        /// <returns>割り当てられた仮想アドレスを返します</returns>
+        public int AllocateVirtualAddress()
+        {
+            return GetNextVirtualAddress();
         }
 
 
