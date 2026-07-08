@@ -111,5 +111,16 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             context.ResetRegisterPool();
             Compile(context);
         }
+
+
+        /// <summary>
+        /// この文を実行すると全ての経路で必ず return 文に到達するかどうかを判断します。
+        /// ループ（for, while）は条件が定数 true であっても保証なしと判断する保守的解析です。
+        /// </summary>
+        /// <returns>全ての経路で必ず return する場合は true を、そうでない場合は false を返します</returns>
+        public virtual bool AlwaysReturns()
+        {
+            return false;
+        }
     }
 }

@@ -46,6 +46,27 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
+            if (returnType != SrRuntimeType.Void)
+            {
+                // エピローグは無条件に rax を戻り値レジスタへ移すため、return せずに終端へ到達できる非void関数は不定値を返してしまう
+                var allPathsReturn = false;
+                for (int i = 3; i < Children.Count; ++i)
+                {
+                    if (Children[i].AlwaysReturns())
+                    {
+                        allPathsReturn = true;
+                        break;
+                    }
+                }
+
+
+                if (!allPathsReturn)
+                {
+                    throw context.ErrorReporter.NotAllCodePathsReturn(nameToken, functionName, returnType);
+                }
+            }
+
+
             var symbol = context.EnterFunctionCompile(returnType, functionName);
             AddParameter(symbol, parameterList, context);
 

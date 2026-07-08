@@ -62,5 +62,22 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 node.CompileAsStatement(context);
             }
         }
+
+
+        /// <summary>
+        /// else節内のいずれかの文が必ず return する場合に true を返します。
+        /// else if の場合は子の if 文へ再帰的に判断が委ねられます。
+        /// </summary>
+        /// <returns>全ての経路で必ず return する場合は true を、そうでない場合は false を返します</returns>
+        public override bool AlwaysReturns()
+        {
+            foreach (var child in Children)
+            {
+                if (child.AlwaysReturns()) return true;
+            }
+
+
+            return false;
+        }
     }
 }

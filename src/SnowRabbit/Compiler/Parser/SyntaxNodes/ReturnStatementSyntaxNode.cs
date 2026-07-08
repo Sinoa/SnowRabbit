@@ -85,5 +85,15 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             instruction.Set(OpCode.Brl, 0, 0, 0, context.CurrentFunctionLeaveLabelSymbol.InitialAddress);
             context.AddBodyCode(instruction, true);
         }
+
+
+        /// <summary>
+        /// return文はこの文自体が関数からの脱出であるため、常に true を返します
+        /// </summary>
+        /// <returns>常に true を返します</returns>
+        public override bool AlwaysReturns()
+        {
+            return true;
+        }
     }
 }

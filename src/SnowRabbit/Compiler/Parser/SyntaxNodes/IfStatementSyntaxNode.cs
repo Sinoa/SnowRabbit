@@ -118,5 +118,28 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 }
             }
         }
+
+
+        /// <summary>
+        /// then節とelse節の両方が必ず return する場合に限り true を返します
+        /// </summary>
+        /// <returns>全ての経路で必ず return する場合は true を、そうでない場合は false を返します</returns>
+        public override bool AlwaysReturns()
+        {
+            // else節を持たないifは条件が偽のとき何も実行しない経路があるため保証なし
+            var lastIndex = Children.Count - 1;
+            var elseNode = lastIndex >= 1 ? Children[lastIndex] as ElseStatementSyntaxNode : null;
+            if (elseNode == null || !elseNode.AlwaysReturns()) return false;
+
+
+            // then節（Children[1]..[lastIndex-1]）のいずれかの文が必ず return するなら then 側も保証あり
+            for (int i = 1; i < lastIndex; ++i)
+            {
+                if (Children[i].AlwaysReturns()) return true;
+            }
+
+
+            return false;
+        }
     }
 }

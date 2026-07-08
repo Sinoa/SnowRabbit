@@ -309,6 +309,24 @@ function void DoNothing()
 end
 ```
 
+void以外の戻り値型を持つ関数は、全ての実行経路で値を返す必要があります。値を返さずに関数の終端へ到達できるコードパスがある場合はコンパイルエラーになります。ループ（`for`, `while`）内の `return` は、条件が定数 `true` であっても経路の保証とは見なされません。
+
+```
+function int GetSign(int value)
+    if (value >= 0)
+        return 1;
+    end
+    // エラー: value < 0 のとき値を返さずに終端へ到達する
+end
+
+function int Loop()
+    while (true)
+        return 1;
+    end
+    return 0;  // ループ内の return は保証と見なされないため、この return が必要
+end
+```
+
 ---
 
 ## 演算子

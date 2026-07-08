@@ -231,5 +231,14 @@ namespace SnowRabbit.Compiler.Reporter
         {
             return CreateAndReportErrorMessage(token, $"リンクオブジェクト '{path}' を読み込めませんでした。({reason})");
         }
+
+
+        /// <summary>
+        /// 非void関数で値を返さずに終了するコードパスが存在するエラー
+        /// </summary>
+        public SrSyntaxErrorException NotAllCodePathsReturn(in Token token, string functionName, SrRuntimeType returnType)
+        {
+            return CreateAndReportErrorMessage(token, $"関数 '{functionName}' は '{returnType}' 型の戻り値が必要ですが、値を返さずに終了するコードパスがあります。");
+        }
     }
 }

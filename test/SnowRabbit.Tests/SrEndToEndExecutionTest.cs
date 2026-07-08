@@ -296,6 +296,34 @@ end
     }
 
     /// <summary>
+    /// if-else の両分岐で return する関数（末尾 return 無し）が実行時に正しい値を返すことをテストします
+    /// （非void関数の全経路 return 検査を通過したコードの実行検証）
+    /// </summary>
+    [Test]
+    public void IfElseBothReturnExecutionTest()
+    {
+        string script = @"
+using WriteInt = void Test.WriteInt(int);
+
+function int Sign(int value)
+    if (value >= 0)
+        return 1;
+    else
+        return -1;
+    end
+end
+
+function void main()
+    WriteInt(Sign(42));
+    WriteInt(Sign(-42));
+end
+";
+        TestPeripheral peripheral = CompileAndRun(script);
+
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[] { "1", "-1" }));
+    }
+
+    /// <summary>
     /// 定数・グローバル変数・関数呼び出しを含む整数演算が正しく実行されることをテストします
     /// </summary>
     [Test]
