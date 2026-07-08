@@ -83,11 +83,17 @@ SnowRabbitは以下の組み込み型をサポートします：
 
 ### 整数リテラル
 
+10進数と16進数（`0x` / `0X` プレフィックス）が使用できます。
+
 ```
 0
 123
 -456
+0xFF
+0x1f
 ```
+
+※`-456` は「単項マイナス + 整数リテラル `456`」として解釈されます。
 
 ### 浮動小数点リテラル
 
@@ -97,13 +103,28 @@ SnowRabbitは以下の組み込み型をサポートします：
 -2.5
 ```
 
+※指数表記（`1e5`）はサポートされていません。また `123.` のように小数部を省略することはできません。
+
 ### 文字列リテラル
+
+ダブルクォート（`"..."`）とシングルクォート（`'...'`）のどちらでも記述できます。
 
 ```
 "hello"
+'hello'
 "日本語テスト"
 "escape: \n \t \\"
 ```
+
+使用できるエスケープシーケンスは以下の5種類のみです。それ以外のエスケープはコンパイルエラーになります。
+
+| エスケープ | 意味 |
+|-----------|------|
+| `\n` | 改行 |
+| `\t` | タブ |
+| `\\` | バックスラッシュ |
+| `\"` | ダブルクォート |
+| `\'` | シングルクォート |
 
 ### 真偽値リテラル
 
@@ -298,7 +319,7 @@ end
 |--------|--------|------|
 | 1 | `()` | 括弧 |
 | 2 | `+` `-` `!` `++` `--` | 単項演算子 |
-| 3 | `*` `/` | 乗除算 |
+| 3 | `*` `/` `%` | 乗除算・剰余 |
 | 4 | `+` `-` | 加減算 |
 | 5 | `<<` `>>` | ビットシフト |
 | 6 | `<` `>` `<=` `>=` | 比較 |
@@ -317,6 +338,7 @@ a + b   // 加算
 a - b   // 減算
 a * b   // 乗算
 a / b   // 除算
+a % b   // 剰余
 -a      // 符号反転
 +a      // 符号維持
 ```
@@ -432,12 +454,38 @@ end
 
 | スクリプト型 | C#型 |
 |-------------|------|
-| `int` | `int`, `long` |
+| `int` | `sbyte`, `byte`, `char`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`（`int`, `long` 推奨） |
 | `number` | `float`, `double` |
 | `string` | `string` |
-| `object` | `object` |
+| `object` | `object`（上記以外の型も `object` として受け渡し可能） |
 | `bool` | `bool` |
 | `void` | `void` |
+
+### 非同期ホスト関数（Task対応）
+
+ホスト関数の戻り値には `Task` / `Task<T>` を使用できます。スクリプトが非同期ホスト関数を呼び出すと、
+呼び出し元プロセスは `Suspended` 状態になり、タスク完了後の `Run()` 呼び出しで結果を受け取って再開します。
+
+```csharp
+[SrHostFunction("Wait")]
+public Task Wait(int millisecond)
+{
+    return Task.Delay(millisecond);
+}
+
+[SrHostFunction("LoadText")]
+public async Task<string> LoadText(string path)
+{
+    return await File.ReadAllTextAsync(path);
+}
+```
+
+スクリプト側からは同期関数と同じように呼び出せます（`Task<string>` は `string` としてインポートします）。
+
+```
+using Wait = void Sample.Wait(int);
+using LoadText = string Sample.LoadText(string);
+```
 
 ---
 
@@ -476,11 +524,13 @@ end
 
 ### リンク (#link)
 
-コンパイル済みバイナリをリンクします。
+コンパイル済みバイナリをリンクするための予約構文です。
 
 ```
 #link "library.bin"
 ```
+
+※**現在この構文はパースのみ行われ、リンク処理は未実装です**（指定しても無視されます）。将来の拡張用として予約されています。
 
 ---
 
@@ -637,6 +687,7 @@ muldiv_expression
     : unary_expression
     | muldiv_expression '*' unary_expression
     | muldiv_expression '/' unary_expression
+    | muldiv_expression '%' unary_expression
 
 unary_expression
     : post_unary_expression
@@ -686,9 +737,12 @@ constant_define_directive
 
 - ブロックコメント（`/* */`）は未サポート
 - 後置インクリメント/デクリメント（`a++`, `a--`）は未サポート
+- 剰余の複合代入（`%=`）およびシフトの複合代入（`<<=`, `>>=`）は未サポート
+- 文字列の連結演算（`"a" + "b"`）は未サポート
 - 配列は未サポート
 - クラス/構造体の定義は未サポート
 - 例外処理（try-catch）は未サポート
+- `#link` ディレクティブは予約構文（リンク処理は未実装）
 
 ---
 
@@ -701,7 +755,9 @@ function int Fibonacci(int n)
     if (n <= 1)
         return n;
     end
-    return Fibonacci(n - 1) + Fibonacci(n - 2);
+    local int previous1 = Fibonacci(n - 1);
+    local int previous2 = Fibonacci(n - 2);
+    return previous1 + previous2;
 end
 
 function void main()

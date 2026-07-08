@@ -2,7 +2,7 @@
   "name": "jp.sinoa.snowrabbit",
   "displayName": "SnowRabbit",
   "version": "0.0.2-13",
-  "unity": "2019.4",
+  "unity": "2021.3",
   "description": "This package provides Game develop support.",
   "keywords": [
     "programming",
@@ -13,7 +13,7 @@
   "author": {
     "name": "Sinoa",
     "email": "sinoans@gmail.com",
-    "url": "https://github.com/Sinoa/IceMilkTea"
+    "url": "https://github.com/Sinoa/SnowRabbit"
   },
   "category": "ScriptEngine",
   "type": "library"

@@ -14,9 +14,12 @@
 
 ### 必要条件
 
-- .NET 8.0以降（開発・テスト用）
-- .NET Standard 2.1対応環境（ランタイム）
+- .NET 10.0 SDK 以降（開発・ビルド用。`SampleApplication` と `SnowRabbitCompiler` が net10.0 をターゲットにしています）
+- .NET Standard 2.1対応環境（ランタイム。本体ライブラリのターゲット）
 - Unity 2021.3以降（Unity使用時）
+
+※テストプロジェクトは net8.0 ターゲットですが、`RollForward=Major` を設定しているため
+.NET 8 ランタイムが無い環境でもインストール済みの新しいランタイム（.NET 10 等）で自動的に実行されます。
 
 ### 導入方法
 
@@ -176,7 +179,7 @@ using Print = void Console.Write(string);
 
 - **32本のレジスタ**: `rax`, `rbx`, `rcx`, `rdx`, `rsi`, `rdi`, `rbp`, `rsp`, `r8`-`r29`, `ip`, `zero`
 - **メモリ領域**: プログラム領域、グローバル、ヒープ、スタック
-- **プロセスライフサイクル**: `Ready` → `Running` → `Suspended`/`Stopped`/`Panic`
+- **プロセスライフサイクル**: `Ready` → `Running` → `Suspended`/`Stopped`/`Panic`（`SrProcessStatus` には将来用の `ResumeRequested` も定義されています）
 
 ## ビルドとテスト
 
@@ -189,6 +192,9 @@ dotnet test test/SnowRabbit.Tests/SnowRabbit.Tests.csproj
 
 # サンプル実行
 dotnet run --project src/SampleApplication/SampleApplication.csproj
+
+# コマンドラインコンパイラ (snowrabbitc) の実行例
+dotnet run --project src/SnowRabbitCompiler/SnowRabbitCompiler.csproj -- script.srs -v
 ```
 
 ## ディレクトリ構成
@@ -199,9 +205,12 @@ SnowRabbit/
 │   ├── SnowRabbit/            # メインライブラリ
 │   │   ├── Compiler/          # コンパイラ（Lexer, Parser, Assembler）
 │   │   └── RuntimeEngine/     # 仮想マシン
+│   ├── SnowRabbitCompiler/    # コマンドラインコンパイラ（snowrabbitc）
 │   └── SampleApplication/     # サンプルアプリケーション
 ├── test/
 │   └── SnowRabbit.Tests/      # テストプロジェクト（NUnit 4）
+├── docs/                      # 言語リファレンス
+├── vscodeextensions/          # VS Code 構文ハイライト拡張（言語ID: csf）
 └── SnowRabbit.slnx
 ```
 
@@ -218,5 +227,3 @@ SnowRabbit/
 ### コントリビューション
 
 プルリクエストを歓迎します。大きな変更を行う場合は、まずIssueで議論してください。
-
-詳細は [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。

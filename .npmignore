@@ -1,5 +1,8 @@
-/.NativeTest/
-/.SampleApplication/
-/.editorconfig
-/SnowRabbit.sln*
-/Directory.build.props*
+/src/SampleApplication/
+/src/SnowRabbitCompiler/
+/test/
+/docs/
+/vscodeextensions/
+/SnowRabbit.slnx
+/SnowRabbit.sln.DotSettings
+/CLAUDE.md
