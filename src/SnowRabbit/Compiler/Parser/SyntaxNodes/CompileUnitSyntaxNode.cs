@@ -77,7 +77,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
 
                     case SrRuntimeType.Number:
-                        instruction.Set(OpCode.Movl, SrvmProcessor.RegisterAIndex, 0, 0, (float)literal.Number);
+                        instruction.Set(OpCode.Fmovl, SrvmProcessor.RegisterAIndex, 0, 0, (float)literal.Number);
                         context.AddBodyCode(instruction, false);
                         break;
 

@@ -176,8 +176,8 @@ public class MemoryBlockTest
         MemoryBlock<int> memoryBlockB = memoryBlock.Slice(50, 10);
         Assert.That(memoryBlockB.Offset, Is.EqualTo(50));
         Assert.That(memoryBlockB.Length, Is.EqualTo(10));
-        MemoryBlock<int> memoryBlockBB = memoryBlockB.Slice(10, 5);
-        Assert.That(memoryBlockBB.Offset, Is.EqualTo(60));
+        MemoryBlock<int> memoryBlockBB = memoryBlockB.Slice(5, 5);
+        Assert.That(memoryBlockBB.Offset, Is.EqualTo(55));
         Assert.That(memoryBlockBB.Length, Is.EqualTo(5));
         for (int i = 0; i < memoryBlockB.Length; ++i)
         {
@@ -187,5 +187,12 @@ public class MemoryBlockTest
         {
             Assert.That(memoryBlockBB[i], Is.EqualTo(i + memoryBlockBB.Offset));
         }
+
+
+        // 親ブロックの範囲を超えるスライスは例外になる（プール共有時の越境参照防止）
+        Assert.Throws<ArgumentOutOfRangeException>(() => memoryBlockB.Slice(10, 5));
+        Assert.Throws<ArgumentOutOfRangeException>(() => memoryBlockB.Slice(-1, 5));
+        Assert.Throws<ArgumentOutOfRangeException>(() => memoryBlockB.Slice(0, 11));
+        Assert.Throws<ArgumentOutOfRangeException>(() => memoryBlockB.Slice(0, -1));
     }
 }

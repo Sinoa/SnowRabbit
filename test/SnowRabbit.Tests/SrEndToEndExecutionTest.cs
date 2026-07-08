@@ -728,6 +728,100 @@ end
     }
 
     /// <summary>
+    /// 無限ループ検出で強制停止させるテスト用のプロセッサです
+    /// </summary>
+    private class ForceStopProcessor : SrvmProcessor
+    {
+        public bool InfinityLoopTriggered { get; private set; }
+        public bool StoppedEventFired { get; private set; }
+
+        protected override void OnProcessInfinityLoopingTriggered(SrProcess process, out bool isForceStop)
+        {
+            InfinityLoopTriggered = true;
+            isForceStop = true;
+        }
+
+        protected override void OnProcessStopped(SrProcess process)
+        {
+            StoppedEventFired = true;
+        }
+    }
+
+    /// <summary>
+    /// 強制停止プロセッサを組み込むテスト用ファクトリです
+    /// </summary>
+    private class ForceStopMachinePartsFactory : TestMachinePartsFactory
+    {
+        public ForceStopProcessor Processor { get; } = new ForceStopProcessor();
+
+        public ForceStopMachinePartsFactory(byte[] binaryData, TestPeripheral peripheral) : base(binaryData, peripheral)
+        {
+        }
+
+        public override SrvmProcessor CreateProcessor()
+        {
+            return Processor;
+        }
+    }
+
+    /// <summary>
+    /// 深い再帰でスタックオーバーフローが検出されプロセスがパニックすることをテストします
+    /// （従来は不可解なメモリ範囲外例外や無検出の破壊になっていた問題の回帰テスト）
+    /// </summary>
+    [Test]
+    public void StackOverflowOnDeepRecursionTest()
+    {
+        string script = @"
+function int Recurse(int n)
+    return Recurse(n + 1);
+end
+
+function void main()
+    local int result = Recurse(0);
+end
+";
+        byte[] binaryData = CompileScript(script);
+        TestPeripheral peripheral = new TestPeripheral();
+
+        using (SrvmMachine vm = new SrvmMachine(new TestMachinePartsFactory(binaryData, peripheral)))
+        {
+            SrProcess process = vm.CreateProcess("test.bin");
+            Assert.Throws<SrStackOverflowException>(() => process.Run());
+            Assert.That(process.ProcessState, Is.EqualTo(SrProcessStatus.Panic));
+            process.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// 無限ループ検出が発火し、強制停止時に停止イベントが呼ばれることをテストします
+    /// </summary>
+    [Test]
+    public void InfinityLoopForceStopTest()
+    {
+        string script = @"
+function void main()
+    for (;;)
+    end
+end
+";
+        byte[] binaryData = CompileScript(script);
+        TestPeripheral peripheral = new TestPeripheral();
+        ForceStopMachinePartsFactory factory = new ForceStopMachinePartsFactory(binaryData, peripheral);
+
+        using (SrvmMachine vm = new SrvmMachine(factory))
+        {
+            SrProcess process = vm.CreateProcess("test.bin");
+            process.InfinityLoopElapseTimeThreshold = 1;
+            process.Run();
+
+            Assert.That(factory.Processor.InfinityLoopTriggered, Is.True);
+            Assert.That(factory.Processor.StoppedEventFired, Is.True);
+            Assert.That(process.ProcessState, Is.EqualTo(SrProcessStatus.Stopped));
+            process.Dispose();
+        }
+    }
+
+    /// <summary>
     /// 同一マシン上の2つのプロセスが同じ非同期ホスト関数で中断しても、
     /// それぞれが自分の呼び出しの結果を受け取ることをテストします（非同期結果混線の回帰テスト）
     /// </summary>

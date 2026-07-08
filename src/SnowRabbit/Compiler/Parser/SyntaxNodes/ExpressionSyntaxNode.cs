@@ -211,7 +211,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
                 case SrRuntimeType.Number:
                     returnType = SrRuntimeType.Number;
-                    instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, (float)literalToken.Number);
+                    instruction.Set(OpCode.Fmovl, targetRegisterIndex, 0, 0, (float)literalToken.Number);
                     context.AddBodyCode(instruction, false);
                     return targetRegisterIndex;
 
@@ -282,7 +282,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                             break;
 
                         case SrRuntimeType.Number:
-                            instruction.Set(OpCode.Movl, targetRegisterIndex, 0, 0, (float)constantSymbol.ConstantValue.Number);
+                            instruction.Set(OpCode.Fmovl, targetRegisterIndex, 0, 0, (float)constantSymbol.ConstantValue.Number);
                             context.AddBodyCode(instruction, false);
                             break;
 

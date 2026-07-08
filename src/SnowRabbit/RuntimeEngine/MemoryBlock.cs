@@ -114,6 +114,13 @@ namespace SnowRabbit.RuntimeEngine
         /// <returns>このメモリブロックから指定された範囲の新しく切り出した MemoryBlock のインスタンスを返します</returns>
         public MemoryBlock<T> Slice(int offset, int count)
         {
+            // 親ブロックの範囲を超えるスライスは禁止する（プール共有時に隣接領域を参照できてしまうため）
+            if (offset < 0 || count < 0 || Length < offset + count)
+            {
+                throw new ArgumentOutOfRangeException($"{nameof(offset)} or {nameof(count)}", "指定された範囲は、このメモリブロックの範囲を超えています");
+            }
+
+
             // 指定された範囲で新しいメモリブロックを生成する
             return new MemoryBlock<T>(memoryPool, Offset + offset, count);
         }

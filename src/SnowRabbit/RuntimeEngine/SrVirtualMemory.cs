@@ -97,6 +97,15 @@ namespace SnowRabbit.RuntimeEngine
         /// <param name="stackMemory">仮想メモリが持つスタックメモリのメモリブロック</param>
         public SrVirtualMemory(MemoryBlock<SrValue> programCode, MemoryBlock<SrValue> globalMemory, MemoryBlock<SrValue> heapMemory, MemoryBlock<SrValue> stackMemory)
         {
+            // 各セグメントはオフセットが下位20bitで表現されるため、セグメント長の上限を検証する
+            const int MaxSegmentLength = (int)SegmentBitMask + 1;
+            if (programCode.Length > MaxSegmentLength || globalMemory.Length > MaxSegmentLength ||
+                heapMemory.Length > MaxSegmentLength || stackMemory.Length > MaxSegmentLength)
+            {
+                throw new ArgumentOutOfRangeException(null, $"メモリセグメントの長さは {MaxSegmentLength} 要素以下である必要があります");
+            }
+
+
             // メモリセグメント範囲ごとに参照としてもたせる
             Memory = new MemoryBlock<SrValue>[]
             {

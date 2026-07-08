@@ -68,7 +68,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         public const byte RegisterR28Index = 28; // FullGeneral Register[R28]
         public const byte RegisterR29Index = 29; // FullGeneral Register[R29]
         public const byte RegisterIPIndex = 30; // InstructionPointer Register[IP]
-        public const byte RegisterZeroIndex = 31; // Zero Register[ZERO]
+        public const byte RegisterZeroIndex = 31; // Zero Register[ZERO]（ISA契約: 常にゼロ。VMは書き込みを検査しないため、コード生成側はゼロレジスタへ書き込む命令を発行してはならない。DEBUGビルドでは実行後に検証される）
         public const byte TotalRegisterCount = RegisterZeroIndex + 1;
 
 
@@ -169,6 +169,22 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
         protected virtual void OnPostProcessInstruction_Debug(SrProcess process, SrInstruction instruction)
         {
         }
+
+        /// <summary>
+        /// デバッグ時のみ、ゼロレジスタが書き換えられていないこと（ISA契約）を検証します
+        /// </summary>
+        /// <param name="process">検証するプロセス</param>
+        /// <param name="instruction">直前に実行した命令</param>
+        /// <exception cref="InvalidOperationException">ゼロレジスタが書き換えられました</exception>
+        [Conditional("DEBUG")]
+        private static void ValidateZeroRegister_Debug(SrProcess process, in SrInstruction instruction)
+        {
+            if (process.ProcessorContext[RegisterZeroIndex].Primitive.Long != 0 || process.ProcessorContext[RegisterZeroIndex].Object != null)
+            {
+                throw new InvalidOperationException($"ゼロレジスタが命令 '{instruction.OpCode}' によって書き換えられました。ゼロレジスタへの書き込みはISA契約違反です。");
+            }
+        }
+
 
         /// <summary>
         /// デバッグ時のみ動作するCPUが不明な命令を実行した直後に処理をします
@@ -296,9 +312,14 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
             var context = process.ProcessorContext;
             var memory = process.VirtualMemory;
 
+            // スタック境界（有効なSPの範囲は [下限, 上限]。push は下限で、pop/ret は上限で検査する）
+            var stackLowerBound = (int)SrVirtualMemory.StackOffset;
+            var stackUpperBound = (int)SrVirtualMemory.StackOffset + memory.StackMemorySize;
+
             // プロセスの動作計測ストップウォッチを開始
             var startElapsedTime = process.RunningStopwatch.ElapsedMilliseconds;
             process.RunningStopwatch.Start();
+            var instructionCounter = 0;
 
             // 実行フラグを立てて、降りるまでループ
             // 注: ゼロレジスタ（RegisterZeroIndex）はプロセス初期化時に0に設定され、
@@ -354,18 +375,21 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
                     case OpCode.Push:
                         var sp = context[RegisterSPIndex] - 1;
+                        if (sp < stackLowerBound) throw new SrStackOverflowException("スタックオーバーフローが発生しました");
                         memory[sp] = context[r1];
                         context[RegisterSPIndex] = sp;
                         break;
 
                     case OpCode.Pushl:
                         sp = context[RegisterSPIndex] - 1;
+                        if (sp < stackLowerBound) throw new SrStackOverflowException("スタックオーバーフローが発生しました");
                         memory[sp] = instruction.Uint;
                         context[RegisterSPIndex] = sp;
                         break;
 
                     case OpCode.Pop:
                         sp = context[RegisterSPIndex];
+                        if (sp >= stackUpperBound) throw new SrStackUnderflowException("スタックアンダーフローが発生しました");
                         context[r1] = memory[sp];
                         context[RegisterSPIndex] = sp + 1;
                         break;
@@ -376,6 +400,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
                     case OpCode.Fpushl:
                         sp = context[RegisterSPIndex] - 1;
+                        if (sp < stackLowerBound) throw new SrStackOverflowException("スタックオーバーフローが発生しました");
                         memory[sp] = instruction.Float;
                         context[RegisterSPIndex] = sp;
                         break;
@@ -404,6 +429,11 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
                     case OpCode.Subl:
                         context[r1].Primitive.Long = context[r2].Primitive.Long - instruction.Int;
+                        if (r1 == RegisterSPIndex && context[RegisterSPIndex].Primitive.Long < stackLowerBound)
+                        {
+                            // 関数プロローグのフレーム確保（Subl rsp）によるスタック枯渇を検出する
+                            throw new SrStackOverflowException("スタックオーバーフローが発生しました");
+                        }
                         break;
 
                     case OpCode.Mul:
@@ -609,6 +639,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
                     case OpCode.Call:
                         sp = context[RegisterSPIndex] - 1;
+                        if (sp < stackLowerBound) throw new SrStackOverflowException("スタックオーバーフローが発生しました");
                         memory[sp] = nextInstructionPointer;
                         context[RegisterSPIndex] = sp;
                         nextInstructionPointer = context[r1].Primitive.Int + instruction.Int;
@@ -616,6 +647,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
                     case OpCode.Calll:
                         sp = context[RegisterSPIndex] - 1;
+                        if (sp < stackLowerBound) throw new SrStackOverflowException("スタックオーバーフローが発生しました");
                         memory[sp] = nextInstructionPointer;
                         context[RegisterSPIndex] = sp;
                         nextInstructionPointer = instruction.Int;
@@ -625,6 +657,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         if (context[r2].Primitive.Long != 0)
                         {
                             sp = context[RegisterSPIndex] - 1;
+                            if (sp < stackLowerBound) throw new SrStackOverflowException("スタックオーバーフローが発生しました");
                             memory[sp] = nextInstructionPointer;
                             context[RegisterSPIndex] = sp;
                             nextInstructionPointer = context[r1].Primitive.Int + instruction.Int;
@@ -635,6 +668,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                         if (context[r2].Primitive.Long != 0)
                         {
                             sp = context[RegisterSPIndex] - 1;
+                            if (sp < stackLowerBound) throw new SrStackOverflowException("スタックオーバーフローが発生しました");
                             memory[sp] = nextInstructionPointer;
                             context[RegisterSPIndex] = sp;
                             nextInstructionPointer = instruction.Int;
@@ -643,6 +677,7 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
 
                     case OpCode.Ret:
                         sp = context[RegisterSPIndex];
+                        if (sp >= stackUpperBound) throw new SrStackUnderflowException("スタックアンダーフローが発生しました");
                         nextInstructionPointer = memory[sp];
                         context[RegisterSPIndex] = sp + 1;
                         break;
@@ -701,18 +736,29 @@ namespace SnowRabbit.RuntimeEngine.VirtualMachine
                 // 最終的な次に実行する命令位置をもどして実行後イベントも呼ぶ
                 context[RegisterIPIndex].Primitive.Int = nextInstructionPointer;
                 OnPostProcessInstruction_Debug(process, instruction);
+                ValidateZeroRegister_Debug(process, instruction);
 
-                // 現在の単位実行時間を確認して、もし無限ループ経過時間の閾値を超過していたら
-                var unitRunningTime = process.RunningStopwatch.ElapsedMilliseconds - startElapsedTime;
-                if (unitRunningTime > process.InfinityLoopElapseTimeThreshold)
+                // 一定命令数ごとに単位実行時間を確認して、もし無限ループ経過時間の閾値を超過していたら
+                // （高精度タイマーの読み取りは命令実行より重いため、毎命令の読み取りは避ける）
+                if ((++instructionCounter & 0x3FF) == 0)
                 {
-                    // 無限ループイベントを呼んで強制停止するかどうかも判断を委ねて、停止するなら
-                    OnProcessInfinityLoopingTriggered(process, out var isForceStop);
-                    if (isForceStop)
+                    var unitRunningTime = process.RunningStopwatch.ElapsedMilliseconds - startElapsedTime;
+                    if (unitRunningTime > process.InfinityLoopElapseTimeThreshold)
                     {
-                        // 実行を停止してプロセス実行状態も停止にする
-                        running = false;
-                        process.ProcessState = SrProcessStatus.Stopped;
+                        // 無限ループイベントを呼んで強制停止するかどうかも判断を委ねて、停止するなら
+                        OnProcessInfinityLoopingTriggered(process, out var isForceStop);
+                        if (isForceStop)
+                        {
+                            // 実行を停止してプロセス実行状態も停止にして、停止イベントも呼ぶ
+                            running = false;
+                            process.ProcessState = SrProcessStatus.Stopped;
+                            OnProcessStopped(process);
+                        }
+                        else
+                        {
+                            // 続行する場合は基準時刻を更新して、イベントが毎回発火し続けないようにする
+                            startElapsedTime = process.RunningStopwatch.ElapsedMilliseconds;
+                        }
                     }
                 }
             }

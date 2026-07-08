@@ -43,6 +43,8 @@ namespace SnowRabbit.RuntimeEngine
 
         /// <summary>
         /// レジスタへ即値をコピーします：Ra = Imm
+        /// （即値は32bit無符号としてゼロ拡張されます。負の整数が必要な場合は Negl 等を使用してください。
+        /// 浮動小数点即値のビットパターン運搬にも使用できますが、明示的な Fmovl の使用を推奨します）
         /// </summary>
         Movl = 0x11,
 
@@ -73,6 +75,7 @@ namespace SnowRabbit.RuntimeEngine
 
         /// <summary>
         /// スタックポインタをデクリメントしてから、即値をスタックへプッシュします：--SP; [SP] = Imm
+        /// （即値は32bit無符号としてゼロ拡張されます）
         /// </summary>
         Pushl = 0x17,
 
