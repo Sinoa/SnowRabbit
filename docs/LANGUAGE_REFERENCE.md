@@ -77,6 +77,35 @@ SnowRabbitは以下の組み込み型をサポートします：
 | `object` | オブジェクト参照 | `object` |
 | `bool` | 真偽値 | `bool` |
 
+### 暗黙の型変換
+
+型の異なる値を渡せるのは次の組み合わせだけです。それ以外はコンパイルエラーになります。
+
+| 変換 | 説明 |
+|---|---|
+| `int` → `number` | 整数を実数へ昇格します。`number` が期待される場所では `1.0` の代わりに `1` と書けます |
+| `string` ⇔ `object` | 相互に受け渡せます（`null` リテラルが `object` 型のため） |
+
+暗黙変換は、ローカル変数の初期化、代入（複合代入を含む）、スクリプト関数とホスト関数の引数、`return` の値に適用されます。
+`int` と `number` が混在する算術演算・比較演算でも、`int` 側が `number` へ昇格されます。
+
+```
+using SetScale = void Sample.SetScale(number, number);
+
+function number Half(number value)
+    return value / 2;       // 2 は 2.0 として計算される
+end
+
+function void main()
+    local number n = 1;     // 1.0 で初期化される
+    SetScale(1, 0);         // SetScale(1.0, 0.0) と同じ
+    SetScale(Half(5), n);
+end
+```
+
+- `number` から `int` への変換は暗黙には行われません（`local int x = 1.5;` や、`int` 引数へ `1.5` を渡す記述はコンパイルエラー）
+- グローバル変数の初期化子は暗黙変換の対象外で、宣言した型と同じ種類のリテラルが必要です（`global number x = 0;` はコンパイルエラー。`0.0` と書きます）
+
 ---
 
 ## リテラル
