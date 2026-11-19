@@ -119,6 +119,38 @@ namespace SnowRabbit.Compiler.Reporter
         }
 
 
+        /// <summary>
+        /// カンマ区切りのリストで ',' の後に要素が無いエラー
+        /// </summary>
+        /// <param name="token">',' の次にあるトークン</param>
+        /// <param name="elementName">リストの要素の呼び名（引数、型、パラメータ）</param>
+        public SrSyntaxErrorException MissingElementAfterComma(in Token token, string elementName)
+        {
+            return CreateAndReportErrorMessage(token, $"',' の後に{elementName}がありません。");
+        }
+
+
+        /// <summary>
+        /// 関数のパラメータに名前が無いエラー
+        /// </summary>
+        /// <param name="token">パラメータの型の次にあるトークン</param>
+        public SrSyntaxErrorException MissingParameterName(in Token token)
+        {
+            return CreateAndReportErrorMessage(token, "パラメータの名前がありません。");
+        }
+
+
+        /// <summary>
+        /// 関数呼び出しに引数リストが無いエラー
+        /// </summary>
+        /// <param name="token">呼び出す関数名のトークン</param>
+        /// <param name="functionName">呼び出す関数の名前</param>
+        public SrSyntaxErrorException MissingArgumentList(in Token token, string functionName)
+        {
+            return CreateAndReportErrorMessage(token, $"関数 '{functionName}' の呼び出しに引数リストがありません。");
+        }
+
+
         public SrSyntaxErrorException InvalidParameterStoreType(in Token token, SrRuntimeType fromType, SrRuntimeType toType)
         {
             return CreateAndReportErrorMessage(token, $"パラメータの値渡しの型が '{fromType}' から '{toType}' へ一致しません。事前にキャストするか変換を行ってください。");

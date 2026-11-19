@@ -157,6 +157,18 @@ public class SrEndToEndExecutionTest
             Outputs.Add(value.ToString(CultureInfo.InvariantCulture));
         }
 
+        [SrHostFunction("Fade")]
+        public void Fade(float from, float to, int mode, int frame)
+        {
+            Outputs.Add(string.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3}", from, to, mode, frame));
+        }
+
+        [SrHostFunction("Reset")]
+        public void Reset()
+        {
+            Outputs.Add("reset");
+        }
+
         public List<TaskCompletionSource<string>> ValueWaiters { get; } = new List<TaskCompletionSource<string>>();
 
         [SrHostFunction("WaitValue")]
@@ -1079,5 +1091,37 @@ end
         TestPeripheral peripheral = CompileAndRun(script);
 
         Assert.That(peripheral.Outputs, Is.EqualTo(new[] { "42", "2", "1", "0" }));
+    }
+
+    /// <summary>
+    /// 複数の引数を取るホスト関数と引数なしのホスト関数・スクリプト関数の呼び出しで、
+    /// 引数が宣言順どおりに届くことをテストします（引数リストのコード生成の回帰テスト）
+    /// </summary>
+    [Test]
+    public void MultipleArgumentFunctionCallExecutionTest()
+    {
+        string script = @"
+using Fade = void Test.Fade(number, number, int, int);
+using Reset = void Test.Reset();
+using WriteInt = void Test.WriteInt(int);
+
+function void ResetAll()
+    Reset();
+end
+
+function void Sub(int a, int b)
+    WriteInt(a - b);
+end
+
+function void main()
+    Fade(1.0, 1.0, 0, 2);
+    Fade(0.5, 0.25, 3, 4);
+    ResetAll();
+    Sub(10, 3);
+end
+";
+        TestPeripheral peripheral = CompileAndRun(script);
+
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[] { "1,1,0,2", "0.5,0.25,3,4", "reset", "7" }));
     }
 }
