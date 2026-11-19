@@ -39,10 +39,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw context.ErrorReporter.UnknownSymbol(Children[0].Token);
             }
 
-            if (argumentList != null)
+            // 引数の個数と型の検査は引数リストのコンパイルが担っているため、引数リストが無いまま進めると
+            // 検査ごと飛ばして引数を1つも積まない呼び出しを生成してしまう。null は黙って通さずエラーにする。
+            if (argumentList == null)
             {
-                argumentList.Compile(context);
+                throw context.ErrorReporter.MissingArgumentList(Children[0].Token, FunctionName);
             }
+
+            argumentList.Compile(context);
 
             var instruction = default(SrInstruction);
             if (functionSymbol is SrScriptFunctionSymbol)
@@ -64,11 +68,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
-            if (argumentList != null)
-            {
-                instruction.Set(OpCode.Addl, SrvmProcessor.RegisterSPIndex, SrvmProcessor.RegisterSPIndex, 0, argumentList.Children.Count);
-                context.AddBodyCode(instruction, false);
-            }
+            instruction.Set(OpCode.Addl, SrvmProcessor.RegisterSPIndex, SrvmProcessor.RegisterSPIndex, 0, argumentList.Children.Count);
+            context.AddBodyCode(instruction, false);
         }
     }
 }

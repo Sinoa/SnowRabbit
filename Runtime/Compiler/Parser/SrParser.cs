@@ -436,8 +436,11 @@ namespace SnowRabbit.Compiler.Parser
         {
             var type = ParseType();
             if (type == null) return null;
+
+            // 型まで読んだ後に名前が無い場合に null を返すと、呼び出し元が「パラメータ無し」として
+            // 黙って通してしまうため、ここでエラーにする
             var name = ParseIdentifier();
-            if (name == null) return null;
+            if (name == null) throw errorReporter.MissingParameterName(currentLexer.LastReadToken);
 
 
             var node = new ParameterSyntaxNode();
@@ -469,8 +472,9 @@ namespace SnowRabbit.Compiler.Parser
             typeList.Add(type);
             while (CheckTokenAndReadNext(TokenKind.Comma))
             {
+                // ',' の後に型が無い場合に null を返すと、型リスト全体が「型無し」として黙って通ってしまう
                 type = ParseType();
-                if (type == null) return null;
+                if (type == null) throw errorReporter.MissingElementAfterComma(currentLexer.LastReadToken, "型");
                 typeList.Add(type);
             }
 
@@ -489,8 +493,9 @@ namespace SnowRabbit.Compiler.Parser
             parameterList.Add(parameter);
             while (CheckTokenAndReadNext(TokenKind.Comma))
             {
+                // ',' の後にパラメータが無い場合に null を返すと、パラメータリスト全体が「パラメータ無し」として黙って通ってしまう
                 parameter = ParseParameter();
-                if (parameter == null) return null;
+                if (parameter == null) throw errorReporter.MissingElementAfterComma(currentLexer.LastReadToken, "パラメータ");
                 parameterList.Add(parameter);
             }
 
@@ -509,8 +514,10 @@ namespace SnowRabbit.Compiler.Parser
             argumentList.Add(argument);
             while (CheckTokenAndReadNext(TokenKind.Comma))
             {
+                // ',' の後に引数が無い場合に null を返すと、引数の個数と型の検査ごと飛ばされて
+                // 引数を1つも積まない呼び出しが生成されてしまう
                 argument = ParseArgument();
-                if (argument == null) return null;
+                if (argument == null) throw errorReporter.MissingElementAfterComma(currentLexer.LastReadToken, "引数");
                 argumentList.Add(argument);
             }
 
