@@ -28,6 +28,12 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
         public SrRuntimeType Type { get; private set; }
 
 
+        /// <summary>
+        /// この引数が渡されるパラメータの型。ArgumentListSyntaxNode からコンパイル前に設定されます。
+        /// </summary>
+        internal SrRuntimeType ExpectedParameterType { get; set; }
+
+
 
         public ArgumentSyntaxNode(in Token token) : base(token)
         {
@@ -50,6 +56,16 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             else
             {
                 Type = ((ExpressionSyntaxNode)expression).ResultType;
+            }
+
+
+            // 整数の値を実数のパラメータへ渡す場合は、スタックへ積む前に実数へ昇格する（1 を 1.0 として渡せるようにする）。
+            // Movitf は第1オペランドのレジスタを変換元として読むため、変換元と変換先には同じレジスタを指定する。
+            if (Type == SrRuntimeType.Integer && ExpectedParameterType == SrRuntimeType.Number)
+            {
+                instruction.Set(OpCode.Movitf, SrvmProcessor.RegisterAIndex, SrvmProcessor.RegisterAIndex);
+                context.AddBodyCode(instruction, false);
+                Type = SrRuntimeType.Number;
             }
 
 

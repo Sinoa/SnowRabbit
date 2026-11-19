@@ -43,11 +43,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
 
             for (int i = argumentCount - 1; i >= 0; --i)
             {
+                // 整数から実数への昇格は値をスタックへ積む前に行う必要があるため、
+                // 渡し先のパラメータ型を引数ノードへ伝えてからコンパイルする
+                var parameterType = functionSymbol.GetParameter(i + 1).Type;
                 var argumentNode = (ArgumentSyntaxNode)Children[i];
+                argumentNode.ExpectedParameterType = parameterType;
                 argumentNode.Compile(context);
 
                 var argumentType = argumentNode.Type;
-                var parameterType = functionSymbol.GetParameter(i + 1).Type;
                 if (argumentType != parameterType)
                 {
                     var isObjectOrString =
