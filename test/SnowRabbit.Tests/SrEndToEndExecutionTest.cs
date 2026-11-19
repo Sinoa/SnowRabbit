@@ -660,6 +660,37 @@ end
     }
 
     /// <summary>
+    /// number 引数のホスト関数へ整数（リテラル・定数・変数・式・関数の戻り値）を渡すと、
+    /// 実数へ昇格した値が届くことをテストします（1.0 の代わりに 1、0.0 の代わりに 0 と書ける）
+    /// </summary>
+    [Test]
+    public void HostFunctionNumberArgumentIntPromotionExecutionTest()
+    {
+        string script = @"
+using Fade = void Test.Fade(number, number, int, int);
+using WriteNumber = void Test.WriteNumber(number);
+#const ZERO 0
+
+function int Add(int a, int b)
+    return a + b;
+end
+
+function void main()
+    local int i = 3;
+    Fade(1, 0, 0, 2);
+    Fade(-1, ZERO, 1, 2);
+    Fade(i, i + 1, 3, 4);
+    Fade(1.5, 2, 5, 6);
+    WriteNumber(0x10);
+    WriteNumber(Add(1, 2));
+end
+";
+        TestPeripheral peripheral = CompileAndRun(script);
+
+        Assert.That(peripheral.Outputs, Is.EqualTo(new[] { "1,0,0,2", "-1,0,1,2", "3,4,3,4", "1.5,2,5,6", "16", "3" }));
+    }
+
+    /// <summary>
     /// 比較・条件演算の結果が真偽値として bool 引数のホスト関数へ渡せることをテストします
     /// （比較演算の結果型の回帰テスト）
     /// </summary>
