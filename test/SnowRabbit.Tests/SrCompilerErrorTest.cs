@@ -23,7 +23,9 @@
 
 using SnowRabbit.Compiler;
 using SnowRabbit.Compiler.IO;
+using SnowRabbit.Compiler.Lexer;
 using SnowRabbit.Compiler.Parser.SyntaxErrors;
+using SnowRabbit.Compiler.Parser.SyntaxNodes;
 using SnowRabbit.Compiler.Reporter;
 
 namespace SnowRabbit.Tests;
@@ -64,6 +66,19 @@ public class SrCompilerErrorTest
     private class NullReportPrinter : ISrCompileReportPrinter
     {
         public void PrintReport(CompileReport report) { }
+    }
+
+    /// <summary>
+    /// コンパイルレポートのメッセージを記録するプリンタです
+    /// </summary>
+    private class RecordingReportPrinter : ISrCompileReportPrinter
+    {
+        public List<string> Messages { get; } = new List<string>();
+
+        public void PrintReport(CompileReport report)
+        {
+            Messages.Add(report.Message);
+        }
     }
 
     /// <summary>
@@ -276,6 +291,23 @@ end
             using MemoryStream outputStream = new MemoryStream();
             compiler.Compile("test.srs", outputStream);
         });
+    }
+
+    /// <summary>
+    /// 指定されたスクリプトのコンパイルが、指定されたメッセージのエラーになることを検証します
+    /// </summary>
+    private static void AssertCompileErrorMessage(string script, string expectedMessage)
+    {
+        MemoryScriptStorage storage = new MemoryScriptStorage("test.srs", script);
+        RecordingReportPrinter printer = new RecordingReportPrinter();
+        SrCompiler compiler = new SrCompiler(storage, printer);
+
+        Assert.Throws<SrSyntaxErrorException>(() =>
+        {
+            using MemoryStream outputStream = new MemoryStream();
+            compiler.Compile("test.srs", outputStream);
+        });
+        Assert.That(printer.Messages, Is.EqualTo(new[] { expectedMessage }));
     }
 
     /// <summary>
@@ -689,5 +721,258 @@ function void main()
     DoNothing();
 end
 ");
+    }
+
+    /// <summary>
+    /// 関数呼び出しの引数リストで ',' の後に引数が無い場合に、専用メッセージのエラーになることをテストします
+    /// （末尾カンマが黙って通り、引数を1つも積まない呼び出しが生成されていた問題の回帰テスト）
+    /// </summary>
+    [Test]
+    public void ArgumentListMissingArgumentAfterCommaTest()
+    {
+        const string expectedMessage = "',' の後に引数がありません。";
+
+        // ホスト関数の呼び出しの末尾カンマ
+        AssertCompileErrorMessage(@"
+using Fade = void Sample.Fade(number, number, int, int);
+
+function void main()
+    Fade(1.0, 1.0, 0, 2,);
+end
+", expectedMessage);
+
+        // スクリプト関数の呼び出しの末尾カンマ
+        AssertCompileErrorMessage(@"
+function void Take(int a)
+end
+
+function void main()
+    Take(1,);
+end
+", expectedMessage);
+
+        // 式の中の呼び出しの末尾カンマ
+        AssertCompileErrorMessage(@"
+function int Twice(int a)
+    return a * 2;
+end
+
+function void main()
+    local int x = 1 + Twice(2,);
+end
+", expectedMessage);
+
+        // 引数の間でカンマが連続している
+        AssertCompileErrorMessage(@"
+using Fade = void Sample.Fade(number, number, int, int);
+
+function void main()
+    Fade(1.0,,1.0);
+end
+", expectedMessage);
+    }
+
+    /// <summary>
+    /// 引数リストがカンマから始まる場合に、従来通り括弧の対応エラーになることをテストします
+    /// </summary>
+    [Test]
+    public void ArgumentListLeadingCommaTest()
+    {
+        AssertCompileErrorMessage(@"
+using Fade = void Sample.Fade(number, number, int, int);
+
+function void main()
+    Fade(,1.0);
+end
+", "'(' に対応する ')' がありません。");
+    }
+
+    /// <summary>
+    /// 引数の個数の不一致と、引数なしの呼び出しの扱いが変わっていないことをテストします
+    /// </summary>
+    [Test]
+    public void ArgumentCountCheckTest()
+    {
+        AssertCompileErrorMessage(@"
+using Fade = void Sample.Fade(number, number, int, int);
+
+function void main()
+    Fade(1.0, 1.0, 0);
+end
+", "関数 'Fade' のパラメータは '4' 個ですが、引数の数が '3' 個です。");
+
+        AssertCompileErrorMessage(@"
+using Fade = void Sample.Fade(number, number, int, int);
+
+function void main()
+    Fade();
+end
+", "関数 'Fade' のパラメータは '4' 個ですが、引数の数が '0' 個です。");
+
+        AssertCompileSuccess(@"
+using Fade = void Sample.Fade(number, number, int, int);
+using Reset = void Sample.Reset();
+
+function void DoNothing()
+end
+
+function void main()
+    Fade(1.0, 1.0, 0, 2);
+    Reset();
+    DoNothing();
+end
+");
+    }
+
+    /// <summary>
+    /// using 宣言の型リストで ',' の後に型が無い場合に、エラーになることをテストします
+    /// （型リストごと「型無し」として黙って通り、引数なしのホスト関数として宣言されていた問題の回帰テスト）
+    /// </summary>
+    [Test]
+    public void TypeListMissingTypeAfterCommaTest()
+    {
+        const string expectedMessage = "',' の後に型がありません。";
+
+        AssertCompileErrorMessage(@"
+using Show = void Sample.Show(int, );
+
+function void main()
+end
+", expectedMessage);
+
+        AssertCompileErrorMessage(@"
+using Show = void Sample.Show(int, number, );
+
+function void main()
+    Show();
+end
+", expectedMessage);
+
+        AssertCompileErrorMessage(@"
+using Show = void Sample.Show(int,, int);
+
+function void main()
+end
+", expectedMessage);
+
+        // 型が1つも無い宣言と、正しい型リストは従来通りコンパイルできる
+        AssertCompileSuccess(@"
+using Reset = void Sample.Reset();
+using Show = void Sample.Show(int, number);
+
+function void main()
+    Reset();
+    Show(1, 2.0);
+end
+");
+    }
+
+    /// <summary>
+    /// 関数宣言のパラメータリストで ',' の後にパラメータが無い場合に、エラーになることをテストします
+    /// （パラメータリストごと「パラメータ無し」として黙って通っていた問題の回帰テスト）
+    /// </summary>
+    [Test]
+    public void ParameterListMissingParameterAfterCommaTest()
+    {
+        const string expectedMessage = "',' の後にパラメータがありません。";
+
+        AssertCompileErrorMessage(@"
+function void Take(int a, )
+end
+
+function void main()
+    Take();
+end
+", expectedMessage);
+
+        AssertCompileErrorMessage(@"
+function void Take(int a, int b, )
+end
+
+function void main()
+end
+", expectedMessage);
+
+        AssertCompileErrorMessage(@"
+function void Take(int a,, int b)
+end
+
+function void main()
+end
+", expectedMessage);
+
+        // パラメータが1つも無い宣言と、正しいパラメータリストは従来通りコンパイルできる
+        AssertCompileSuccess(@"
+function void DoNothing()
+end
+
+function int Add(int a, int b)
+    return a + b;
+end
+
+function void main()
+    DoNothing();
+    local int x = Add(1, 2);
+end
+");
+    }
+
+    /// <summary>
+    /// 関数宣言のパラメータに名前が無い場合に、エラーになることをテストします
+    /// （型だけ読んでパラメータリストごと「パラメータ無し」として黙って通っていた問題の回帰テスト）
+    /// </summary>
+    [Test]
+    public void ParameterWithoutNameTest()
+    {
+        const string expectedMessage = "パラメータの名前がありません。";
+
+        AssertCompileErrorMessage(@"
+function void Take(int)
+end
+
+function void main()
+    Take();
+end
+", expectedMessage);
+
+        AssertCompileErrorMessage(@"
+function void Take(int a, int)
+end
+
+function void main()
+    Take();
+end
+", expectedMessage);
+    }
+
+    /// <summary>
+    /// 引数リストを持たない関数呼び出しノードが、黙ってコンパイルされずエラーになることをテストします
+    /// （引数の個数と型の検査は引数リストのコンパイルが担うため、引数リストが無いと検査ごと飛ばされる）
+    /// </summary>
+    [Test]
+    public void FunctionCallNodeWithoutArgumentListTest()
+    {
+        const string script = @"
+function void Take(int a)
+end
+
+function void main()
+end
+";
+        MemoryScriptStorage storage = new MemoryScriptStorage("test.srs", script);
+        RecordingReportPrinter printer = new RecordingReportPrinter();
+        SrCompiler compiler = new SrCompiler(storage, printer);
+        compiler.Parse("test.srs", out SyntaxNode root);
+
+        // パーサは必ず引数リストを生成するため、引数リストが null の呼び出しを main の末尾へ手で組み立てる
+        SyntaxNode mainFunction = root.Children.Last(x => x is FunctionDeclareSyntaxNode);
+        Assert.That(mainFunction.Children[1].Token.Text, Is.EqualTo("main"));
+        FunctionCallSyntaxNode functionCall = new FunctionCallSyntaxNode();
+        functionCall.Add(new IdentifierSyntaxNode(new Token(TokenKind.Identifier, "Take", 0, 0.0, "test.srs", 6, 5)));
+        functionCall.Add(null!);
+        mainFunction.Add(functionCall);
+
+        Assert.Throws<SrSyntaxErrorException>(() => compiler.Compile(root, out _));
+        Assert.That(printer.Messages, Is.EqualTo(new[] { "関数 'Take' の呼び出しに引数リストがありません。" }));
     }
 }

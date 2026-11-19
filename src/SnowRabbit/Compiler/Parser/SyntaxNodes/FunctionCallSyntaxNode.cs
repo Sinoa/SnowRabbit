@@ -36,7 +36,7 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
     /// <remarks>
     /// 子ノード構造:
     /// - Children[0]: 関数名（IdentifierSyntaxNode）
-    /// - Children[1]: 引数リスト（ArgumentListSyntaxNode、nullの場合あり）
+    /// - Children[1]: 引数リスト（ArgumentListSyntaxNode。引数なしの呼び出しでも空のリストが入り、null は不正）
     /// </remarks>
     public class FunctionCallSyntaxNode : SyntaxNode
     {
@@ -58,10 +58,14 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
                 throw context.ErrorReporter.UnknownSymbol(Children[0].Token);
             }
 
-            if (argumentList != null)
+            // 引数の個数と型の検査は引数リストのコンパイルが担っているため、引数リストが無いまま進めると
+            // 検査ごと飛ばして引数を1つも積まない呼び出しを生成してしまう。null は黙って通さずエラーにする。
+            if (argumentList == null)
             {
-                argumentList.Compile(context);
+                throw context.ErrorReporter.MissingArgumentList(Children[0].Token, FunctionName);
             }
+
+            argumentList.Compile(context);
 
             var instruction = default(SrInstruction);
             if (functionSymbol is SrScriptFunctionSymbol)
@@ -83,11 +87,8 @@ namespace SnowRabbit.Compiler.Parser.SyntaxNodes
             }
 
 
-            if (argumentList != null)
-            {
-                instruction.Set(OpCode.Addl, SrvmProcessor.RegisterSPIndex, SrvmProcessor.RegisterSPIndex, 0, argumentList.Children.Count);
-                context.AddBodyCode(instruction, false);
-            }
+            instruction.Set(OpCode.Addl, SrvmProcessor.RegisterSPIndex, SrvmProcessor.RegisterSPIndex, 0, argumentList.Children.Count);
+            context.AddBodyCode(instruction, false);
         }
     }
 }

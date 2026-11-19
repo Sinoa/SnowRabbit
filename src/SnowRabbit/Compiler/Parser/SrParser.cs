@@ -494,8 +494,10 @@ namespace SnowRabbit.Compiler.Parser
         {
             var type = ParseType();
             if (type == null) return null;
-            var name = ParseIdentifier();
-            if (name == null) return null;
+
+            // 型まで読んだ後に名前が無い場合に null を返すと、呼び出し元が「パラメータ無し」として
+            // 黙って通してしまうため、ここでエラーにする
+            var name = ParseIdentifier() ?? throw errorReporter.MissingParameterName(currentLexer.LastReadToken);
 
             var node = new ParameterSyntaxNode();
             node.Add(type);
@@ -521,7 +523,7 @@ namespace SnowRabbit.Compiler.Parser
         /// <summary>
         /// 型リスト（カンマ区切りの型の並び）をパースします
         /// </summary>
-        /// <returns>型リストノード、または該当しない場合は null</returns>
+        /// <returns>型リストノード、または型が1つも無い場合は null</returns>
         private SyntaxNode ParseTypeList()
         {
             var type = ParseType();
@@ -531,8 +533,8 @@ namespace SnowRabbit.Compiler.Parser
             typeList.Add(type);
             while (CheckTokenAndReadNext(TokenKind.Comma))
             {
-                type = ParseType();
-                if (type == null) return null;
+                // ',' の後に型が無い場合に null を返すと、型リスト全体が「型無し」として黙って通ってしまう
+                type = ParseType() ?? throw errorReporter.MissingElementAfterComma(currentLexer.LastReadToken, "型");
                 typeList.Add(type);
             }
 
@@ -542,7 +544,7 @@ namespace SnowRabbit.Compiler.Parser
         /// <summary>
         /// パラメータリスト（カンマ区切りのパラメータの並び）をパースします
         /// </summary>
-        /// <returns>パラメータリストノード、または該当しない場合は null</returns>
+        /// <returns>パラメータリストノード、またはパラメータが1つも無い場合は null</returns>
         private SyntaxNode ParseParameterList()
         {
             var parameter = ParseParameter();
@@ -552,8 +554,8 @@ namespace SnowRabbit.Compiler.Parser
             parameterList.Add(parameter);
             while (CheckTokenAndReadNext(TokenKind.Comma))
             {
-                parameter = ParseParameter();
-                if (parameter == null) return null;
+                // ',' の後にパラメータが無い場合に null を返すと、パラメータリスト全体が「パラメータ無し」として黙って通ってしまう
+                parameter = ParseParameter() ?? throw errorReporter.MissingElementAfterComma(currentLexer.LastReadToken, "パラメータ");
                 parameterList.Add(parameter);
             }
 
@@ -563,7 +565,7 @@ namespace SnowRabbit.Compiler.Parser
         /// <summary>
         /// 引数リスト（カンマ区切りの引数の並び）をパースします。引数がない場合は空のリストを返します。
         /// </summary>
-        /// <returns>引数リストノード</returns>
+        /// <returns>引数リストノード（null を返すことはありません）</returns>
         private SyntaxNode ParseArgumentList()
         {
             var argumentList = new ArgumentListSyntaxNode(currentLexer.LastReadToken);
@@ -573,7 +575,8 @@ namespace SnowRabbit.Compiler.Parser
             argumentList.Add(argument);
             while (CheckTokenAndReadNext(TokenKind.Comma))
             {
-                argumentList.Add(Require(ParseArgument()));
+                argument = ParseArgument() ?? throw errorReporter.MissingElementAfterComma(currentLexer.LastReadToken, "引数");
+                argumentList.Add(argument);
             }
 
             return argumentList;
